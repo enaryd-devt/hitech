@@ -10,37 +10,55 @@
 		<xpath expr="//Dropdown" position="replace">
 			<AppsMenu menuClass="'mk_app_menu'">
 				<button data-hotkey="h" title="Home Menu">
-					<i class="oi oi-apps" />
+					<i class="oi oi-apps mk_apps_icon" />
+					<i class="fa fa-chevron-right mk_chevron_icon" />
 				</button>
           		<t t-set-slot="content">
-					<DropdownItem
-						t-foreach="this.appMenuService.getAppsMenuItems()"
-						t-as="app"
-						t-key="app.id"
-						class="'o_app'"
-						attrs="{ href: app.href, 'data-menu-xmlid': app.xmlid, 'data-section': app.id }"
-						onSelected="() => this.onNavBarDropdownItemSelection(app)"
-						closingMode="'none'"
-					>
-						<a 
-							t-att-href="app.href" 
-							t-on-click.prevent=""
+					<div class="mk_app_menu_searchbar">
+						<i class="fa fa-search"/>
+						<input type="search" placeholder="Rechercher un menu, une action..." autocomplete="off"
+						       t-att-value="appsMenuSearch.query" t-on-input="onAppsMenuSearchInput"/>
+						<span class="mk_app_menu_search_hint">Tapez pour voir les chemins d’accès</span>
+					</div>
+					<t t-if="appsMenuSearch.query">
+						<div t-if="!menuSearchResults.length" class="mk_app_menu_empty">Aucun menu ne correspond à votre recherche.</div>
+						<DropdownItem t-foreach="menuSearchResults" t-as="item" t-key="item.id"
+							class="'mk_menu_search_result'"
+							attrs="{ href: item.href, 'data-menu-xmlid': item.xmlid, 'data-section': item.id }"
+							onSelected="() => this.onNavBarDropdownItemSelection(item)">
+							<div class="mk_menu_search_result_label"><t t-out="item.label"/></div>
+							<div class="mk_menu_search_result_path"><t t-out="item.parents || item.label"/></div>
+						</DropdownItem>
+					</t>
+					<div t-if="!appsMenuSearch.query" class="mk_app_menu_grid">
+						<DropdownItem
+							t-foreach="this.appMenuService.getAppsMenuItems()"
+							t-as="app"
+							t-key="app.id"
+							class="'o_app'"
+							attrs="{ href: app.href, 'data-menu-xmlid': app.xmlid, 'data-section': app.id }"
+							onSelected="() => this.onNavBarDropdownItemSelection(app)"
 						>
-							<img 
-								t-if="app.webIconData"          		
-								class="mk_app_icon" 
-								t-att-src="app.webIconData"
-							/>
-							<img  
-								t-else="" 
-								class="mk_app_icon" 
-								src="/base/static/description/icon.png"
-							/>
-							<span class="mk_app_name">
-								<t t-out="app.label"/>
-							</span>
-						</a>
-					</DropdownItem>
+							<a 
+								t-att-href="app.href" 
+								t-on-click.prevent=""
+							>
+								<img 
+									t-if="app.webIconData"          		
+									class="mk_app_icon" 
+									t-att-src="app.webIconData"
+								/>
+								<img  
+									t-else="" 
+									class="mk_app_icon" 
+									src="/base/static/description/icon.png"
+								/>
+								<span class="mk_app_name">
+									<t t-out="app.label"/>
+								</span>
+							</a>
+						</DropdownItem>
+					</div>
          		</t>
 			</AppsMenu>
 		</xpath>
