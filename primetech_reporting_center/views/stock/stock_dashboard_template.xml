@@ -1,0 +1,192 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_dashboard_template">
+    <div style="padding:20px; background:#f5f6fa; min-height:100%;">
+      <!-- ===================================== -->
+      <!-- TITRE -->
+      <!-- ===================================== -->
+      <h2 style="text-align:center; margin-bottom:20px; color:#1f4e79;">
+        VUE D'ENSEMBLE STOCK
+    </h2>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <table style="width:100%; border-collapse:separate; border-spacing:10px;">
+        <tr>
+          <!-- Produits -->
+          <td style="background:white; border:1px solid #ddd; border-radius:8px; text-align:center; padding:15px; width:20%;">
+            <div style="font-size:12px; color:#777;">
+                    Produits
+                </div>
+            <div style="font-size:24px; font-weight:bold;">
+              <t t-out="data['products_count']"/>
+            </div>
+          </td>
+          <!-- Stock -->
+          <td style="background:white; border:1px solid #ddd; border-radius:8px; text-align:center; padding:15px; width:20%;">
+            <div style="font-size:12px; color:#777;">
+                    Stock Total
+                </div>
+            <div style="font-size:24px; font-weight:bold;">
+              <t t-out="data['stock_qty']"/>
+            </div>
+          </td>
+          <!-- Valeur -->
+          <td style="background:white; border:1px solid #ddd; border-radius:8px; text-align:center; padding:15px; width:20%;">
+            <div style="font-size:12px; color:#777;">
+                    Valeur Stock
+                </div>
+            <div style="font-size:20px; font-weight:bold;">
+              <t t-out="'{:,.0f}'.format( data['stock_value'] ).replace(',', ' ')"/>
+            </div>
+          </td>
+          <!-- Ruptures -->
+          <td style="background:white; border:1px solid #ddd; border-radius:8px; text-align:center; padding:15px; width:20%;">
+            <div style="font-size:12px; color:#777;">
+                    Ruptures
+                </div>
+            <div style="font-size:24px; color:#c62828; font-weight:bold;">
+              <t t-out="data['out_of_stock']"/>
+            </div>
+          </td>
+          <!-- Dormants -->
+          <td style="background:white; border:1px solid #ddd; border-radius:8px; text-align:center; padding:15px; width:20%;">
+            <div style="font-size:12px; color:#777;">
+                    Produits Dormants
+                </div>
+            <div style="font-size:24px; color:#ff9800; font-weight:bold;">
+              <t t-out="data['dormant_products']"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <!-- ===================================== -->
+      <!-- MOUVEMENTS -->
+      <!-- ===================================== -->
+      <div style="margin-top:25px; background:white; border:1px solid #ddd; border-radius:8px; padding:15px;">
+        <h3>
+            Activité du Mois
+        </h3>
+        <table style="width:100%; text-align:center;">
+          <tr>
+            <td>
+              <div>
+                        Entrées
+                    </div>
+              <div style="color:#2e7d32; font-size:22px; font-weight:bold;">
+                <t t-out="data['incoming_count']"/>
+              </div>
+            </td>
+            <td>
+              <div>
+                        Sorties
+                    </div>
+              <div style="color:#c62828; font-size:22px; font-weight:bold;">
+                <t t-out="data['outgoing_count']"/>
+              </div>
+            </td>
+            <td>
+              <div>
+                        Transferts
+                    </div>
+              <div style="color:#1565c0; font-size:22px; font-weight:bold;">
+                <t t-out="data['internal_count']"/>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <!-- ===================================== -->
+      <!-- TOP PRODUITS -->
+      <!-- ===================================== -->
+      <div style="margin-top:25px; background:white; border:1px solid #ddd; border-radius:8px; padding:15px;">
+        <h3 style="margin-bottom:15px;">
+            Top 10 Produits en Stock
+        </h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f5f5f5;">
+              <th style="border:1px solid #ddd; padding:8px;">
+                        Produit
+                    </th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:right;">
+                        Stock
+                    </th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:right;">
+                        Réservé
+                    </th>
+              <th style="border:1px solid #ddd; padding:8px; text-align:right;">
+                        Valeur
+                    </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr t-foreach="data['top_products']" t-as="line">
+              <td style="border:1px solid #ddd; padding:6px;">
+                <t t-out="line['name']"/>
+              </td>
+              <td style="border:1px solid #ddd; padding:6px; text-align:right;">
+                <t t-out="line['qty']"/>
+              </td>
+              <td style="border:1px solid #ddd; padding:6px; text-align:right;">
+                <t t-out="line['reserved']"/>
+              </td>
+              <td style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">
+                <t t-out="'{:,.0f}'.format( line['value'] ).replace(',', ' ')"/>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- ===================================== -->
+      <!-- ALERTES -->
+      <!-- ===================================== -->
+      <div style="margin-top:25px; background:white; border:1px solid #ddd; border-radius:8px; padding:15px;">
+        <h3>
+            Alertes Stock
+        </h3>
+        <table style="width:100%; border-collapse:separate; border-spacing:10px;">
+          <tr>
+            <td style="background:#ffebee; border:1px solid #ef9a9a; border-radius:6px; text-align:center; padding:15px;">
+              <div>
+                        Produits en rupture
+                    </div>
+              <div style="color:#c62828; font-size:26px; font-weight:bold;">
+                <t t-out="data['out_of_stock']"/>
+              </div>
+            </td>
+            <td style="background:#fff8e1; border:1px solid #ffcc80; border-radius:6px; text-align:center; padding:15px;">
+              <div>
+                        Produits dormants
+                    </div>
+              <div style="color:#ef6c00; font-size:26px; font-weight:bold;">
+                <t t-out="data['dormant_products']"/>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <!-- ===================================== -->
+      <!-- REPARTITION -->
+      <!-- ===================================== -->
+      <div style="margin-top:25px; background:white; border:1px solid #ddd; border-radius:8px; padding:15px;">
+        <h3>
+            Répartition du Stock par Catégorie
+        </h3>
+        <div style="margin-top:15px;">
+          <table style="width:100%; border-collapse:collapse;">
+            <tr t-foreach="data['categories']" t-as="cat">
+              <td style="padding:6px;"><strong><t t-out="cat['name']"/></strong>
+
+                        :
+
+                        <t t-out="'{:,.0f}'.format( cat['value'] ).replace(',', ' ')"/>
+
+                    </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+</odoo>

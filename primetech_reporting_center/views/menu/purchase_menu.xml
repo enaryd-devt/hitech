@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================================== -->
+  <!-- VUE D'ENSEMBLE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_purchase_overview" name="Vue d'Ensemble" parent="menu_primetech_reporting_purchase" action="action_purchase_overview_dashboard" sequence="1"/>
+  <!-- ===================================================== -->
+  <!-- ANALYSE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_purchase_analysis_root" name="Analyse" parent="menu_primetech_reporting_purchase" sequence="10"/>
+  <menuitem id="menu_purchase_analysis" name="Analyse des Achats" parent="menu_purchase_analysis_root" action="action_purchase_analysis_report" sequence="1"/>
+  <menuitem id="menu_purchase_supplier" name="Achats par Fournisseur" parent="menu_purchase_analysis_root" action="action_purchase_supplier_report" sequence="2"/>
+  <menuitem id="menu_purchase_product" name="Achats par Produit" parent="menu_purchase_analysis_root" action="action_purchase_product_report" sequence="3"/>
+  <menuitem id="menu_purchase_expenses" name="Analyse des Dépenses d'achat" parent="menu_purchase_analysis_root" action="action_purchase_expense_report" sequence="4"/>
+  <!-- ===================================================== -->
+  <!-- OPERATIONS -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_purchase_operations_root" name="Opérations" parent="menu_primetech_reporting_purchase" sequence="20"/>
+  <menuitem id="menu_purchase_orders" name="Commandes d'Achat" parent="menu_purchase_operations_root" action="action_purchase_order_report" sequence="1"/>
+  <menuitem id="menu_purchase_receipts" name="Réceptions" parent="menu_purchase_operations_root" action="action_purchase_receipt_report" sequence="2"/>
+  <menuitem id="menu_purchase_vendor_bills" name="Factures Fournisseurs" parent="menu_purchase_operations_root" action="action_purchase_bill_report" sequence="3"/>
+  <!-- ===================================================== -->
+  <!-- PERFORMANCE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_purchase_performance_root" name="Performance" parent="menu_primetech_reporting_purchase" sequence="30"/>
+  <menuitem id="menu_purchase_supplier_performance" name="Performance Fournisseurs" parent="menu_purchase_performance_root" action="action_purchase_supplier_perf_report" sequence="1"/>
+  <menuitem id="menu_purchase_lead_time" name="Délais d'Approvisionnement" parent="menu_purchase_performance_root" action="action_purchase_lead_report" sequence="2"/>
+</odoo>

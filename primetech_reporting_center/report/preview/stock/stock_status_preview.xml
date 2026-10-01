@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_status_preview_template">
+    <div style="padding:20px; font-family:Arial; font-size:13px;">
+      <!-- ===================================== -->
+      <!-- ENTETE -->
+      <!-- ===================================== -->
+      <div style="border:1px solid #000; padding:12px; margin-bottom:15px;">
+        <h2 style="text-align:center; margin:0;">
+
+                    ETAT DE STOCK
+
+                </h2>
+        <div style="text-align:center; margin-top:10px;"><strong>
+                        Période :
+                    </strong><span t-out="filters.get( 'date_from' )"/>
+
+                    -
+
+                    <span t-out="filters.get( 'date_to' )"/>
+
+                </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <table style="width:100%; border-collapse:collapse; margin-bottom:20px; table-layout:fixed;">
+        <tr>
+          <td style="border:1px solid #000; text-align:center; padding:12px;">
+            <div>
+
+                            Produits
+
+                        </div>
+            <h3 style="margin:6px 0;">
+              <t t-esc="data['kpi']['products_count']"/>
+            </h3>
+          </td>
+          <td style="border:1px solid #000; text-align:center; padding:12px;">
+            <div>
+
+                            Quantité Totale
+
+                        </div>
+            <h3 style="margin:6px 0; font-size:18px;">
+              <t t-out="'{:,.2f}'.format( data['kpi']['total_qty'] )"/>
+            </h3>
+          </td>
+          <td style="border:1px solid #000; text-align:center; padding:12px;">
+            <div>
+
+                            Réservé
+
+                        </div>
+            <h3 style="margin:6px 0; font-size:18px;">
+              <t t-out="'{:,.2f}'.format( data['kpi']['reserved_qty'] )"/>
+            </h3>
+          </td>
+          <td style="border:1px solid #000; text-align:center; padding:12px; color:#2563EB;">
+            <div>
+
+                            Valeur Stock
+
+                        </div>
+            <h3 style="margin:6px 0; font-size:18px;">
+              <t t-out="'{:,.2f}'.format( data['kpi']['stock_value'] )"/>
+            </h3>
+          </td>
+          <td style="border:1px solid #000; text-align:center; padding:12px; color:#DC2626;">
+            <div>
+
+                            Ruptures
+
+                        </div>
+            <h3 style="margin:6px 0;">
+              <t t-esc="data['kpi']['out_of_stock']"/>
+            </h3>
+          </td>
+        </tr>
+      </table>
+      <!-- ===================================== -->
+      <!-- TABLEAU DETAILLE -->
+      <!-- ===================================== -->
+      <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;">
+        <thead>
+          <tr style="background:#F3F4F6;">
+            <th style="border:1px solid #000; padding:6px;">
+                            Produit
+                        </th>
+            <th style="border:1px solid #000; padding:6px;">
+                            Catégorie
+                        </th>
+            <th style="border:1px solid #000; padding:6px;">
+                            Emplacements
+                        </th>
+            <th style="border:1px solid #000; padding:6px; text-align:right;">
+                            Disponible
+                        </th>
+            <th style="border:1px solid #000; padding:6px; text-align:right;">
+                            Réservé
+                        </th>
+            <th style="border:1px solid #000; padding:6px; text-align:right;">
+                            Entrant
+                        </th>
+            <th style="border:1px solid #000; padding:6px; text-align:right;">
+                            Sortant
+                        </th>
+            <th style="border:1px solid #000; padding:6px; text-align:right;">
+                            Valeur
+                        </th>
+            <th style="border:1px solid #000; padding:6px;">
+                            Dernier Mvt
+                        </th>
+            <th style="border:1px solid #000; padding:6px;">
+                            Etat
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-set="last_supplier" t-value="False"/>
+          <t t-foreach="data['lines']" t-as="line">
+            <t t-if="wizard.group_by_supplier and line['supplier_name'] != last_supplier">
+              <tr><td colspan="12" style="background:#e8f1ff; font-weight:700; padding:8px;">Fournisseur : <t t-esc="line['supplier_name']"/></td></tr>
+              <t t-set="last_supplier" t-value="line['supplier_name']"/>
+            </t>
+            <tr>
+              <td style="border:1px solid #000; padding:5px;">
+                <strong>
+                  <t t-esc="line['product_name']"/>
+                </strong>
+                <br/>
+                <span style="color:#6B7280;">
+                  <t t-esc="line['default_code']"/>
+                </span>
+              </td>
+              <td style="border:1px solid #000; padding:5px;">
+                <t t-esc="line['category']"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px;">
+                <t t-esc="line['location']"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px; text-align:right;">
+                <t t-out="'{:,.2f}'.format( line['available_qty'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px; text-align:right;">
+                <t t-out="'{:,.2f}'.format( line['reserved_qty'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px; text-align:right; color:#16A34A;">
+                <t t-out="'{:,.2f}'.format( line['incoming_qty'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px; text-align:right; color:#DC2626;">
+                <t t-out="'{:,.2f}'.format( line['outgoing_qty'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px; text-align:right;">
+                <t t-out="'{:,.2f}'.format( line['value'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px;">
+                <t t-esc="line['last_move_date']"/>
+              </td>
+              <td style="border:1px solid #000; padding:5px; text-align:center;">
+                <span t-if="line['state'] == 'normal'" style="color:#16A34A; font-weight:bold;">
+
+                                    NORMAL
+
+                                </span>
+                <span t-if="line['state'] == 'faible'" style="color:#F59E0B; font-weight:bold;">
+
+                                    FAIBLE
+
+                                </span>
+                <span t-if="line['state'] == 'rupture'" style="color:#DC2626; font-weight:bold;">
+
+                                    RUPTURE
+
+                                </span>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- OBSERVATIONS -->
+      <!-- ===================================== -->
+      <t t-if="filters.get('observations')">
+        <div style="margin-top:20px; border:1px solid #000; padding:10px;">
+          <strong>
+
+                        Observations
+
+                    </strong>
+          <div style="margin-top:8px;">
+            <t t-esc="filters.get( 'observations' )"/>
+          </div>
+        </div>
+      </t>
+      <!-- ===================================== -->
+      <!-- PIED -->
+      <!-- ===================================== -->
+      <div style="margin-top:25px; text-align:right;">
+
+                Généré le
+
+                <t t-esc="generated_at"/>
+
+            </div>
+    </div>
+  </template>
+</odoo>

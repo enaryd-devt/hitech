@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_sales_performance_report_wizard" model="ir.actions.act_window">
+    <field name="name">Performance Commerciale</field>
+    <field name="res_model">primetech.sales.performance.report.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

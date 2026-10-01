@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.AccountingDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-accounting-filters')]" position="replace">
+            <section class="pt-accounting-filters">
+                <label>Période<select t-att-value="state.dateFilter.period" t-on-change="onGlobalPeriodChange"><t t-foreach="state.data.filters.periods || []" t-as="period" t-key="period.value"><option t-att-value="period.value"><t t-esc="period.label"/></option></t></select></label>
+                <t t-if="state.dateFilter.period === 'custom'">
+                    <label>Date de début<input type="date" t-att-value="state.dateFilter.dateFrom" t-att-max="state.dateFilter.dateTo || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateFrom', ev)"/></label>
+                    <label>Date de fin<input type="date" t-att-value="state.dateFilter.dateTo" t-att-min="state.dateFilter.dateFrom || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateTo', ev)"/></label>
+                </t>
+                <span>Période : <t t-esc="state.data.filters.date_from"/> → <t t-esc="state.data.filters.date_to"/> · Actualisé le : <t t-esc="state.data.updated_at"/></span>
+            </section>
+        </xpath>
+    </t>
+
+    <t t-inherit="primetech_reporting_center.SalesOverviewDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-sales-filters')]" position="replace">
+            <section class="pt-sales-filters">
+                <label>Société<select><option>Toutes les sociétés</option></select></label>
+                <label>Période<select t-att-value="state.period" t-on-change="onGlobalPeriodChange"><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="year">Cette année</option><option value="custom">Période</option></select></label>
+                <t t-if="state.period === 'custom'"><label>Date de début<input type="date" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateFrom', ev)"/></label><label>Date de fin<input type="date" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateTo', ev)"/></label></t>
+                <label>Comparaison<select><option>Période précédente</option></select></label>
+                <span class="pt-sales-updated">Actualisé le : <t t-esc="state.data.updated_at"/></span>
+            </section>
+        </xpath>
+    </t>
+
+    <t t-inherit="primetech_reporting_center.PurchaseOverviewDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-purchase-filters')]" position="replace">
+            <section class="pt-purchase-filters">
+                <label>Société<select><option>Toutes les sociétés</option></select></label>
+                <label>Période<select t-att-value="state.period" t-on-change="onGlobalPeriodChange"><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="year">Cette année</option><option value="custom">Période</option></select></label>
+                <t t-if="state.period === 'custom'"><label>Date de début<input type="date" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateFrom', ev)"/></label><label>Date de fin<input type="date" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateTo', ev)"/></label></t>
+                <label>Comparaison<select><option>Période précédente</option></select></label>
+                <span>Actualisé le : <t t-esc="state.data.updated_at"/></span>
+            </section>
+        </xpath>
+    </t>
+
+    <t t-inherit="primetech_reporting_center.StockDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-stock-filters')]" position="replace">
+            <section class="pt-stock-filters">
+                <label>Société<select><option>Toutes les sociétés</option></select></label>
+                <label>Période<select t-att-value="state.period" t-on-change="onGlobalPeriodChange"><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="year">Cette année</option><option value="custom">Période</option></select></label>
+                <t t-if="state.period === 'custom'"><label>Date de début<input type="date" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateFrom', ev)"/></label><label>Date de fin<input type="date" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateTo', ev)"/></label></t>
+                <span>Actualisé le : <t t-esc="state.data.updated_at"/></span>
+            </section>
+        </xpath>
+    </t>
+
+    <t t-inherit="primetech_reporting_center.HROverviewDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-hr-filters')]" position="replace">
+            <section class="pt-hr-filters">
+                <label>Société<select><option>Toutes les sociétés</option></select></label>
+                <label>Période<select t-att-value="state.period" t-on-change="onGlobalPeriodChange"><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="year">Cette année</option><option value="custom">Période</option></select></label>
+                <t t-if="state.period === 'custom'"><label>Date de début<input type="date" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateFrom', ev)"/></label><label>Date de fin<input type="date" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateTo', ev)"/></label></t>
+                <label>Département<select t-att-value="state.departmentId" t-on-change="onDepartmentChange"><option value="">Tous les départements</option><t t-foreach="state.departmentOptions" t-as="department" t-key="department.id"><option t-att-value="department.id"><t t-esc="department.name"/></option></t></select></label>
+                <span>Actualisé le : <t t-esc="state.data.updated_at"/></span>
+            </section>
+        </xpath>
+    </t>
+</templates>

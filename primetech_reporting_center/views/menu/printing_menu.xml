@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <menuitem id="menu_print_report" name="Imprimer un Rapport" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_favorite" name="Rapports Favoris" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_recent" name="Rapports Récents" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_scheduled" name="Rapports Planifiés" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_pdf" name="Export PDF" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_excel" name="Export Excel" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_email" name="Envoi par Email" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+  <menuitem id="menu_print_history" name="Historique des Impressions" parent="menu_primetech_reporting_printing" action="action_reporting_placeholder"/>
+</odoo>

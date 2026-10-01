@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+<t t-name="primetech_reporting_center.ExecutiveOverview" owl="1">
+    <section class="pt-executive-overview">
+        <div class="pt-executive-topline">
+            <div>
+                <span class="pt-eyebrow">Direction Générale</span>
+                <h2>Tableau de bord exécutif</h2>
+                <p>Vision noir et blanc de la rentabilité, des caisses, banques, stocks, rapports et alertes.</p>
+            </div>
+            <div class="pt-period-switcher">
+                <button t-att-class="state.period === 'today' ? 'active' : ''" t-on-click="() => this.setPeriod('today')">Aujourd'hui</button>
+                <button t-att-class="state.period === 'week' ? 'active' : ''" t-on-click="() => this.setPeriod('week')">Semaine</button>
+                <button t-att-class="state.period === 'month' ? 'active' : ''" t-on-click="() => this.setPeriod('month')">Mois</button>
+                <button t-att-class="state.period === 'quarter' ? 'active' : ''" t-on-click="() => this.setPeriod('quarter')">Trimestre</button>
+                <button t-att-class="state.period === 'year' ? 'active' : ''" t-on-click="() => this.setPeriod('year')">Année</button>
+            </div>
+        </div>
+
+        <div class="pt-executive-kpis">
+            <article class="primary pt-clickable" t-on-click="openRevenue">
+                <span>CA consolidé</span>
+                <strong><t t-esc="formatCurrency(state.revenue_total)"/></strong>
+                <small>Facturation : <t t-esc="formatCurrency(state.invoice_revenue)"/> · PDV : <t t-esc="formatCurrency(state.pos_revenue)"/></small>
+            </article>
+            <article class="pt-clickable" t-on-click="openAccounting">
+                <span>Marge brute estimée</span>
+                <strong><t t-esc="formatCurrency(state.gross_margin)"/></strong>
+                <small>CA consolidé - achats validés</small>
+            </article>
+            <article class="pt-clickable" t-on-click="openAccounting">
+                <span>Banque &amp; trésorerie</span>
+                <strong><t t-esc="formatCurrency(state.bank_balance)"/></strong>
+                <small>Situation bancaire courante</small>
+            </article>
+            <article class="pt-clickable" t-on-click="openStock">
+                <span>Valeur stock</span>
+                <strong><t t-esc="formatCurrency(state.stock_value)"/></strong>
+                <small><t t-esc="state.stock_alerts.out_of_stock"/> ruptures · <t t-esc="state.stock_alerts.pending_transfers"/> transferts</small>
+            </article>
+        </div>
+
+        <div class="pt-executive-panels">
+            <article class="pt-exec-panel cash pt-clickable" t-on-click="openAccounting">
+                <div class="pt-panel-title"><h3>Situation des caisses PDV</h3><span><t t-esc="state.cash_registers.opened"/> ouvertes / <t t-esc="state.cash_registers.closed"/> clôturées</span></div>
+                <div class="pt-cash-balances">
+                    <div><span>Ouverture</span><strong><t t-esc="formatCurrency(state.cash_registers.opening_balance)"/></strong></div>
+                    <div><span>Solde courant</span><strong><t t-esc="formatCurrency(state.cash_registers.current_balance)"/></strong></div>
+                    <div><span>Solde clôturé</span><strong><t t-esc="formatCurrency(state.cash_registers.closing_balance)"/></strong></div>
+                </div>
+                <table class="table table-sm pt-clean-table">
+                    <t t-foreach="state.cash_registers.sessions" t-as="session" t-key="session.id">
+                        <tr>
+                            <td><t t-esc="session.name"/><br/><small><t t-esc="session.user"/></small></td>
+                            <td><span t-att-class="session.state === 'closed' ? 'badge text-bg-success' : 'badge text-bg-primary'"><t t-esc="session.state"/></span></td>
+                            <td class="text-end"><t t-esc="formatCurrency(session.current_balance)"/></td>
+                        </tr>
+                    </t>
+                </table>
+            </article>
+
+            <article class="pt-exec-panel pt-clickable" t-on-click="openHr">
+                <div class="pt-panel-title"><h3>Ressources humaines</h3><span>Effectifs &amp; présence</span></div>
+                <div class="pt-decision-grid">
+                    <div><span>Collaborateurs</span><strong><t t-esc="state.hr.employees"/></strong><small>Effectif actif</small></div>
+                    <div><span>Congés validés</span><strong><t t-esc="state.hr.on_leave"/></strong><small>Suivi opérationnel</small></div>
+                </div>
+            </article>
+        </div>
+    </section>
+</t>
+</templates>

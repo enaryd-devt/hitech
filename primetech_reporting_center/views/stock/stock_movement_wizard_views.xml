@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_stock_movement_wizard_form" model="ir.ui.view">
+    <field name="name">pt.stock.movement.wizard.form</field>
+    <field name="model">pt.stock.movement.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Mouvements de Stock" create="false" edit="true">
+        <sheet>
+          <!-- ===================================== -->
+          <!-- HERO HEADER -->
+          <!-- ===================================== -->
+          <div style="background: linear-gradient( 135deg, #0f172a, #1e293b ); padding:32px; border-radius:20px; margin-bottom:24px; color:white;">
+            <div style="display:flex; align-items:center; gap:20px;">
+              <div style="width:72px; height:72px; border-radius:18px; background: rgba( 255, 255, 255, .15 ); display:flex; align-items:center; justify-content:center;">
+                <i class="fa fa-arrows-h" style="font-size:34px; color:white;"/>
+              </div>
+              <div>
+                <h1 style="margin:0; color:white; font-size:30px; font-weight:700;">
+
+                                    Mouvements de Stock
+
+                                </h1>
+                <div style="margin-top:8px; opacity:.92; font-size:15px;">
+
+                                    Entrées • Sorties •
+                                    Transferts • Historique •
+                                    Valorisation
+
+                                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ===================================== -->
+          <!-- PERIODE -->
+          <!-- ===================================== -->
+          <separator string="📅 Période d'Analyse"/>
+          <group col="4">
+            <field name="date_from"/>
+            <field name="date_to"/>
+          </group>
+          <!-- ===================================== -->
+          <!-- FILTRES -->
+          <!-- ===================================== -->
+          <separator string="🔎 Filtres d'Analyse"/>
+          <group col="4">
+            <field name="company_id"/>
+            <field name="warehouse_ids" widget="many2many_tags"/>
+            <field name="category_ids" widget="many2many_tags"/>
+            <field name="product_ids" widget="many2many_tags"/>
+            <field name="supplier_ids" widget="many2many_tags"/>
+            <field name="group_by_supplier"/>
+            <field name="lot_ids" widget="many2many_tags"/>
+          </group>
+          <!-- ===================================== -->
+          <!-- OPTIONS -->
+          <!-- ===================================== -->
+          <separator string="⚙️ Options d'Affichage"/>
+          <group col="4">
+            <field name="validated_only"/>
+            <field name="show_cost"/>
+            <field name="show_valuation"/>
+          </group>
+          <!-- ===================================== -->
+          <!-- OBSERVATIONS -->
+          <!-- ===================================== -->
+          <separator string="📝 Observations"/>
+          <group><field name="observations" nolabel="1" placeholder="``` Commentaires, constats, anomalies, instructions ou remarques..."/>
+
+    ```
+                    </group>
+          <!-- ===================================== -->
+          <!-- GUIDE -->
+          <!-- ===================================== -->
+          <div style="margin-top:24px; padding:20px; border-radius:14px; background:#f8fafc; border:1px solid #e5e7eb;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+              <i class="bi bi-info-circle-fill" style="font-size:20px;"/>
+              <strong>
+
+                                Guide du Rapport
+
+                            </strong>
+            </div>
+            <div style="color:#6b7280; line-height:1.9;">
+
+                            • Les mouvements sont regroupés par article.<br/>
+
+                            • Les réceptions affichent le fournisseur comme origine.<br/>
+
+                            • Les livraisons affichent le client comme destination.<br/>
+
+                            • Les transferts internes affichent les emplacements source et destination.<br/>
+
+                            • Un solde progressif est calculé après chaque mouvement.<br/>
+
+                            • Les coûts et valorisations peuvent être affichés ou masqués.<br/>
+
+                            • Les lots sont pris en compte lorsqu'ils existent.<br/>
+
+                            • Les produits sont triés par ordre alphabétique.
+
+                        </div>
+          </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" class="btn-primary" icon="fa-search"/>
+          <button name="action_print_pdf" type="object" string="Exporter PDF" class="btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" type="object" string="Exporter Excel" class="btn-secondary" icon="fa-file-excel-o"/>
+          <button name="action_back" type="object" string="Dashboard" class="btn-light" icon="fa-arrow-left"/>
+          <button string="Fermer" special="cancel" class="btn-light"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

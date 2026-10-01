@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================== -->
+  <!-- ACTION -->
+  <!-- ===================================== -->
+  <record id="action_purchase_bill_report" model="ir.actions.act_window">
+    <field name="name">Factures Fournisseurs</field>
+    <field name="res_model">pt.purchase.bill.wiz</field>
+    <field name="view_mode">form</field>
+    <field name="view_id" ref="view_purchase_bill_report_wizard"/>
+    <field name="target">new</field>
+  </record>
+</odoo>

@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.FinancialPosition" owl="1">
+
+    <div class="finance-position-container">
+
+        <!-- ===================================== -->
+        <!-- ACTIFS / PASSIFS / CAPITAUX -->
+        <!-- ===================================== -->
+
+        <div class="row g-3">
+
+            <!-- ACTIFS -->
+
+            <div class="col-md-4">
+
+                <div class="finance-position-card assets">
+
+                    <div class="finance-position-icon">
+
+                        <i class="fa fa-building-columns"/>
+
+                    </div>
+
+                    <div class="finance-position-label">
+
+                        Actifs
+
+                    </div>
+
+                    <div class="finance-position-value">
+
+                        <t t-esc="formatCurrency( state.data.assets )"/>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- PASSIFS -->
+
+            <div class="col-md-4">
+
+                <div class="finance-position-card liabilities">
+
+                    <div class="finance-position-icon">
+
+                        <i class="fa fa-file-invoice-dollar"/>
+
+                    </div>
+
+                    <div class="finance-position-label">
+
+                        Passifs
+
+                    </div>
+
+                    <div class="finance-position-value">
+
+                        <t t-esc="formatCurrency( state.data.liabilities )"/>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- EQUITY -->
+
+            <div class="col-md-4">
+
+                <div class="finance-position-card equity">
+
+                    <div class="finance-position-icon">
+
+                        <i class="fa fa-coins"/>
+
+                    </div>
+
+                    <div class="finance-position-label">
+
+                        Capitaux Propres
+
+                    </div>
+
+                    <div class="finance-position-value">
+
+                        <t t-esc="formatCurrency( state.data.equity )"/>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- RATIOS -->
+        <!-- ===================================== -->
+
+        <div class="finance-ratio-section">
+
+            <div class="finance-ratio-item">
+
+                <div>
+
+                    Ratio de Liquidité
+
+                </div>
+
+                <strong>
+
+                    <t t-esc="state.data.liquidity_ratio"/>
+
+                </strong>
+
+            </div>
+
+            <div class="finance-ratio-item">
+
+                <div>
+
+                    Ratio d'Endettement
+
+                </div>
+
+                <strong>
+
+                    <t t-esc="state.data.debt_ratio"/>
+
+                </strong>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- STATUT -->
+        <!-- ===================================== -->
+
+        <div class="text-center mt-4">
+
+            <span t-attf-class="finance-status-badge #{state.data.level === 'Excellent' ? 'excellent' : state.data.level === 'Bon' ? 'good' : 'warning'}">
+
+                <i class="fa fa-shield-halved me-2"/>
+
+                <t t-esc="state.data.level"/>
+
+            </span>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

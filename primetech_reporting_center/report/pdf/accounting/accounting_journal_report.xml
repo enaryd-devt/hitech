@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_accounting_journal_report" model="ir.actions.report">
+    <field name="name">Journaux Comptables</field>
+    <field name="model">primetech.accounting.journal.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.accounting_journal_template</field>
+    <field name="report_file">primetech_reporting_center.accounting_journal_template</field>
+    <field name="binding_model_id" ref="model_primetech_accounting_journal_wizard"/>
+  </record>
+</odoo>

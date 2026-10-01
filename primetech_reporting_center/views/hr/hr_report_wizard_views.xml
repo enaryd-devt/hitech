@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_hr_report_wizard_form" model="ir.ui.view">
+    <field name="name">primetech.hr.report.wizard.form</field>
+    <field name="model">primetech.hr.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Rapport Ressources Humaines" create="false" edit="true">
+        <header>
+          <button name="action_preview" type="object" string="Prévisualiser" class="btn-primary" icon="fa-eye"/>
+          <button name="action_print_pdf" type="object" string="PDF" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" type="object" string="XLSX" icon="fa-file-excel-o"/>
+        </header>
+        <sheet>
+          <div class="oe_title"><h1>Rapport RH professionnel</h1><p class="text-muted">Choisissez les critères, prévisualisez, puis imprimez en PDF ou exportez en XLSX.</p></div>
+          <group>
+            <group string="Rapport"><field name="report_type"/><field name="group_by_department"/></group>
+            <group string="Période"><field name="date_from"/><field name="date_to"/></group>
+          </group>
+          <group>
+            <group string="Filtres"><field name="department_id"/><field name="employee_id"/><field name="include_inactive"/></group>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="action_hr_headcount_report" model="ir.actions.act_window"><field name="name">Rapport Effectif</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'headcount'}</field></record>
+  <record id="action_hr_performance_report" model="ir.actions.act_window"><field name="name">Performance du Personnel</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'performance'}</field></record>
+  <record id="action_hr_attendance_report" model="ir.actions.act_window"><field name="name">Rapport Présences</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'attendance'}</field></record>
+  <record id="action_hr_leave_report" model="ir.actions.act_window"><field name="name">Rapport Congés</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'leave'}</field></record>
+  <record id="action_hr_late_absence_report" model="ir.actions.act_window"><field name="name">Retards et Absences</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'late_absence'}</field></record>
+  <record id="action_hr_payroll_mass_report" model="ir.actions.act_window"><field name="name">Masse Salariale</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'payroll_mass'}</field></record>
+  <record id="action_hr_payslip_report" model="ir.actions.act_window"><field name="name">Bulletins de Paie</field><field name="res_model">primetech.hr.report.wizard</field><field name="view_mode">form</field><field name="target">new</field><field name="context">{'default_report_type':'payslip'}</field></record>
+</odoo>

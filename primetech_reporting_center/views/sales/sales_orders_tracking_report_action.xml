@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_sales_orders_tracking_report_wizard" model="ir.actions.act_window">
+    <field name="name">Suivi des Commandes</field>
+    <field name="res_model">primetech.sales.orders.tracking.report.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

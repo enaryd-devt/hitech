@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_profitability_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <t t-call="primetech_reporting_center.sales_profitability_preview"/>
+          <!-- signatures -->
+          <table style="width:100%; margin-top:80px;">
+            <tr>
+              <td style="text-align:center;">
+
+                                Préparé par
+
+                                <br/><br/><br/>
+
+                                ____________________
+
+                            </td>
+              <td style="text-align:center;">
+
+                                Vérifié par
+
+                                <br/><br/><br/>
+
+                                ____________________
+
+                            </td>
+              <td style="text-align:center;">
+
+                                Approuvé par
+
+                                <br/><br/><br/>
+
+                                ____________________
+
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

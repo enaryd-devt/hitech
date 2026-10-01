@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_product_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <div style="text-align:center; margin-bottom:20px;">
+            <h2>
+                            ACHATS PAR PRODUIT
+                        </h2>
+            <div>
+
+                            Du
+
+                            <strong><t t-esc="filters.get('date_from')"/></strong>
+
+                            au
+
+                            <strong><t t-esc="filters.get('date_to')"/></strong>
+
+                        </div>
+          </div>
+          <!-- KPI -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <tr>
+              <td style="border:1px solid #DDD; padding:10px; text-align:center;">
+                <strong>
+                                    Produits
+                                </strong>
+                <br/>
+                <t t-esc="data['product_count']"/>
+              </td>
+              <td style="border:1px solid #DDD; padding:10px; text-align:center;">
+                <strong>
+                                    Fournisseurs
+                                </strong>
+                <br/>
+                <t t-esc="data['supplier_count']"/>
+              </td>
+              <td style="border:1px solid #DDD; padding:10px; text-align:center;">
+                <strong>
+                                    Commandes
+                                </strong>
+                <br/>
+                <t t-esc="data['purchase_count']"/>
+              </td>
+              <td style="border:1px solid #DDD; padding:10px; text-align:center;">
+                <strong>
+                                    Quantité
+                                </strong>
+                <br/>
+                <t t-esc="data['total_qty']"/>
+              </td>
+            </tr>
+          </table>
+          <!-- Totaux -->
+          <table class="table table-sm" style="margin-bottom:20px;">
+            <tr>
+              <td>
+                <strong>Total HT</strong>
+              </td>
+              <td>
+                <t t-esc="data['total_ht']"/>
+              </td>
+              <td>
+                <strong>Total TVA</strong>
+              </td>
+              <td>
+                <t t-esc="data['total_tax']"/>
+              </td>
+              <td>
+                <strong>Total TTC</strong>
+              </td>
+              <td>
+                <t t-esc="data['total_ttc']"/>
+              </td>
+            </tr>
+          </table>
+          <!-- DETAIL -->
+          <h4>
+                        Détail des Produits
+                    </h4>
+          <table class="table table-sm table-bordered" style="width:100%; font-size:10px;">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Fournisseur</th>
+                <th>Nb Cmdes</th>
+                <th>Qté</th>
+                <th>Coût Moyen</th>
+                <th>HT</th>
+                <th>TVA</th>
+                <th>TTC</th>
+                <th>Dernier Achat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr t-foreach="data['lines']" t-as="line">
+                <td>
+                  <t t-esc="line['product']"/>
+                </td>
+                <td>
+                  <t t-esc="line['supplier']"/>
+                </td>
+                <td>
+                  <t t-esc="line['purchase_count']"/>
+                </td>
+                <td>
+                  <t t-esc="line['qty']"/>
+                </td>
+                <td>
+                  <t t-esc="line['cost_avg']"/>
+                </td>
+                <td>
+                  <t t-esc="line['amount_ht']"/>
+                </td>
+                <td>
+                  <t t-esc="line['amount_tax']"/>
+                </td>
+                <td>
+                  <t t-esc="line['amount_ttc']"/>
+                </td>
+                <td>
+                  <t t-esc="line['last_order']"/>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr style="font-weight:bold; background:#F3F4F6;">
+                <td colspan="5">
+                                    TOTAL GENERAL
+                                </td>
+                <td>
+                  <t t-esc="data['total_ht']"/>
+                </td>
+                <td>
+                  <t t-esc="data['total_tax']"/>
+                </td>
+                <td>
+                  <t t-esc="data['total_ttc']"/>
+                </td>
+                <td/>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

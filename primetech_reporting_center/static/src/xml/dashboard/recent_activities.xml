@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.RecentActivities" owl="1">
+
+        <div class="pt-card">
+
+            <div class="pt-card-header">
+                Activités Récentes
+            </div>
+
+            <ul class="pt-list">
+
+                <li>Aucune activité récente</li>
+                <li>Aucune activité récente</li>
+                <li>Aucune activité récente</li>
+
+            </ul>
+
+        </div>
+
+    </t>
+
+</templates>

@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================================== -->
+  <!-- VUE D'ENSEMBLE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_accounting_dashboard" name="Vue d'ensemble" parent="primetech_reporting_center.menu_primetech_reporting_accounting" action="primetech_reporting_center.action_accounting_dashboard" sequence="10"/>
+  <!-- ===================================================== -->
+  <!-- COMPTABILITÉ GÉNÉRALE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_accounting_general_root" name="Comptabilité Générale" parent="primetech_reporting_center.menu_primetech_reporting_accounting" sequence="20"/>
+  <menuitem id="menu_accounting_general_ledger" name="Balance Générale" parent="menu_accounting_general_root" action="primetech_reporting_center.action_trial_balance_wizard" sequence="10"/>
+  <menuitem id="menu_accounting_grand_livre" name="Grand Livre" parent="menu_accounting_general_root" action="primetech_reporting_center.action_general_ledger_wizard" sequence="20"/>
+  <menuitem id="menu_accounting_journaux" name="Journaux Comptables" parent="menu_accounting_general_root" action="primetech_reporting_center.action_accounting_journal_wizard" sequence="30"/>
+  <menuitem id="menu_cash_period_report" name="Rapport Périodique de Trésorerie" parent="menu_accounting_general_root" action="action_cash_period_report" sequence="40"/>
+  <!-- ===================================================== -->
+  <!-- ANALYSE DES TIERS -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_accounting_partner_root" name="Analyse des Tiers" parent="primetech_reporting_center.menu_primetech_reporting_accounting" sequence="30"/>
+  <menuitem id="menu_accounting_balance_tiers" name="Balance Tiers" parent="menu_accounting_partner_root" action="primetech_reporting_center.action_partner_balance_wizard" sequence="10"/>
+  <!-- ===================================================== -->
+  <!-- ÉTATS FINANCIERS -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_accounting_financial_root" name="États Financiers" parent="primetech_reporting_center.menu_primetech_reporting_accounting" sequence="40"/>
+  <menuitem id="menu_accounting_bilan" name="Bilan" parent="menu_accounting_financial_root" action="primetech_reporting_center.action_balance_sheet_wizard" sequence="10"/>
+  <menuitem id="menu_accounting_resultat" name="Compte de Résultat" parent="menu_accounting_financial_root" action="primetech_reporting_center.action_income_statement_wizard" sequence="20"/>
+</odoo>

@@ -1,0 +1,172 @@
+<section class="oe_container" style="font-family: Arial, sans-serif; color: #243447;">
+    <div class="oe_row oe_spaced" style="text-align: center;">
+        <img src="banner.png" alt="PrimeTech Reporting Center" style="width: 100%; max-width: 1200px; border-radius: 12px;"/>
+        <h1 style="color: #0f6cbd; margin-top: 28px;">PrimeTech Reporting Center</h1>
+        <h2 style="font-weight: 400;">Le centre de pilotage transversal pour Odoo 18</h2>
+        <p style="font-size: 18px; line-height: 1.6; max-width: 900px; margin: 0 auto;">
+            Regroupez les indicateurs de la comptabilité, des ventes, des achats, des stocks
+            et des ressources humaines dans une seule application. Analysez les données
+            existantes et diffusez des rapports PDF ou XLSX sans modifier les flux métier Odoo.
+        </p>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Fonctionnalités principales</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Tableaux de bord</h3>
+                <ul style="line-height: 1.8;">
+                    <li>Vue exécutive consolidée et indicateurs clés.</li>
+                    <li>Analyse comptable et financière.</li>
+                    <li>Vue d'ensemble des ventes et des achats.</li>
+                    <li>Suivi des stocks et command center logistique.</li>
+                    <li>Indicateurs de ressources humaines.</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h3>Rapports et exports</h3>
+                <ul style="line-height: 1.8;">
+                    <li>Grand livre, balance, journaux, bilan et compte de résultat OHADA.</li>
+                    <li>Facturation, trésorerie, clients, produits et performance commerciale.</li>
+                    <li>Achats, fournisseurs, commandes, réceptions et factures fournisseur.</li>
+                    <li>État, fiche, valorisation, inventaire et mouvements de stock.</li>
+                    <li>Aperçu dans Odoo, impression PDF et export XLSX.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced" style="background: #f5f9fd; padding: 28px; border-radius: 12px;">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Prérequis et compatibilité</h2>
+        <p>Cette version est conçue pour <strong>Odoo 18</strong>. Avant l'installation, vérifiez que les applications suivantes sont disponibles :</p>
+        <table class="table table-bordered" style="background: #fff;">
+            <thead><tr><th>Type</th><th>Modules</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td>Socle Odoo</td><td>Base, Configuration générale et Web</td><td>Interface, utilisateurs et paramètres.</td></tr>
+                <tr><td>Applications métier</td><td>Comptabilité, Achats, Inventaire, Point de Vente et Employés</td><td>Sources des données analysées.</td></tr>
+                <tr><td>Extension technique</td><td><code>report_xlsx</code> (OCA)</td><td>Génération des classeurs Excel.</td></tr>
+            </tbody>
+        </table>
+        <p><strong>Important :</strong> installez une version Odoo 18 compatible de <code>report_xlsx</code> et ajoutez son dossier parent au chemin <code>addons_path</code> du serveur avant d'actualiser la liste des applications.</p>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Installation détaillée</h2>
+        <ol style="line-height: 1.9;">
+            <li>Effectuez une <strong>sauvegarde complète</strong> de la base de données et du filestore.</li>
+            <li>Copiez le dossier <code>primetech_reporting_center</code> dans un répertoire déclaré dans <code>addons_path</code>.</li>
+            <li>Installez les prérequis ci-dessus, en particulier <code>report_xlsx</code>.</li>
+            <li>Redémarrez le service Odoo, activez le mode développeur puis ouvrez <strong>Applications &gt; Mettre à jour la liste des applications</strong>.</li>
+            <li>Retirez le filtre « Applications » si nécessaire, recherchez <strong>PrimeTech Reporting Center</strong>, puis cliquez sur <strong>Installer</strong>.</li>
+            <li>Contrôlez le journal du serveur : l'installation doit se terminer sans erreur de dépendance, de vue ou de droit d'accès.</li>
+            <li>Déconnectez-vous puis reconnectez-vous afin de recharger les menus et les groupes de l'utilisateur.</li>
+        </ol>
+        <div style="background: #fff4dd; border-left: 4px solid #f0ad4e; padding: 14px 18px;">
+            <strong>Production :</strong> testez d'abord l'installation ou la mise à jour sur une copie récente de la base. Planifiez une fenêtre de maintenance pour toute montée de version.
+        </div>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Configuration après installation</h2>
+        <ol style="line-height: 1.9;">
+            <li>Ouvrez <strong>Paramètres &gt; Utilisateurs et sociétés &gt; Utilisateurs</strong>.</li>
+            <li>Attribuez à chaque utilisateur les groupes « Reporting » adaptés à son métier : tableau de bord, comptabilité, ventes, achats, stock, RH ou accès complet.</li>
+            <li>Réservez les profils de pilotage et l'accès complet aux responsables autorisés : les rapports peuvent exposer des données financières, commerciales et RH sensibles.</li>
+            <li>Dans <strong>Paramètres &gt; PrimeTech Reporting</strong>, définissez les seuils de stock minimum et de surstock, la couleur principale, le style des KPI et le format préféré des graphiques.</li>
+            <li>Vérifiez la société active, la devise, les journaux, les entrepôts et les droits natifs des applications métier pour chaque utilisateur.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced" style="background: #f5f9fd; padding: 28px; border-radius: 12px;">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Comment utiliser le module</h2>
+        <ol style="line-height: 1.9;">
+            <li>Ouvrez l'application <strong>Reporting</strong> depuis le lanceur Odoo.</li>
+            <li>Choisissez le domaine souhaité : tableau de bord exécutif, comptabilité, ventes, achats, stocks ou ressources humaines.</li>
+            <li>Dans un rapport, renseignez la période et les filtres proposés (société, journal, partenaire, produit, entrepôt ou état selon le rapport).</li>
+            <li>Lancez l'aperçu pour contrôler les résultats, puis utilisez l'action <strong>PDF</strong> pour l'impression ou <strong>XLSX</strong> pour l'analyse dans un tableur.</li>
+            <li>Si une information paraît absente, vérifiez d'abord la société active, la période, l'état des documents source et les droits d'accès de l'utilisateur.</li>
+        </ol>
+        <p>Les chiffres sont calculés à partir des documents déjà enregistrés dans Odoo. La qualité des résultats dépend donc du paramétrage comptable, des produits, des partenaires, des entrepôts et de la bonne validation des opérations source.</p>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Impact sur les modules existants</h2>
+        <table class="table table-striped table-bordered">
+            <thead><tr><th>Module</th><th>Utilisation par Reporting Center</th><th>Impact fonctionnel</th></tr></thead>
+            <tbody>
+                <tr><td>Comptabilité</td><td>Lecture des écritures, comptes, journaux, factures et paiements.</td><td>Ajout d'analyses et d'états ; aucun remplacement de la saisie ou de la validation comptable.</td></tr>
+                <tr><td>Ventes / Point de Vente</td><td>Lecture des commandes, factures, clients, articles et données utiles du POS.</td><td>Ajout d'indicateurs commerciaux et d'un audit technique du ticket POS ; le flux de caisse reste celui d'Odoo.</td></tr>
+                <tr><td>Achats</td><td>Lecture des commandes, fournisseurs, réceptions et factures.</td><td>Ajout de rapports de suivi et de performance ; aucune modification du processus d'approvisionnement.</td></tr>
+                <tr><td>Inventaire</td><td>Lecture des quantités, mouvements, emplacements et valorisations.</td><td>Ajout de tableaux de bord et d'alertes visuelles ; aucun mouvement de stock automatique.</td></tr>
+                <tr><td>Employés / RH</td><td>Lecture des informations autorisées pour produire les indicateurs RH.</td><td>Ajout d'un espace de synthèse ; les données demeurent protégées par les groupes Odoo et Reporting.</td></tr>
+                <tr><td>Web</td><td>Chargement de composants OWL, styles et Chart.js dans le backend.</td><td>Léger coût de chargement des ressources ; aucune substitution du client Web standard.</td></tr>
+            </tbody>
+        </table>
+        <p><strong>Base de données :</strong> le module crée ses propres modèles techniques, assistants, actions, menus et groupes. Il ajoute aussi des champs de configuration à l'écran des paramètres. Il ne supprime ni ne migre les données métier des modules dépendants.</p>
+        <p><strong>Performances :</strong> les tableaux de bord et rapports agrègent des volumes potentiellement importants. Sur une grande base, utilisez des périodes raisonnables, limitez les accès concurrents aux exports volumineux et surveillez les temps de réponse PostgreSQL/Odoo.</p>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Sécurité et bonnes pratiques</h2>
+        <ul style="line-height: 1.8;">
+            <li>Appliquez le principe du moindre privilège et révisez régulièrement les groupes Reporting.</li>
+            <li>Ne partagez pas les exports contenant des données financières, personnelles ou salariales sans autorisation.</li>
+            <li>Conservez les sauvegardes hors du serveur Odoo et testez périodiquement leur restauration.</li>
+            <li>Utilisez HTTPS, maintenez Odoo et ses dépendances à jour, et surveillez les journaux applicatifs.</li>
+            <li>En environnement multi-sociétés, contrôlez les sociétés autorisées de l'utilisateur avant d'interpréter ou d'exporter un rapport.</li>
+        </ul>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced" style="background: #f5f9fd; padding: 28px; border-radius: 12px;">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Mise à jour, sauvegarde et désinstallation</h2>
+        <h3>Mettre à jour</h3>
+        <ol style="line-height: 1.8;">
+            <li>Sauvegardez la base et le filestore, puis testez la nouvelle version sur une copie.</li>
+            <li>Remplacez le code du module, redémarrez Odoo et mettez à jour la liste des applications.</li>
+            <li>Cliquez sur <strong>Mettre à niveau</strong> depuis la fiche du module ou utilisez la commande serveur <code>-u primetech_reporting_center -d &lt;base&gt; --stop-after-init</code>.</li>
+            <li>Contrôlez les journaux, les menus, les droits, les tableaux de bord et un export PDF/XLSX par domaine.</li>
+        </ol>
+        <h3>Désinstaller</h3>
+        <p>Depuis <strong>Applications</strong>, ouvrez le menu d'actions du module et choisissez <strong>Désinstaller</strong>. Cette opération supprime les objets propres au module (menus, groupes, assistants, paramètres et données techniques associées). Les pièces comptables, commandes, mouvements de stock, employés et autres documents Odoo source ne sont pas supprimés. Effectuez néanmoins une sauvegarde préalable et retirez ensuite le dossier du module uniquement lorsque la désinstallation est terminée.</p>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced">
+    <div class="oe_row">
+        <h2 style="color: #0f6cbd;">Diagnostic rapide</h2>
+        <table class="table table-bordered">
+            <thead><tr><th>Symptôme</th><th>Vérifications recommandées</th></tr></thead>
+            <tbody>
+                <tr><td>Le module est introuvable</td><td>Contrôlez <code>addons_path</code>, les permissions du dossier, le redémarrage du serveur et l'actualisation de la liste des applications.</td></tr>
+                <tr><td>Dépendance manquante</td><td>Installez la version Odoo 18 du module indiqué, notamment <code>report_xlsx</code>, puis actualisez la liste.</td></tr>
+                <tr><td>Le menu Reporting n'apparaît pas</td><td>Attribuez un groupe Reporting à l'utilisateur puis reconnectez-vous.</td></tr>
+                <tr><td>Rapport vide ou incomplet</td><td>Contrôlez période, société, états des documents, filtres, droits natifs et données source.</td></tr>
+                <tr><td>PDF ou XLSX impossible</td><td>Consultez le journal Odoo, vérifiez le moteur PDF du serveur et l'installation de <code>report_xlsx</code>.</td></tr>
+                <tr><td>Tableau de bord lent</td><td>Réduisez la période analysée, contrôlez le volume de données et surveillez PostgreSQL ainsi que les workers Odoo.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="oe_container oe_spaced" style="text-align: center; border-top: 1px solid #dce5ed; padding-top: 28px;">
+    <h2 style="color: #0f6cbd;">Support et maintenance</h2>
+    <p>Lors d'une demande de support, communiquez la version d'Odoo, la version du module, le scénario reproduit, le message d'erreur complet et un extrait anonymisé du journal serveur.</p>
+    <p><strong>PrimeTech</strong> — <a href="https://primetech.cm">https://primetech.cm</a></p>
+    <p>Licence : LGPL-3</p>
+</section>

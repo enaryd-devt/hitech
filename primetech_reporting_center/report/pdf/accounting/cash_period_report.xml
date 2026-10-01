@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_cash_period_pdf" model="ir.actions.report">
+    <field name="name">Rapport Périodique de Trésorerie</field>
+    <field name="model">pt.cash.period.wiz</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.cash_period_pdf</field>
+    <field name="report_file">primetech_reporting_center.cash_period_pdf</field>
+    <field name="binding_model_id" ref="model_pt_cash_period_wiz"/>
+    <field name="binding_type">report</field>
+    <field name="print_report_name">"'Tresorerie_%s' % (object.date_from)"</field>
+  </record>
+</odoo>

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_purchase_bill_report_wizard" model="ir.ui.view">
+    <field name="name">pt.purchase.bill.wizard.form</field>
+    <field name="model">pt.purchase.bill.wiz</field>
+    <field name="arch" type="xml">
+      <form string="Factures Fournisseurs" create="false" edit="true">
+        <sheet>
+          <!-- ===================================== -->
+          <!-- HEADER -->
+          <!-- ===================================== -->
+          <div class="d-flex align-items-center mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:64px; height:64px; background:#EEF2FF; color:#4F46E5; font-size:26px;">
+              <i class="fa fa-file-text-o" title="Factures Fournisseurs"/>
+            </div>
+            <div>
+              <h2 class="mb-1">
+                                Rapport des Factures Fournisseurs
+                            </h2>
+              <div class="text-muted">
+
+                                Analyse détaillée des
+                                factures fournisseurs,
+                                montants, paiements,
+                                soldes et statuts.
+
+                            </div>
+            </div>
+          </div>
+          <!-- ===================================== -->
+          <!-- PÉRIODE -->
+          <!-- ===================================== -->
+          <group string="Période" col="2">
+            <field name="date_from"/>
+            <field name="date_to"/>
+          </group>
+          <!-- ===================================== -->
+          <!-- FILTRES -->
+          <!-- ===================================== -->
+          <group string="Filtres Complémentaires" col="2">
+            <field name="company_id" options="{'no_create': True}"/>
+            <field name="supplier_ids" widget="many2many_tags" options="{'no_create': True}"/>
+            <field name="payment_state"/>
+          </group>
+        </sheet>
+        <!-- ===================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================== -->
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/>
+          <button name="action_print_pdf" type="object" string="PDF" icon="fa-file-pdf-o" class="btn btn-secondary"/>
+          <button name="action_export_xlsx" type="object" string="Excel" icon="fa-file-excel-o" class="btn btn-success"/>
+          <button name="action_back" type="object" string="Retour" class="btn btn-light"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

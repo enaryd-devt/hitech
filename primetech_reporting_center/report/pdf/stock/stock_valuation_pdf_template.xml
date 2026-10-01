@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_valuation_pdf_template">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <h2 style="text-align:center; margin-bottom:20px;">
+
+                        VALORISATION DU STOCK
+
+                    </h2>
+          <!-- KPI -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <tr>
+              <td style="border:1px solid #000; padding:8px; text-align:center;">
+                <strong>
+                                    Produits
+                                </strong>
+                <br/>
+                <t t-esc="report_data['kpi']['products_count']"/>
+              </td>
+              <td style="border:1px solid #000; padding:8px; text-align:center;">
+                <strong>
+                                    Quantité
+                                </strong>
+                <br/>
+                <t t-out="'{:,.2f}'.format( report_data['kpi']['total_qty'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:8px; text-align:center;">
+                <strong>
+                                    Valeur Stock
+                                </strong>
+                <br/>
+                <t t-out="'{:,.2f}'.format( report_data['kpi']['stock_value'] )"/>
+              </td>
+              <td style="border:1px solid #000; padding:8px; text-align:center;">
+                <strong>
+                                    Coût Moyen
+                                </strong>
+                <br/>
+                <t t-out="'{:,.2f}'.format( report_data['kpi']['average_cost'] )"/>
+              </td>
+            </tr>
+          </table>
+          <!-- ===================================== -->
+          <!-- TOP PRODUIT -->
+          <!-- ===================================== -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <tr>
+              <td style="border:1px solid #000; padding:10px;">
+                <strong>
+                                    Produit le Plus Valorisé
+                                </strong>
+                <br/>
+                <br/>
+                <span style="font-size:14px; font-weight:bold;">
+                  <t t-esc="report_data['kpi']['top_product']"/>
+                </span>
+              </td>
+              <td style="width:220px; border:1px solid #000; padding:10px; text-align:right; font-size:18px; font-weight:bold;">
+                <t t-out="'{:,.2f}'.format( report_data['kpi']['top_product_value'] )"/>
+              </td>
+            </tr>
+          </table>
+          <!-- ===================================== -->
+          <!-- TABLEAU PRINCIPAL -->
+          <!-- ===================================== -->
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <thead>
+              <tr>
+                <th style="border:1px solid #000; padding:6px; background:#E5E7EB;">
+                                    Produit
+                                </th>
+                <th style="border:1px solid #000; padding:6px; background:#E5E7EB;">
+                                    Référence
+                                </th>
+                <th style="border:1px solid #000; padding:6px; background:#E5E7EB;">
+                                    Catégorie
+                                </th>
+                <th style="border:1px solid #000; padding:6px; background:#E5E7EB; text-align:right;">
+                                    Quantité
+                                </th>
+                <th style="border:1px solid #000; padding:6px; background:#E5E7EB; text-align:right;">
+                                    Coût Unitaire
+                                </th>
+                <th style="border:1px solid #000; padding:6px; background:#E5E7EB; text-align:right;">
+                                    Valeur Stock
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data['lines']" t-as="line">
+                <tr>
+                  <td style="border:1px solid #000; padding:4px;">
+                    <t t-esc="line['product_name']"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px;">
+                    <t t-esc="line['default_code']"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px;">
+                    <t t-esc="line['category']"/>
+                  </td>
+                  <!-- QUANTITE -->
+                  <td style="border:1px solid #000; padding:4px; text-align:right;">
+                    <t t-out="'{:,.2f}'.format( line['quantity'] )"/>
+                  </td>
+                  <!-- COUT -->
+                  <td style="border:1px solid #000; padding:4px; text-align:right;">
+                    <t t-out="'{:,.2f}'.format( line['cost_price'] )"/>
+                  </td>
+                  <!-- VALEUR -->
+                  <td style="border:1px solid #000; padding:4px; text-align:right; font-weight:bold;">
+                    <t t-out="'{:,.2f}'.format( line['stock_value'] )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+            <!-- ===================================== -->
+            <!-- TOTAL GENERAL -->
+            <!-- ===================================== -->
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border:1px solid #000; padding:6px; font-weight:bold; text-align:right;">
+
+                                    TOTAL GENERAL
+
+                                </td>
+                <td style="border:1px solid #000; padding:6px; text-align:right; font-weight:bold;">
+                  <t t-out="'{:,.2f}'.format( report_data['kpi']['total_qty'] )"/>
+                </td>
+                <td style="border:1px solid #000; padding:6px;"/>
+                <td style="border:1px solid #000; padding:6px; text-align:right; font-weight:bold;">
+                  <t t-out="'{:,.2f}'.format( report_data['kpi']['stock_value'] )"/>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+          <!-- ===================================== -->
+          <!-- OBSERVATIONS -->
+          <!-- ===================================== -->
+          <t t-if="filters.get('observations')">
+            <div style="margin-top:20px; border:1px solid #000; padding:10px;">
+              <strong>
+                                Observations
+                            </strong>
+              <br/>
+              <br/>
+              <t t-esc="filters.get( 'observations' )"/>
+            </div>
+          </t>
+          <!-- ===================================== -->
+          <!-- SIGNATURES -->
+          <!-- ===================================== -->
+          <table style="width:100%; margin-top:40px;">
+            <tr>
+              <td style="width:50%; text-align:center;">
+
+                                Préparé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                ______________________
+
+                            </td>
+              <td style="width:50%; text-align:center;">
+
+                                Validé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                ______________________
+
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

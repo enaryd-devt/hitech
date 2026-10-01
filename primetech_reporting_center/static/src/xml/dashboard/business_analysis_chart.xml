@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates>
+  <t t-name="primetech_reporting_center.BusinessAnalysisChart" owl="1">
+    <div class="pt-card">
+      <div class="pt-card-header">
+        <h3>
+                Analyse Financière
+            </h3>
+      </div>
+      <div style="height:350px; padding:15px;">
+        <canvas id="ptBusinessAnalysisChart"/>
+      </div>
+    </div>
+  </t>
+</templates>

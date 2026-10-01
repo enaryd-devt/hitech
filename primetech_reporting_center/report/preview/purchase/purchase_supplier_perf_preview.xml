@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_supplier_perf_preview_template">
+    <div class="container-fluid">
+      <!-- ===================================== -->
+      <!-- ENTETE -->
+      <!-- ===================================== -->
+      <div class="mb-4">
+        <h2>
+                    Performance Fournisseurs
+                </h2>
+        <p class="text-muted">
+
+                    Analyse de la performance des
+                    fournisseurs selon les achats,
+                    réceptions et délais
+                    d'approvisionnement.
+
+                </p>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Fournisseurs</h6>
+              <h3>
+                <t t-out="data['kpi']['supplier_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Commandes</h6>
+              <h3>
+                <t t-out="data['kpi']['order_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Montant</h6>
+              <h3>
+                <t t-out="data['kpi']['total_amount']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Réceptions</h6>
+              <h3>
+                <t t-out="data['kpi']['receipt_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Taux %</h6>
+              <h3>
+                <t t-out="round(data['kpi']['receipt_rate'], 2)"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Délai</h6>
+              <h3>
+                <t t-out="round(data['kpi']['avg_delay'], 2)"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- ANALYSE FOURNISSEURS -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Analyse Fournisseurs
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Commandes</th>
+                <th>Montant</th>
+                <th>Réceptions</th>
+                <th>Qté Reçue</th>
+                <th>Taux %</th>
+                <th>Délai</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['supplier_analysis']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_count']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount_total']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['receipt_count']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['qty_received']"/>
+                  </td>
+                  <td>
+                    <t t-out="round(line['receipt_rate'], 2)"/>
+                  </td>
+                  <td>
+                    <t t-out="round(line['avg_delay'], 2)"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- TOP MONTANT -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Top 10 Fournisseurs par Montant
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['top_amount']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount_total']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- TOP TAUX -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Top 10 Fournisseurs par Taux de Réception
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Taux %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['top_receipt']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="round(line['receipt_rate'], 2)"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- DETAILS -->
+      <!-- ===================================== -->
+      <div class="card">
+        <div class="card-header">
+                    Détails
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Commande</th>
+                <th>Date Commande</th>
+                <th>Date Réception</th>
+                <th>Montant</th>
+                <th>Qté Reçue</th>
+                <th>Délai</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['details']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['receipt_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['qty_received']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['delay']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+</odoo>

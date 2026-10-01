@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_primetech_supplier_logistics" model="ir.ui.view">
+        <field name="name">account.move.form.primetech.supplier.logistics</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Keep Odoo's native confirmation button and provide a separate
+                 reception action for supplier bills. -->
+            <xpath expr="(//header/button[@name='action_post'])[2]" position="before">
+                <button name="action_create_primetech_receipt" string="R&#233;ceptionner" class="oe_highlight"
+                        type="object" icon="fa-truck" groups="account.group_account_invoice"
+                        invisible="move_type != 'in_invoice' or state != 'draft' or primetech_receipt_picking_count &gt; 0"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']" position="attributes">
+                <attribute name="class">pt-supplier-bill-lines</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='asset_category_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="attributes">
+                <attribute name="string">UDM</attribute>
+                <attribute name="optional">show</attribute>
+                <attribute name="groups">base.group_user</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="attributes">
+                <attribute name="string">Article</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='name']" position="attributes">
+                <attribute name="string">Libellé</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
+                <attribute name="string">Compte</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='asset_category_id']" position="attributes">
+                <attribute name="string">Asset Category</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='discount']" position="attributes">
+                <attribute name="string">Disc.%</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='tax_ids']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="attributes">
+                <attribute name="string">Prix fournisseur</attribute>
+                <attribute name="widget">monetary</attribute>
+                <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_create_primetech_receipt" type="object" class="oe_stat_button" icon="fa-truck"
+                        string="Cr&#233;er la r&#233;ception"
+                        invisible="move_type != 'in_invoice' or state != 'posted' or primetech_receipt_picking_count &gt; 0"/>
+                <button name="action_view_primetech_receipts" type="object" class="oe_stat_button" icon="fa-truck" invisible="move_type != 'in_invoice' or primetech_receipt_picking_count == 0">
+                    <field name="primetech_receipt_picking_count" widget="statinfo" string="R&#233;ceptions"/>
+                </button>
+            </xpath>
+            <!-- Complete the native supplier-bill header on the left. -->
+            <xpath expr="//group[@id='header_left_group']/field[@name='ref'][1]" position="after">
+                <field name="payment_reference" string="Référence du paiement"
+                       invisible="move_type != 'in_invoice'" readonly="inalterable_hash != False"/>
+                <field name="preferred_payment_method_line_id" string="Mode de paiement"
+                       invisible="move_type != 'in_invoice'"/>
+                <field name="partner_bank_id" string="Compte bancaire destinataire"
+                       context="{'default_partner_id': bank_partner_id, 'display_account_trust': True}"
+                       domain="[('partner_id', '=', bank_partner_id)]"
+                       invisible="move_type != 'in_invoice'" readonly="is_move_sent and state != 'draft'"/>
+                <field name="primetech_weight_rate" string="Taux poids"
+                       invisible="move_type != 'in_invoice'"/>
+                <field name="primetech_volume_rate" string="Taux volume"
+                       invisible="move_type != 'in_invoice'"/>
+            </xpath>
+            <!-- These two standard fields are displayed in the left supplier header above. -->
+            <xpath expr="//group[@id='header_right_group']/field[@name='payment_reference']" position="attributes">
+                <attribute name="invisible">move_type in ('in_invoice', 'in_refund')</attribute>
+            </xpath>
+            <xpath expr="//group[@id='header_right_group']/field[@name='partner_bank_id']" position="attributes">
+                <attribute name="invisible">move_type in ('in_invoice', 'in_refund')</attribute>
+            </xpath>
+            <!-- Reuse Odoo's native automatic-entry field: one field only. -->
+            <xpath expr="//label[@name='invoice_vendor_bill_id_label']" position="attributes">
+                <attribute name="string">Saisie automatique</attribute>
+            </xpath>
+            <xpath expr="//group[@id='header_left_group']/field[@name='invoice_vendor_bill_id' and contains(@class, 'oe_edit_only')]" position="attributes">
+                <attribute name="invisible">state != 'draft' or move_type != 'in_invoice'</attribute>
+                <attribute name="placeholder">Sélectionner un bon de commande ou une ancienne facture</attribute>
+            </xpath>
+            <!-- The supplier payment method is shown in the header, not twice in Other Info. -->
+            <xpath expr="//group[@name='accounting_info_group']/field[@name='preferred_payment_method_line_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Supplier-bill logistics fields in the native right-hand header group. -->
+            <xpath expr="//group[@id='header_right_group']/field[@name='invoice_date'][2]" position="after">
+                <field name="primetech_apply_discount" invisible="move_type != 'in_invoice'"/>
+                <field name="primetech_warehouse_id" invisible="move_type != 'in_invoice'"/>
+                <field name="primetech_picking_type_id" invisible="move_type != 'in_invoice'"/>
+                <field name="primetech_stock_location_id" invisible="move_type != 'in_invoice'"/>
+            </xpath>
+            <xpath expr="//group[contains(@class, 'oe_subtotal_footer')][1]" position="attributes">
+                <attribute name="invisible">move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt') or payment_state == 'invoicing_legacy' or (move_type == 'in_invoice' and primetech_apply_discount)</attribute>
+            </xpath>
+            <xpath expr="//group[contains(@class, 'oe_subtotal_footer')][1]" position="after">
+                <group class="oe_subtotal_footer" colspan="4"
+                       invisible="move_type != 'in_invoice' or not primetech_apply_discount">
+                    <field name="primetech_discount_account_id"/>
+                    <field name="primetech_discount_type"/>
+                    <field name="primetech_discount_value"/>
+                    <field name="primetech_amount_after_discount" readonly="1"/>
+                    <field name="primetech_amount_untaxed_after_discount" string="TOTAL HT" readonly="1"/>
+                    <field name="primetech_amount_after_discount" string="Total" readonly="1" class="oe_subtotal_footer_separator"/>
+                </group>
+            </xpath>
+            <xpath expr="//group[@id='header_right_group']/div[@name='journal_div']" position="after">
+                <field name="primetech_calculation_basis" invisible="move_type != 'in_invoice'"/>
+            </xpath>
+            <!-- Keep Odoo's unique native conversion widget and rename its label. -->
+            <xpath expr="//div[@name='in_and_refresh_button_div']/div[1]" position="replace">
+                <div>Taux</div>
+            </xpath>
+            <!-- Exact logistics-column order used by the supplier bill grid. -->
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="before">
+                <!-- Ensures that Odoo formats Price and Dernier Prix with the
+                     currency selected on the supplier bill. -->
+                <field name="currency_id" column_invisible="1"/>
+                <field name="primetech_stock_quantity" optional="show"/>
+                <field name="primetech_last_price" widget="monetary"
+                       options="{'currency_field': 'currency_id'}" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='primetech_stock_quantity']" position="after">
+                <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="move"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
+                <field name="company_currency_id" column_invisible="1"/>
+                <field name="primetech_last_real_price" optional="show"/>
+                <field name="primetech_real_price" optional="show"/>
+                <field name="primetech_weight_cost" optional="show"/>
+                <field name="primetech_volume_cost" optional="show"/>
+                <field name="primetech_cost_by_weight" optional="show"/>
+                <field name="primetech_cost_by_volume" optional="show"/>
+                <field name="primetech_final_cost" optional="show"/>
+                <field name="primetech_sale_price_by_weight" string="PV.poids" optional="show"/>
+                <field name="primetech_sale_price_by_volume" string="PV.volume" optional="show"/>
+                <field name="primetech_last_final_sale_price" optional="show"/>
+                <field name="primetech_final_sale_price" optional="show"/>
+                <field name="primetech_weight" optional="show"/>
+                <field name="primetech_volume" optional="show"/>
+                <field name="primetech_constant_cost" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="before">
+                <field name="primetech_product_image" widget="image" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']" position="after">
+                <group string="Totaux logistiques" invisible="move_type != 'in_invoice'">
+                    <field name="primetech_total_units" readonly="1"/>
+                    <field name="primetech_total_weight_volume" readonly="1"/>
+                    <field name="primetech_total_cost" readonly="1"/>
+                    <field name="primetech_total_constant" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

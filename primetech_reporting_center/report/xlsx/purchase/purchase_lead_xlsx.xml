@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_purchase_lead_xlsx" model="ir.actions.report">
+    <field name="name">Délais d'Approvisionnement XLSX</field>
+    <field name="model">pt.purchase.lead.wiz</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">primetech_reporting_center.purchase_lead_xlsx</field>
+    <field name="report_file">primetech_reporting_center.purchase_lead_xlsx</field>
+    <field name="binding_model_id" ref="model_pt_purchase_lead_wiz"/>
+    <field name="binding_type">report</field>
+  </record>
+</odoo>

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="sales_customer_analysis_xlsx_report" model="ir.actions.report">
+    <field name="name">Analyse Clients XLSX</field>
+    <field name="model">primetech.sales.customer.analysis.report.wizard</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">primetech_reporting_center.sales_customer_analysis_xlsx</field>
+    <field name="report_file">primetech_reporting_center.sales_customer_analysis_xlsx</field>
+    <field name="binding_model_id" ref="model_primetech_sales_customer_analysis_report_wizard"/>
+    <field name="binding_type">report</field>
+  </record>
+</odoo>

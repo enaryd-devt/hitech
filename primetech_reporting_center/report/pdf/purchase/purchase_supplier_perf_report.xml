@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_purchase_supplier_perf_pdf" model="ir.actions.report">
+    <field name="name">Performance Fournisseurs PDF</field>
+    <field name="model">pt.purchase.supp.wiz</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.purchase_supplier_perf_pdf</field>
+    <field name="report_file">primetech_reporting_center.purchase_supplier_perf_pdf</field>
+    <field name="binding_model_id" ref="model_pt_purchase_supp_wiz"/>
+    <field name="binding_type">report</field>
+  </record>
+</odoo>

@@ -1,0 +1,24 @@
+// The renderer selects BOTTOM_CHATTER.  At 80% browser zoom and above, a
+// desktop screen can enter Odoo's XXL layout, which normally places the
+// chatter on the right.  Keep this module's chatter below the form instead.
+// The chatter is rendered in the form container, not necessarily as a direct
+// child of `.o_form_view`; use descendant selectors deliberately.
+.o_form_view:has(.o-mail-Form-chatter:not(.o-aside)) {
+    flex-flow: column nowrap !important;
+
+    .o_form_view_container,
+    .o_form_sheet_bg {
+        width: 100% !important;
+        max-width: none;
+    }
+
+    .o-mail-Form-chatter:not(.o-aside) {
+        align-self: stretch;
+        flex: 0 0 100%;
+        width: 100% !important;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+        order: 2;
+    }
+}

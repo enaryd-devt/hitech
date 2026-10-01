@@ -1,0 +1,313 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_profitability_preview">
+    <div class="container-fluid">
+      <h2 style="text-align:center; margin-bottom:20px;">
+
+                RENTABILITÉ COMMERCIALE
+
+            </h2>
+      <!-- ===================================== -->
+      <!-- FILTRES -->
+      <!-- ===================================== -->
+      <table class="table table-sm table-bordered">
+        <tr>
+          <td>
+            <strong>Date début</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.date_from"/>
+          </td>
+          <td>
+            <strong>Date fin</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.date_to"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <strong>Société</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.company_id.name"/>
+          </td>
+          <td>
+            <strong>Commercial</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.user_id.name if wizard.user_id else 'Tous'"/>
+          </td>
+        </tr>
+      </table>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <h4>
+                Résumé Exécutif
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Commandes</th>
+            <th>Clients</th>
+            <th>CA HT</th>
+            <th>Coût</th>
+            <th>Marge</th>
+            <th>Taux Marge %</th>
+            <th>Panier Moyen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <t t-esc="report_data['summary']['order_count']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['customer_count']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['revenue']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['cost']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['margin']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['margin_rate']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['average_order']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOP PRODUITS -->
+      <!-- ===================================== -->
+      <h4>
+                Top Produits Rentables
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Qté</th>
+            <th>CA</th>
+            <th>Coût</th>
+            <th>Marge</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['product_ranking'][:20]" t-as="line">
+            <td>
+              <t t-esc="line['product']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="line['revenue']"/>
+            </td>
+            <td>
+              <t t-esc="line['cost']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin_rate']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOP CLIENTS -->
+      <!-- ===================================== -->
+      <h4>
+                Top Clients Rentables
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>CA</th>
+            <th>Coût</th>
+            <th>Marge</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['customer_ranking'][:20]" t-as="line">
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['revenue']"/>
+            </td>
+            <td>
+              <t t-esc="line['cost']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin_rate']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOP COMMERCIAUX -->
+      <!-- ===================================== -->
+      <h4>
+                Performance des Commerciaux
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Commercial</th>
+            <th>Commandes</th>
+            <th>CA</th>
+            <th>Coût</th>
+            <th>Marge</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['salesperson_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['salesperson']"/>
+            </td>
+            <td>
+              <t t-esc="line['orders']"/>
+            </td>
+            <td>
+              <t t-esc="line['revenue']"/>
+            </td>
+            <td>
+              <t t-esc="line['cost']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin_rate']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- EVOLUTION MENSUELLE -->
+      <!-- ===================================== -->
+      <h4>
+                Evolution Mensuelle
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Mois</th>
+            <th>CA</th>
+            <th>Coût</th>
+            <th>Marge</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['monthly_summary'].items()" t-as="month">
+            <td>
+              <t t-esc="month[0]"/>
+            </td>
+            <td>
+              <t t-esc="month[1]['revenue']"/>
+            </td>
+            <td>
+              <t t-esc="month[1]['cost']"/>
+            </td>
+            <td>
+              <t t-esc="month[1]['margin']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- ALERTES -->
+      <!-- ===================================== -->
+      <h4>
+                Commandes à Marge Négative
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Commande</th>
+            <th>Client</th>
+            <th>Marge</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['negative_margin_orders']" t-as="line">
+            <td>
+              <t t-esc="line['order']"/>
+            </td>
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- DETAIL COMMANDES -->
+      <!-- ===================================== -->
+      <h4>
+                Détail des Commandes
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Commande</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th>CA</th>
+            <th>Coût</th>
+            <th>Marge</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['order_lines']" t-as="line">
+            <td>
+              <t t-esc="line['order']"/>
+            </td>
+            <td>
+              <t t-esc="line['date']"/>
+            </td>
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['salesperson']"/>
+            </td>
+            <td>
+              <t t-esc="line['revenue']"/>
+            </td>
+            <td>
+              <t t-esc="line['cost']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin']"/>
+            </td>
+            <td>
+              <t t-esc="line['margin_rate']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</odoo>

@@ -1,0 +1,289 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_periodic_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <t t-set="summary" t-value="report_data.get('summary', {})"/>
+        <t t-set="sales_lines" t-value="report_data.get('sales_lines', [])"/>
+        <t t-set="seller_summary" t-value="report_data.get('seller_summary', [])"/>
+        <t t-set="customer_summary" t-value="report_data.get('customer_summary', [])"/>
+        <t t-set="product_summary" t-value="report_data.get('product_summary', [])"/>
+        <div style="font-family:Arial,Helvetica,sans-serif; font-size:12px; color:#000;">
+          <!-- ===================================== -->
+          <!-- ENTETE RAPPORT -->
+          <!-- ===================================== -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:15px; border-bottom:1px solid #000; padding-bottom:8px;">
+            <tr>
+              <td colspan="2" style="text-align:center; font-size:22px; font-weight:bold; text-transform:uppercase; padding-bottom:15px;">
+
+                                RAPPORT PÉRIODIQUE DES VENTES
+
+                            </td>
+            </tr>
+            <tr>
+              <td style="width:50%; text-align:left; font-size:14px;"><strong>Période :</strong><t t-esc="wizard.date_from"/>
+
+                                au
+
+                                <t t-esc="wizard.date_to"/>
+
+                            </td>
+              <td style="width:50%; text-align:right; font-size:14px;">
+                <strong>Imprimé le :</strong>
+                <t t-esc="generated_at.strftime('%d/%m/%Y %H:%M:%S')"/>
+              </td>
+            </tr>
+          </table>
+          <!-- ===================================== -->
+          <!-- DETAIL VENTES -->
+          <!-- ===================================== -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <thead>
+              <tr>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Facture
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Date
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Client
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Vendeur
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Article
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Qté
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    PU HT
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Total HT
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Total TTC
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="sales_lines" t-as="line">
+                <tr>
+                  <td style="border:1px solid #ccc; padding:4px;">
+                    <t t-esc="line['invoice']"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px;">
+                    <t t-esc="line['date']"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px;">
+                    <t t-esc="line['customer']"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px;">
+                    <t t-esc="line['seller']"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px;">
+                    <t t-esc="line['product']"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px; text-align:center;">
+                    <t t-esc="line['qty']"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px; text-align:right;">
+                    <t t-esc="'{:,.0f}'.format(line['unit_price'])"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px; text-align:right; font-weight:bold;">
+                    <t t-esc="'{:,.0f}'.format(line['ht'])"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px; text-align:right; font-weight:bold;">
+                    <t t-esc="'{:,.0f}'.format(line['ttc'])"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- RESUME GENERAL -->
+          <!-- ===================================== -->
+          <div style="background:#2f2f2f; color:white; padding:8px; font-weight:bold; margin-top:15px; margin-bottom:5px;">
+                        RÉSUMÉ GÉNÉRAL
+                    </div>
+          <table style="width:55%; border-collapse:collapse; margin-bottom:15px;">
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Nombre de factures
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px;">
+                <t t-esc="summary.get('invoice_count', 0)"/>
+              </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Nombre de clients
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px;">
+                <t t-esc="report_data['summary']['customer_count']"/>
+              </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Nombre de vendeurs
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px;">
+                <t t-esc="report_data['summary']['seller_count']"/>
+              </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Chiffre d'Affaire Hors Taxes
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold; text-align:right;"><t t-esc="'{:,.0f}'.format( report_data['summary']['turnover_ht'] )"/>
+                                FCFA
+                            </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Chiffre d'Affaire TTC
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold; text-align:right;"><t t-esc="'{:,.0f}'.format( report_data['summary']['turnover_ttc'] )"/>
+                                FCFA
+                            </td>
+            </tr>
+          </table>
+          <!-- ===================================== -->
+          <!-- SYNTHESE VENDEUR -->
+          <!-- ===================================== -->
+          <div style="background:#2f2f2f; color:white; padding:8px; font-weight:bold; margin-bottom:5px;">
+                        SYNTHÈSE PAR VENDEUR
+                    </div>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+            <thead>
+              <tr>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Vendeur
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Quantité Vendue
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    CA HT
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    CA TTC
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data['seller_summary']" t-as="seller">
+                <tr>
+                  <td style="border:1px solid #ccc;padding:5px;">
+                    <t t-esc="seller['seller']"/>
+                  </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:center;">
+                    <t t-esc="seller['qty']"/>
+                  </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(seller['ht'])"/>
+                                        FCFA
+                                    </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(seller['ttc'])"/>
+                                        FCFA
+                                    </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SYNTHESE CLIENT -->
+          <!-- ===================================== -->
+          <div style="background:#2f2f2f; color:white; padding:8px; font-weight:bold; margin-bottom:5px;">
+                        SYNTHÈSE PAR CLIENT
+                    </div>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+            <thead>
+              <tr>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Client
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    CA HT
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    CA TTC
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data['customer_summary']" t-as="customer">
+                <tr>
+                  <td style="border:1px solid #ccc;padding:5px;">
+                    <t t-esc="customer['customer']"/>
+                  </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(customer['ht'])"/>
+                                        FCFA
+                                    </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(customer['ttc'])"/>
+                                        FCFA
+                                    </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SYNTHESE ARTICLE -->
+          <!-- ===================================== -->
+          <div style="background:#2f2f2f; color:white; padding:8px; font-weight:bold; margin-bottom:5px;">
+                        SYNTHÈSE PAR ARTICLE
+                    </div>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+            <thead>
+              <tr>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Article
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Quantité Vendue
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    CA HT
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data['product_summary']" t-as="product">
+                <tr>
+                  <td style="border:1px solid #ccc;padding:5px;">
+                    <t t-esc="product['product']"/>
+                  </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:center;">
+                    <t t-esc="product['qty']"/>
+                  </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(product['ht'])"/>
+                                        FCFA
+                                    </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SIGNATURES -->
+          <!-- ===================================== -->
+          <hr style="margin-top:30px; margin-bottom:50px;"/>
+          <table style="width:100%; height: 150px;">
+            <tr>
+              <td style="width:33%; text-align:center; font-weight:bold;">
+                                Établi par
+                            </td>
+              <td style="width:33%; text-align:center; font-weight:bold;">
+                                Vérifié par
+                            </td>
+              <td style="width:33%; text-align:center; font-weight:bold;">
+                                Approuvé par
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

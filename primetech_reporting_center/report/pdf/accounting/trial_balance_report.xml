@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_trial_balance_report" model="ir.actions.report">
+    <field name="name">Balance Générale OHADA</field>
+    <field name="model">primetech.trial.balance.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.trial_balance_report_template</field>
+    <field name="report_file">primetech_reporting_center.trial_balance_report_template</field>
+  </record>
+</odoo>

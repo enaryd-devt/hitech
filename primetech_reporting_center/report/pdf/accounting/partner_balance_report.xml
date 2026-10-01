@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_partner_balance_report" model="ir.actions.report">
+    <field name="name">Balance des Tiers</field>
+    <field name="model">primetech.partner.balance.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.partner_balance_template</field>
+    <field name="report_file">primetech_reporting_center.partner_balance_template</field>
+    <field name="binding_model_id" ref="model_primetech_partner_balance_wizard"/>
+  </record>
+</odoo>

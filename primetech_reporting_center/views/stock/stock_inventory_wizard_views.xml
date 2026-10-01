@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_stock_inventory_wizard_form" model="ir.ui.view">
+    <field name="name">pt.stock.inventory.wizard.form</field>
+    <field name="model">pt.stock.inventory.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Inventaire" create="false" edit="true">
+        <sheet>
+          <!-- ===================================== -->
+          <!-- HERO -->
+          <!-- ===================================== -->
+          <div style="background: linear-gradient( 135deg, #0f766e, #14b8a6 ); padding:30px; border-radius:20px; margin-bottom:20px; color:white;">
+            <div style="display:flex; align-items:center; gap:20px;">
+              <div style="width:70px; height:70px; border-radius:18px; background: rgba( 255, 255, 255, .15 ); display:flex; justify-content:center; align-items:center; font-size:32px;">
+
+                                📋
+
+                            </div>
+              <div>
+                <h1 style="margin:0; color:white; font-size:28px; font-weight:700;">
+
+                                    Inventaire Physique
+
+                                </h1>
+                <div style="margin-top:6px; opacity:.95;">
+
+                                    Contrôle des stocks,
+                                    comptage et validation
+                                    des quantités physiques
+
+                                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ===================================== -->
+          <!-- STRUCTURE -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; margin-bottom:18px;">
+            <h3>
+
+                            Structure Logistique
+
+                        </h3>
+            <group col="2">
+              <field name="company_id"/>
+              <field name="warehouse_ids" widget="many2many_tags"/>
+              <field name="location_ids" widget="many2many_tags"/>
+            </group>
+          </div>
+          <!-- ===================================== -->
+          <!-- PRODUITS -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; margin-bottom:18px;">
+            <h3>
+
+                            Produits et Catégories
+
+                        </h3>
+            <group col="3">
+              <field name="category_ids" widget="many2many_tags"/>
+              <field name="product_ids" widget="many2many_tags"/>
+              <field name="supplier_ids" widget="many2many_tags"/>
+              <field name="group_by_supplier"/>
+              <field name="lot_ids" widget="many2many_tags"/>
+            </group>
+          </div>
+          <!-- ===================================== -->
+          <!-- FILTRES INVENTAIRE -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; margin-bottom:18px;">
+            <h3>
+
+                            Filtres d'Inventaire
+
+                        </h3>
+            <group col="3">
+              <field name="only_out_of_stock"/>
+              <field name="only_out_of_stock_lots"/>
+              <field name="only_negative_stock"/>
+              <field name="only_with_lot"/>
+              <field name="only_without_lot"/>
+            </group>
+          </div>
+          <!-- ===================================== -->
+          <!-- OBSERVATIONS -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; margin-bottom:18px;">
+            <h3>
+
+                            Observations
+
+                        </h3>
+            <field name="observations" nolabel="1" placeholder=" Commentaires, instructions, consignes d'inventaire... "/>
+          </div>
+          <!-- ===================================== -->
+          <!-- INFORMATION -->
+          <!-- ===================================== -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:16px;">
+            <strong>
+
+                            Structure du rapport
+
+                        </strong>
+            <div style="margin-top:10px; color:#64748b;">
+
+                            Entrepôt
+
+                            → Emplacement
+
+                            → Catégorie
+
+                            → Tableau d'inventaire
+
+                        </div>
+            <div style="margin-top:10px; color:#64748b;">
+
+                            Les produits avec plusieurs lots
+                            seront affichés sur plusieurs lignes.
+
+                        </div>
+            <div style="margin-top:10px; color:#64748b;">
+
+                            Les produits sans lot seront
+                            affichés avec la mention :
+
+                            <strong>
+                                SANS LOT
+                            </strong>
+
+                        </div>
+          </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" class="btn-primary" icon="fa-search"/>
+          <button name="action_print_pdf" type="object" string="PDF" class="btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" type="object" string="Excel" class="btn-secondary" icon="fa-file-excel-o"/>
+          <button name="action_back" type="object" string="Dashboard" class="btn-secondary" icon="fa-bar-chart"/>
+          <button string="Fermer" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

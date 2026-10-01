@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.TopProducts" owl="1">
+
+    <div class="pt-card pt-products-card">
+
+        <div class="pt-card-header pt-card-header-compact">
+
+            <h3>
+                Meilleurs Produits vendus
+            </h3>
+
+        </div>
+
+        <div class="pt-scroll-card pt-scroll-card-compact">
+
+            <t t-if="state.loading">
+
+                <div class="pt-skeleton-list">
+
+                    <div class="pt-skeleton-row"/>
+                    <div class="pt-skeleton-row"/>
+                    <div class="pt-skeleton-row"/>
+
+                </div>
+
+            </t>
+
+            <t t-else="">
+
+                <table class="pt-risk-table pt-table-compact">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Produit
+                            </th>
+
+                            <th class="text-end">
+                                C.A
+                            </th>
+
+                            <th class="text-center">
+                                Qté
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr t-foreach="state.products" t-as="product" t-key="product.id" class="pt-clickable-row" t-on-click="() =&gt; this.openProduct( product.id )">
+
+                            <td>
+
+                                <t t-esc="product.name"/>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <strong>
+
+                                    <t t-esc="formatCurrency( product.amount )"/>
+
+                                </strong>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <span class="pt-badge">
+
+                                    <t t-esc="product.qty"/>
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        <tr t-if="!state.products.length">
+
+                            <td colspan="3" class="text-center">
+
+                                Aucun produit trouvé
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </t>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

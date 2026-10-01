@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_performance_preview">
+    <div class="container-fluid">
+      <h2 style="text-align:center; margin-bottom:20px;">
+
+                PERFORMANCE COMMERCIALE
+
+            </h2>
+      <table class="table table-sm table-bordered">
+        <tr>
+          <td>
+            <strong>Date début</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.date_from"/>
+          </td>
+          <td>
+            <strong>Date fin</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.date_to"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <strong>Société</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.company_id.name"/>
+          </td>
+          <td>
+            <strong>Commercial</strong>
+          </td>
+          <td>
+            <t t-if="wizard.user_id">
+              <t t-esc="wizard.user_id.name"/>
+            </t>
+            <t t-else="">
+                            Tous
+                        </t>
+          </td>
+        </tr>
+      </table>
+      <br/>
+      <h4>
+                Résumé Général
+            </h4>
+      <table class="table table-sm table-bordered">
+        <tr>
+          <th>
+                        Nombre Commerciaux
+                    </th>
+          <td>
+            <t t-esc="report_data['summary']['salesman_count']"/>
+          </td>
+          <th>
+                        Nombre Factures
+                    </th>
+          <td>
+            <t t-esc="report_data['summary']['invoice_count']"/>
+          </td>
+        </tr>
+        <tr>
+          <th>
+                        Quantité Vendue
+                    </th>
+          <td>
+            <t t-esc="report_data['summary']['qty_sold']"/>
+          </td>
+          <th>
+                        CA HT
+                    </th>
+          <td>
+            <t t-esc="'{:,.0f}'.format( report_data['summary']['turnover_ht'] )"/>
+          </td>
+        </tr>
+        <tr>
+          <th>
+                        CA TTC
+                    </th>
+          <td colspan="3">
+            <t t-esc="'{:,.0f}'.format( report_data['summary']['turnover_ttc'] )"/>
+          </td>
+        </tr>
+      </table>
+      <br/>
+      <h4>
+                Classement des commerciaux
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>
+                            Commercial
+                        </th>
+            <th>
+                            Factures
+                        </th>
+            <th>
+                            Quantité
+                        </th>
+            <th>
+                            CA HT
+                        </th>
+            <th>
+                            CA TTC
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['performance_lines']" t-as="line">
+            <td>
+              <t t-esc="line['salesman']"/>
+            </td>
+            <td>
+              <t t-esc="line['invoice_count']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="'{:,.0f}'.format( line['ht'] )"/>
+            </td>
+            <td>
+              <t t-esc="'{:,.0f}'.format( line['ttc'] )"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br/>
+      <h4>
+                Détail des ventes
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>
+                            Facture
+                        </th>
+            <th>
+                            Date
+                        </th>
+            <th>
+                            Client
+                        </th>
+            <th>
+                            Commercial
+                        </th>
+            <th>
+                            Qté
+                        </th>
+            <th>
+                            HT
+                        </th>
+            <th>
+                            TTC
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['detail_lines']" t-as="line">
+            <td>
+              <t t-esc="line['invoice']"/>
+            </td>
+            <td>
+              <t t-esc="line['date']"/>
+            </td>
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['salesman']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="'{:,.0f}'.format( line['ht'] )"/>
+            </td>
+            <td>
+              <t t-esc="'{:,.0f}'.format( line['ttc'] )"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</odoo>

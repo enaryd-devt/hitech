@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="executive_partner_balance_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="company" t-value="o"/>
+                <t t-set="currency_name" t-value="report_data['company'].currency_id.name or 'FCFA'"/>
+                <div class="page pt-partner-balance-pdf">
+                    <style>
+                        .pt-partner-balance-pdf { color: #24324a; font-family: Arial, sans-serif; font-size: 9px; }
+                        .pt-partner-balance-pdf .report-title { margin-bottom: 16px; padding: 15px 18px; border-radius: 8px; background: #7c2d12; color: #fff; }
+                        .pt-partner-balance-pdf .report-title h1 { margin: 0; color: #fff; font-size: 21px; letter-spacing: .3px; }
+                        .pt-partner-balance-pdf .report-print-date { margin: 5px 0 0; color: #ffedd5; font-size: 10px; }
+                        .pt-partner-balance-pdf .metrics { width: 100%; margin: 14px 0 18px; border-collapse: separate; border-spacing: 7px 0; }
+                        .pt-partner-balance-pdf .metrics td { width: 25%; padding: 12px; border: 1px solid #dbe4f0; border-radius: 6px; background: #fff; vertical-align: top; }
+                        .pt-partner-balance-pdf .metric-label { display: block; color: #64748b; font-size: 8px; font-weight: bold; text-transform: uppercase; }
+                        .pt-partner-balance-pdf .metric-value { display: block; margin-top: 7px; color: #1d4f91; font-size: 15px; font-weight: bold; }
+                        .pt-partner-balance-pdf .section-title { margin: 18px 0 8px; padding: 7px 10px; border-left: 4px solid #2563eb; background: #eff6ff; color: #1e3a5f; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+                        .pt-partner-balance-pdf table.data-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+                        .pt-partner-balance-pdf .data-table th { padding: 7px 6px; background: #1e3a5f; color: #fff; font-size: 8px; text-align: left; }
+                        .pt-partner-balance-pdf .data-table td { padding: 7px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+                        .pt-partner-balance-pdf .data-table tbody tr:nth-child(even) { background: #f8fafc; }
+                        .pt-partner-balance-pdf .number { text-align: right; white-space: nowrap; }
+                        .pt-partner-balance-pdf .status { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 8px; font-weight: bold; }
+                        .pt-partner-balance-pdf .status-ok { background: #e9f8ef; color: #137333; }
+                        .pt-partner-balance-pdf .status-warn { background: #fff7e6; color: #9a5b00; }
+                        .pt-partner-balance-pdf .status-danger { background: #feecef; color: #b42318; }
+                        .pt-partner-balance-pdf .muted { color: #64748b; }
+                        .pt-partner-balance-pdf .summary-box { margin-top: 14px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; }
+                        .pt-partner-balance-pdf .summary-box p { margin: 3px 0; }
+                        .pt-partner-balance-pdf .report-title, .pt-partner-balance-pdf .metrics, .pt-partner-balance-pdf .summary-box, .pt-partner-balance-pdf .signatures { page-break-inside: avoid; }
+                        .pt-partner-balance-pdf .signatures { width: 100%; margin-top: 34px; border-collapse: collapse; text-align: center; }
+                        .pt-partner-balance-pdf .signatures td { width: 33.33%; padding-top: 26px; }
+                        .pt-partner-balance-pdf thead { display: table-header-group; }
+                        .pt-partner-balance-pdf tr { page-break-inside: avoid; }
+                    </style>
+
+                    <section class="report-title">
+                        <h1><t t-esc="report_data['title']"/></h1>
+                        <p class="report-print-date">Imprimé le <t t-esc="report_data['generated_at']"/></p>
+                    </section>
+
+                    <table class="metrics">
+                        <tr>
+                            <td><span class="metric-label"><t t-esc="report_data['total_label']"/></span><strong class="metric-value"><t t-esc="'{:,.0f}'.format(report_data['global_total'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                            <td><span class="metric-label">Résultats correspondant au filtre</span><strong class="metric-value"><t t-esc="report_data['filtered_count']"/></strong></td>
+                            <td><span class="metric-label">Lignes affichées et imprimées</span><strong class="metric-value"><t t-esc="report_data['displayed_count']"/></strong></td>
+                            <td><span class="metric-label">Solde de la liste affichée</span><strong class="metric-value"><t t-esc="'{:,.0f}'.format(report_data['displayed_total'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                        </tr>
+                    </table>
+
+                    <h2 class="section-title">Liste affichée — <t t-esc="report_data['filter_label']"/></h2>
+                    <table class="data-table">
+                        <thead><tr><th><t t-esc="report_data['partner_label']"/></th><th class="number">Débit</th><th class="number">Crédit</th><th class="number">Solde</th><th>État</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="report_data['rows']" t-as="row">
+                                <tr>
+                                    <td><t t-esc="row['partner']"/></td>
+                                    <td class="number"><t t-esc="'{:,.0f}'.format(row['debit'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></td>
+                                    <td class="number"><t t-esc="'{:,.0f}'.format(row['credit'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></td>
+                                    <td class="number"><strong><t t-esc="'{:,.0f}'.format(row['balance'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                                    <td><span t-att-class="'status status-' + row['status_class']"><t t-esc="row['status']"/></span></td>
+                                </tr>
+                            </t>
+                            <tr t-if="not report_data['rows']"><td colspan="5" class="muted">Aucune ligne n'est affichée avec les critères actuels.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <section class="summary-box">
+                        <p><strong>Lecture de la sélection :</strong> la liste imprimée contient <strong><t t-esc="report_data['displayed_count']"/> ligne(s)</strong> pour un solde total de <strong><t t-esc="'{:,.0f}'.format(report_data['displayed_total'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong>.</p>
+                        <p>Mouvements de la liste : débit <strong><t t-esc="'{:,.0f}'.format(report_data['total_debit'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong> ; crédit <strong><t t-esc="'{:,.0f}'.format(report_data['total_credit'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong>.</p>
+                    </section>
+
+                    <table class="signatures"><tr><td><strong>Comptable</strong><br/><br/>______________________</td><td><strong>Responsable recouvrement</strong><br/><br/>______________________</td><td><strong>Direction financière</strong><br/><br/>______________________</td></tr></table>
+                </div>
+            </t>
+            </t>
+        </t>
+    </template>
+</odoo>

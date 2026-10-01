@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.SmartAlerts" owl="1">
+
+    <div class="pt-alerts-card">
+
+        <div class="pt-alerts-header">
+
+            <div>
+
+                <h3>
+                    Centre d'Alertes
+                </h3>
+
+                <span>
+                    Surveillance temps réel
+                </span>
+
+            </div>
+
+            <div class="pt-alert-count">
+
+                <t t-esc="state.alerts.length"/>
+
+            </div>
+
+        </div>
+
+        <t t-if="state.loading">
+
+            <div class="pt-loader-container">
+
+                <i class="fa fa-spinner fa-spin"/>
+
+            </div>
+
+        </t>
+
+        <t t-else="">
+
+            <div t-if="!state.alerts.length" class="pt-no-alert">
+
+                <i class="fa fa-check-circle"/>
+
+                <span>
+
+                    Aucune alerte détectée
+
+                </span>
+
+            </div>
+
+            <div t-else="" class="pt-alerts-list">
+
+                <div t-foreach="state.alerts" t-as="alert" t-key="alert.message" t-att-class="'pt-alert-item pt-alert-' + alert.type" t-on-click="() =&gt; this.openAlert(alert)">
+
+                    <div class="pt-alert-icon">
+
+                        <t t-esc="alert.icon"/>
+
+                    </div>
+
+                    <div class="pt-alert-content">
+
+                        <div class="pt-alert-message">
+
+                            <t t-esc="alert.message"/>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </t>
+
+    </div>
+
+</t>
+
+</templates>

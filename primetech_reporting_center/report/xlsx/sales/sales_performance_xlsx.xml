@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="sales_performance_xlsx_report" model="ir.actions.report">
+    <field name="name">Performance Commerciale XLSX</field>
+    <field name="model">primetech.sales.performance.report.wizard</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">primetech_reporting_center.sales_performance_xlsx</field>
+    <field name="report_file">primetech_reporting_center.sales_performance_xlsx</field>
+    <field name="print_report_name">'Performance_Commerciale'</field>
+  </record>
+</odoo>

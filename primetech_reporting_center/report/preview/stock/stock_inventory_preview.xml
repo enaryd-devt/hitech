@@ -1,0 +1,330 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_inventory_preview_template">
+    <div style="padding:20px; background:#f8fafc; font-family:Arial,sans-serif;">
+      <!-- ===================================== -->
+      <!-- TITRE -->
+      <!-- ===================================== -->
+      <div style="background:white; padding:20px; border-radius:16px; margin-bottom:20px; border:1px solid #e5e7eb;">
+        <h2 style="margin:0; color:#0f172a;">
+
+                    Inventaire Physique
+
+                </h2>
+        <div style="margin-top:8px; color:#64748b;">
+
+                    Contrôle des stocks et
+                    comptage physique
+
+                </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div style="display:flex; gap:15px; margin-bottom:20px;">
+        <div class="pt_kpi">
+          <div>
+                        Produits
+                    </div>
+          <strong>
+            <t t-esc="data['kpi']['products_count']"/>
+          </strong>
+        </div>
+        <div class="pt_kpi">
+          <div>
+                        Lots
+                    </div>
+          <strong>
+            <t t-esc="data['kpi']['lots_count']"/>
+          </strong>
+        </div>
+        <div class="pt_kpi">
+          <div>
+                        Entrepôts
+                    </div>
+          <strong>
+            <t t-esc="data['kpi']['warehouses_count']"/>
+          </strong>
+        </div>
+        <div class="pt_kpi">
+          <div>
+                        Emplacements
+                    </div>
+          <strong>
+            <t t-esc="data['kpi']['locations_count']"/>
+          </strong>
+        </div>
+        <div class="pt_kpi">
+          <div>
+                        Catégories
+                    </div>
+          <strong>
+            <t t-esc="data['kpi']['categories_count']"/>
+          </strong>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- INVENTAIRE -->
+      <!-- ===================================== -->
+      <t t-foreach="data['inventory'].items()" t-as="warehouse">
+        <!-- ===================================== -->
+        <!-- ENTREPOT -->
+        <!-- ===================================== -->
+        <div style="margin-top:25px; background:#0f766e; color:white; padding:14px 18px; border-radius:12px; font-size:18px; font-weight:700;">
+
+                    ENTREPÔT :
+                    <t t-esc="warehouse[0]"/>
+
+                </div>
+        <t t-foreach="warehouse[1].items()" t-as="location">
+          <!-- ===================================== -->
+          <!-- EMPLACEMENT -->
+          <!-- ===================================== -->
+          <div style="margin-top:15px; margin-left:20px; background:#e0f2fe; color:#0c4a6e; padding:12px 16px; border-radius:10px; font-weight:700;">
+
+                        EMPLACEMENT :
+                        <t t-esc="location[0]"/>
+
+                    </div>
+          <t t-foreach="location[1].items()" t-as="category">
+            <!-- ===================================== -->
+            <!-- CATEGORIE -->
+            <!-- ===================================== -->
+            <div style="margin-top:15px; margin-left:40px; border-left: 5px solid #7c3aed; padding:10px 15px; background:#faf5ff; font-weight:700; color:#6d28d9;">
+
+                            CATÉGORIE :
+                            <t t-esc="category[0]"/>
+
+                        </div>
+            <!-- ===================================== -->
+            <!-- TABLEAU -->
+            <!-- ===================================== -->
+            <table class="pt_table" style="margin-left:40px; width:calc(100% - 40px); margin-top:10px; margin-bottom:20px;">
+              <thead>
+                <tr>
+                  <th>
+                                        Produit
+                                    </th>
+                  <th>
+                                        Référence
+                                    </th>
+                  <th>
+                                        Lot
+                                    </th>
+                  <th>
+                                        Stock Disponible
+                                    </th>
+                  <th>
+                                        Stock Réservé
+                                    </th>
+                  <th>
+                                        Qté Comptée
+                                    </th>
+                  <th>
+                                        Écart Observé
+                                    </th>
+                  <th>
+                                        Observation
+                                    </th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="category[1]" t-as="line">
+                  <tr>
+                    <!-- ===================================== -->
+                    <!-- PRODUIT -->
+                    <!-- ===================================== -->
+                    <td>
+                      <t t-if="line['first_line']">
+                        <strong>
+                          <t t-esc="line['product_name']"/>
+                        </strong>
+                      </t>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- REFERENCE -->
+                    <!-- ===================================== -->
+                    <td>
+                      <t t-if="line['first_line']">
+                        <strong>
+                          <t t-esc="line['default_code']"/>
+                        </strong>
+                      </t>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- LOT -->
+                    <!-- ===================================== -->
+                    <td>
+                      <span t-att-style="'font-weight:600;' if line['lot_name'] != 'SANS LOT' else 'color:#94a3b8;'">
+                        <t t-esc="line['lot_name']"/>
+                      </span>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- STOCK DISPONIBLE -->
+                    <!-- ===================================== -->
+                    <td style="text-align:right;">
+                      <t t-out="'{:,.2f}'.format( line['qty_available'] )"/>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- STOCK RESERVE -->
+                    <!-- ===================================== -->
+                    <td style="text-align:right;">
+                      <t t-out="'{:,.2f}'.format( line['qty_reserved'] )"/>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- QTE COMPTEE -->
+                    <!-- ===================================== -->
+                    <td>
+                      <div style="height:28px; border-bottom: 1px solid #cbd5e1;"/>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- ECART OBSERVE -->
+                    <!-- ===================================== -->
+                    <td>
+                      <div style="height:28px; border-bottom: 1px solid #cbd5e1;"/>
+                    </td>
+                    <!-- ===================================== -->
+                    <!-- OBSERVATION -->
+                    <!-- ===================================== -->
+                    <td>
+                      <div style="height:28px; border-bottom: 1px solid #cbd5e1;"/>
+                    </td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+          </t>
+        </t>
+      </t>
+      <!-- ===================================== -->
+      <!-- OBSERVATIONS -->
+      <!-- ===================================== -->
+      <t t-if="wizard.observations">
+        <div style="margin-top:30px; background:white; border:1px solid #e5e7eb; border-radius:14px; padding:20px;">
+          <h4 style="margin-top:0; color:#0f172a;">
+
+                        Observations Générales
+
+                    </h4>
+          <div style="color:#475569; line-height:1.7;">
+            <t t-esc="wizard.observations"/>
+          </div>
+        </div>
+      </t>
+      <!-- ===================================== -->
+      <!-- SIGNATURES -->
+      <!-- ===================================== -->
+      <div style="margin-top:40px; display:flex; gap:30px;">
+        <div style="flex:1; text-align:center;">
+          <div style="margin-bottom:70px;">
+
+                        Préparé par
+
+                    </div>
+          <div style="border-top: 1px solid #111827; padding-top:8px;">
+
+                        Signature
+
+                    </div>
+        </div>
+        <div style="flex:1; text-align:center;">
+          <div style="margin-bottom:70px;">
+
+                        Contrôlé par
+
+                    </div>
+          <div style="border-top: 1px solid #111827; padding-top:8px;">
+
+                        Signature
+
+                    </div>
+        </div>
+        <div style="flex:1; text-align:center;">
+          <div style="margin-bottom:70px;">
+
+                        Validé par
+
+                    </div>
+          <div style="border-top: 1px solid #111827; padding-top:8px;">
+
+                        Signature
+
+                    </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- STYLES -->
+      <!-- ===================================== -->
+      <style>
+
+                .pt_kpi{
+
+                    flex:1;
+
+                    background:white;
+
+                    border:1px solid #e5e7eb;
+
+                    border-radius:14px;
+
+                    padding:16px;
+
+                    text-align:center;
+                }
+
+                .pt_kpi div{
+
+                    color:#64748b;
+
+                    font-size:12px;
+
+                    margin-bottom:6px;
+                }
+
+                .pt_kpi strong{
+
+                    font-size:22px;
+
+                    color:#0f172a;
+                }
+
+                .pt_table{
+
+                    width:100%;
+
+                    border-collapse:collapse;
+
+                    background:white;
+                }
+
+                .pt_table th{
+
+                    background:#f8fafc;
+
+                    border:1px solid #cbd5e1;
+
+                    padding:10px;
+
+                    font-size:12px;
+
+                    font-weight:700;
+                }
+
+                .pt_table td{
+
+                    border:1px solid #cbd5e1;
+
+                    padding:8px;
+
+                    font-size:12px;
+                }
+
+                .pt_table tbody tr:nth-child(even){
+
+                    background:#fafafa;
+                }
+
+            </style>
+    </div>
+  </template>
+</odoo>

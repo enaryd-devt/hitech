@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="sales_orders_tracking_pdf_report" model="ir.actions.report">
+    <field name="name">Suivi des Commandes</field>
+    <field name="model">primetech.sales.orders.tracking.report.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.sales_orders_tracking</field>
+    <field name="report_file">primetech_reporting_center.sales_orders_tracking</field>
+  </record>
+</odoo>

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_sales_profitability_report_wizard" model="ir.actions.act_window">
+    <field name="name">Rentabilité Commerciale</field>
+    <field name="res_model">primetech.sales.profitability.report.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

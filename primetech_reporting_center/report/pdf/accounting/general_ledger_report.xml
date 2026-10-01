@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="gl_report_template">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ENTETE RAPPORT -->
+          <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px;">
+            <tr>
+              <td style="width:35%;">
+                <strong>
+                  <t t-esc="env.company.name"/>
+                </strong>
+              </td>
+              <td style="width:30%; text-align:center;">
+                <div style="font-size:22px; font-weight:bold;">
+                                    GRAND LIVRE
+                                </div>
+                <div style="font-size:11px;">
+                                    Grand Livre Général des Comptes
+                                </div>
+              </td>
+              <td style="width:35%; text-align:right;">
+
+                                Période du
+
+                                <strong><t t-esc="date_from"/></strong>
+
+                                au
+
+                                <strong><t t-esc="date_to"/></strong>
+
+                                <br/>
+
+                                Date d'impression :
+
+                                <strong><t t-esc="generated_at"/></strong>
+
+                            </td>
+            </tr>
+          </table>
+          <hr style="border:none; border-top:1px solid #666; margin:6px 0 12px 0;"/>
+          <!-- COMPTES -->
+          <t t-foreach="data['accounts']" t-as="account">
+            <div style="page-break-inside:avoid; margin-bottom:20px;">
+              <!-- BANDEAU COMPTE -->
+              <table style="width:100%; border-collapse:collapse; margin-bottom:0;">
+                <tr>
+                  <td style="background:#e5e7eb; border:0.5px solid #777; padding:6px; font-weight:bold; font-size:12px;">
+
+                                        COMPTE :
+
+                                        <t t-esc="account['code']"/>
+
+                                        -
+
+                                        <t t-esc="account['name']"/>
+
+                                    </td>
+                </tr>
+              </table>
+              <!-- TABLEAU -->
+              <table style="width:100%; border-collapse:collapse; font-size:10px;">
+                <thead>
+                  <tr>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Date
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Jnl
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Pièce
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Libellé
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold; width:6%;">
+                                            Let.
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Débit
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Crédit
+                                        </th>
+                    <th style="border:0.5px solid #666; padding:5px; text-align:center; font-weight:bold;">
+                                            Solde
+                                        </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- SOLDE D'OUVERTURE -->
+                  <tr>
+                    <td colspan="7" style="border:0.5px solid #999; padding:5px; font-style:italic; font-weight:bold;">
+
+                                            SOLDE D'OUVERTURE
+
+                                        </td>
+                    <td style="border:0.5px solid #999; padding:5px; text-align:right; font-weight:bold;">
+                      <t t-esc="'{:,.0f}'.format(account['opening_balance'])"/>
+                    </td>
+                  </tr>
+                  <t t-foreach="account['lines']" t-as="line">
+                    <tr>
+                      <td style="border:0.5px solid #999; padding:4px; text-align:center;">
+                        <t t-esc="line['date']"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px; text-align:center;">
+                        <t t-esc="line['journal']"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px;">
+                        <t t-esc="line['piece']"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px; text-align:center;">
+                        <t t-esc="line['letter']"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['debit'])"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['credit'])"/>
+                      </td>
+                      <td style="border:0.5px solid #999; padding:4px; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['balance'])"/>
+                      </td>
+                    </tr>
+                  </t>
+                  <!-- TOTAL COMPTE -->
+                  <tr style="font-weight:bold; background:#f5f5f5;">
+                    <td colspan="5" style="border:0.7px solid #666; padding:6px;">
+
+                                            TOTAL DU COMPTE
+                                            <t t-esc="account['code']"/>
+
+                                        </td>
+                    <td style="border:0.7px solid #666; padding:6px; text-align:right;">
+                      <t t-esc="'{:,.0f}'.format(account['total_debit'])"/>
+                    </td>
+                    <td style="border:0.7px solid #666; padding:6px; text-align:right;">
+                      <t t-esc="'{:,.0f}'.format(account['total_credit'])"/>
+                    </td>
+                    <td style="border:0.7px solid #666; padding:6px; text-align:right;">
+                      <t t-esc="'{:,.0f}'.format(account['closing_balance'])"/>
+                    </td>
+                  </tr>
+                  <!-- SOLDE FINAL -->
+                  <tr style="font-weight:bold;">
+                    <td colspan="7" style="border:0.7px solid #666; padding:6px;">
+
+                                            SOLDE DE CLÔTURE
+
+                                        </td>
+                    <td style="border:0.7px solid #666; padding:6px; text-align:right;">
+                      <t t-esc="'{:,.0f}'.format(account['closing_balance'])"/>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </t>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

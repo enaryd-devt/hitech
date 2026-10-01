@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+<t t-name="primetech_reporting_center.ExecutiveDetails" owl="1">
+    <section class="pt-executive-details">
+        <div class="pt-details-heading">
+            <div>
+                <span>Tome 11 · Profils ERP</span>
+                <h2>Domaines de pilotage</h2>
+            </div>
+            <p>Accès direct aux modules du Directeur Général, RAF, Exploitation, Supply Chain, RH et Administration.</p>
+        </div>
+
+        <div class="pt-details-grid">
+            <t t-foreach="state.sections" t-as="section" t-key="section.key">
+                <article t-att-class="'pt-domain-card tone-' + section.tone" t-on-click="() => this.openAction(section.action)">
+                    <div class="pt-domain-head">
+                        <div class="pt-domain-icon"><i t-att-class="section.icon"/></div>
+                        <div>
+                            <h3><t t-esc="section.title"/></h3>
+                            <span><t t-esc="section.subtitle"/></span>
+                        </div>
+                    </div>
+                    <div class="pt-domain-metrics">
+                        <t t-foreach="section.metrics" t-as="metric" t-key="metric.label">
+                            <div class="pt-domain-metric">
+                                <span><t t-esc="metric.label"/></span>
+                                <strong><t t-esc="formatMetric(metric)"/></strong>
+                            </div>
+                        </t>
+                    </div>
+                </article>
+            </t>
+        </div>
+
+        <div class="pt-focus-strip">
+            <t t-foreach="state.focus" t-as="item" t-key="item.label">
+                <button type="button" t-on-click="() => this.openAction(item.action)">
+                    <span><t t-esc="item.label"/></span>
+                    <strong><t t-esc="formatMetric(item)"/></strong>
+                </button>
+            </t>
+        </div>
+    </section>
+</t>
+</templates>

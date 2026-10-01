@@ -1,0 +1,190 @@
+// Shared visual system for the functional overview dashboards.
+// Values are compiled from the active Odoo theme rather than from a fixed palette.
+$pt-overview-roots: (
+    '.pt-accounting-overview',
+    '.pt-sales-overview',
+    '.pt-purchase-overview',
+    '.pt-stock-overview',
+    '.pt-hr-dashboard'
+);
+
+#{join($pt-overview-roots, ', ')} {
+    --pt-overview-primary: #{$o-brand-primary};
+    --pt-overview-surface: #{$o-view-background-color};
+    --pt-overview-soft: #{mix($o-brand-primary, $o-view-background-color, 7%)};
+    --pt-overview-border: #{mix($o-brand-primary, $o-view-background-color, 18%)};
+    background: var(--pt-overview-soft) !important;
+    color: $o-gray-900 !important;
+    font-family: inherit;
+    max-width: 100%;
+    min-width: 0;
+
+    :is(h1, h2, h3, h4, p, span, strong, small, em, label, button, input, select, td, th) {
+        font-family: inherit;
+    }
+
+    :is(.pt-accounting-header, .pt-sales-header, .pt-purchase-header, .pt-stock-header, .pt-hr-header) {
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .75rem;
+        min-width: 0;
+    }
+
+    :is(.pt-accounting-header, .pt-sales-header, .pt-purchase-header, .pt-stock-header, .pt-hr-header) h1 {
+        color: $o-gray-900;
+        font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+        line-height: 1.2;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    :is(.pt-accounting-filters, .pt-sales-filters, .pt-purchase-filters, .pt-stock-filters, .pt-hr-filters) {
+        align-items: end;
+        flex-wrap: wrap;
+        gap: .75rem !important;
+        min-width: 0;
+    }
+
+    :is(.pt-accounting-filters, .pt-sales-filters, .pt-purchase-filters, .pt-stock-filters, .pt-hr-filters) label {
+        flex: 1 1 10rem;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    :is(.pt-accounting-filters, .pt-sales-filters, .pt-purchase-filters, .pt-stock-filters, .pt-hr-filters) select,
+    :is(.pt-accounting-filters, .pt-sales-filters, .pt-purchase-filters, .pt-stock-filters, .pt-hr-filters) input {
+        background: $o-view-background-color !important;
+        border-color: var(--pt-overview-border) !important;
+        color: $o-gray-900;
+        max-width: 100%;
+        min-width: 0;
+        width: 100%;
+    }
+
+    :is(.pt-accounting-kpis, .pt-sales-kpis, .pt-purchase-kpis, .pt-stock-kpis, .pt-hr-kpis) {
+        grid-template-columns: repeat(auto-fit, minmax(10.75rem, 1fr)) !important;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    :is(.pt-accounting-kpi, .pt-sales-kpi, .pt-purchase-kpi, .pt-stock-kpi, .pt-hr-kpi),
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card, .pt-hr-actions) {
+        background: $o-view-background-color !important;
+        border-color: var(--pt-overview-border) !important;
+        box-shadow: 0 .3rem 1rem rgba($o-brand-primary, .08) !important;
+        color: $o-gray-900;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    :is(.pt-accounting-kpi, .pt-sales-kpi, .pt-purchase-kpi, .pt-stock-kpi, .pt-hr-kpi) :is(span, em, small) {
+        color: var(--pt-overview-primary) !important;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    :is(.pt-accounting-kpi, .pt-sales-kpi, .pt-purchase-kpi, .pt-stock-kpi, .pt-hr-kpi) strong {
+        color: $o-gray-900;
+        font-size: clamp(1rem, 2vw, 1.25rem) !important;
+        line-height: 1.2;
+        max-width: 100%;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        white-space: normal !important;
+    }
+
+    :is(.pt-accounting-kpi, .pt-sales-kpi, .pt-purchase-kpi, .pt-stock-kpi, .pt-hr-kpi) .down,
+    :is(.pt-accounting-alerts, .pt-purchase-alerts, .pt-hr-alerts) :is(h3, button, .pt-alert-link) {
+        color: var(--pt-overview-primary) !important;
+    }
+
+    :is(.pt-accounting-alerts, .pt-purchase-alerts, .pt-hr-alerts, .pt-alert-link) {
+        background: var(--pt-overview-soft) !important;
+        border-color: var(--pt-overview-border) !important;
+    }
+
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card) :is(button, .pt-card-link),
+    :is(.pt-accounting-icons, .pt-sales-header-icons, .pt-purchase-icons, .pt-stock-icons, .pt-hr-icons) button {
+        border-color: var(--pt-overview-border) !important;
+        color: var(--pt-overview-primary) !important;
+    }
+
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card) :is(li b, .bar, .progress-bar, .load b),
+    :is(.pt-accounting-overview, .pt-sales-overview, .pt-purchase-overview, .pt-stock-overview, .pt-hr-dashboard) :is(.blue, .green, .orange, .red, .purple, .teal, .slate) {
+        background-color: var(--pt-overview-primary) !important;
+        color: var(--pt-overview-primary) !important;
+    }
+
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card) li:nth-child(2) b { background: mix($o-brand-primary, $o-view-background-color, 78%) !important; }
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card) li:nth-child(3) b { background: mix($o-brand-primary, $o-view-background-color, 58%) !important; }
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card) li:nth-child(4) b { background: mix($o-brand-primary, $o-view-background-color, 40%) !important; }
+    :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card) li:nth-child(5) b { background: mix($o-brand-primary, $o-view-background-color, 25%) !important; }
+
+    :is(table, canvas, svg, img) { max-width: 100%; }
+    table { table-layout: fixed; width: 100%; }
+    :is(td, th) { border-color: var(--pt-overview-border) !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+@media (max-width: 767px) {
+    #{join($pt-overview-roots, ', ')} {
+        padding: .75rem !important;
+
+        :is(.pt-accounting-kpis, .pt-sales-kpis, .pt-purchase-kpis, .pt-stock-kpis, .pt-hr-kpis),
+        :is(.pt-accounting-grid-top, .pt-accounting-grid-bottom, .pt-sales-grid-top, .pt-sales-grid-bottom, .pt-purchase-grid-top, .pt-purchase-grid-bottom, .pt-stock-grid-top, .pt-stock-grid-bottom, .pt-hr-grid-top, .pt-hr-grid-bottom) {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+
+        :is(.pt-accounting-card, .pt-sales-card, .pt-purchase-card, .pt-stock-card, .pt-hr-card, .pt-hr-actions) { padding: .8rem !important; }
+    }
+}
+
+// The executive cash KPI has four mandatory columns and never needs horizontal scrolling.
+.pt-exec-board .pt-eb-cash-kpi {
+    .pt-eb-cash-fixed {
+        max-height: 22rem;
+        min-width: 0;
+        overflow-x: hidden !important;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .pt-eb-cash-table {
+        display: table !important;
+        table-layout: fixed;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        white-space: normal !important;
+    }
+
+    .pt-eb-cash-table th,
+    .pt-eb-cash-table td {
+        display: table-cell !important;
+        min-width: 0 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal !important;
+        word-break: break-word;
+    }
+
+    .pt-eb-cash-table th:nth-child(1), .pt-eb-cash-table td:nth-child(1) { width: 25% !important; }
+    .pt-eb-cash-table th:nth-child(2), .pt-eb-cash-table td:nth-child(2) { width: 34% !important; }
+    .pt-eb-cash-table th:nth-child(3), .pt-eb-cash-table td:nth-child(3) { width: 24% !important; }
+    .pt-eb-cash-table th:nth-child(4), .pt-eb-cash-table td:nth-child(4) { width: 17% !important; }
+}
+
+.pt-exec-board .pt-eb-grid-secondary {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 1200px) {
+    .pt-exec-board .pt-eb-grid-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 768px) {
+    .pt-exec-board .pt-eb-grid-secondary { grid-template-columns: minmax(0, 1fr) !important; }
+}

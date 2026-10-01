@@ -1,0 +1,235 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_bill_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ===================================== -->
+          <!-- EN-TÊTE -->
+          <!-- ===================================== -->
+          <div class="text-center mb-4">
+            <h2>
+                            Rapport des Factures Fournisseurs
+                        </h2>
+            <p><strong>Période :</strong><span t-out="filters.get( 'date_from' )"/>
+
+                            -
+
+                            <span t-out="filters.get( 'date_to' )"/>
+
+                        </p>
+          </div>
+          <!-- ===================================== -->
+          <!-- KPI -->
+          <!-- ===================================== -->
+          <h3>
+                        Indicateurs Clés
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr>
+                <td>Factures</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('bill_count', 0)"/>
+                </td>
+                <td>Fournisseurs</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('supplier_count', 0)"/>
+                </td>
+              </tr>
+              <tr>
+                <td>Montant HT</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('total_untaxed', 0)"/>
+                </td>
+                <td>Taxes</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('total_tax', 0)"/>
+                </td>
+              </tr>
+              <tr>
+                <td>Montant TTC</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('total_amount', 0)"/>
+                </td>
+                <td>Montant payé</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('total_paid', 0)"/>
+                </td>
+              </tr>
+              <tr>
+                <td>Reste dû</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('total_residual', 0)"/>
+                </td>
+                <td>Factures payées</td>
+                <td>
+                  <t t-out="report_data.get('kpi', {}).get('paid_count', 0)"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- ANALYSE FOURNISSEURS -->
+          <!-- ===================================== -->
+          <h3>
+                        Analyse Fournisseurs
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Factures</th>
+                <th>Montant TTC</th>
+                <th>Reste dû</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'supplier_analysis', {} ).items()" t-as="supplier">
+                <tr>
+                  <td>
+                    <t t-out="supplier[0]"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['count']"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['amount']"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['residual']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- ÉVOLUTION MENSUELLE -->
+          <!-- ===================================== -->
+          <h3>
+                        Évolution Mensuelle
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Mois</th>
+                <th>Montant TTC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'monthly_analysis', {} ).items()" t-as="month">
+                <tr>
+                  <td>
+                    <t t-out="month[0]"/>
+                  </td>
+                  <td>
+                    <t t-out="month[1]"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- DÉTAILS -->
+          <!-- ===================================== -->
+          <h3>
+                        Détail des Factures
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Facture</th>
+                <th>Date</th>
+                <th>Échéance</th>
+                <th>Fournisseur</th>
+                <th>Référence</th>
+                <th>HT</th>
+                <th>Taxes</th>
+                <th>TTC</th>
+                <th>Payé</th>
+                <th>Solde</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'details', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['number']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['due_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['reference']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['untaxed']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['tax']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['total']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['paid']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['residual']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['payment_state']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SIGNATURES -->
+          <!-- ===================================== -->
+          <br/>
+          <br/>
+          <br/>
+          <table style="width:100%;">
+            <tr>
+              <td style="width:33%; text-align:center;">
+
+                                Préparé par
+
+                                <br/><br/><br/>
+
+                                __________________
+
+                            </td>
+              <td style="width:33%; text-align:center;">
+
+                                Vérifié par
+
+                                <br/><br/><br/>
+
+                                __________________
+
+                            </td>
+              <td style="width:33%; text-align:center;">
+
+                                Approuvé par
+
+                                <br/><br/><br/>
+
+                                __________________
+
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

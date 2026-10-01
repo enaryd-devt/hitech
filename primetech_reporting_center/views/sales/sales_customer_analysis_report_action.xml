@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_sales_customer_analysis_report" model="ir.actions.act_window">
+    <field name="name">Analyse Clients</field>
+    <field name="res_model">primetech.sales.customer.analysis.report.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

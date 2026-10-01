@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="sales_periodic_pdf_report" model="ir.actions.report">
+    <field name="name">Rapport Périodique des Ventes</field>
+    <field name="model">primetech.sales.periodic.report.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.sales_periodic_pdf</field>
+    <field name="report_file">primetech_reporting_center.sales_periodic_pdf</field>
+    <field name="binding_model_id" ref="model_primetech_sales_periodic_report_wizard"/>
+    <field name="binding_type">report</field>
+    <field name="print_report_name">'Rapport_Ventes_%s' % (object.date_from or '')</field>
+  </record>
+</odoo>

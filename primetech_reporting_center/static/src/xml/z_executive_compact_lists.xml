@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[@data-scroll-key='main-analysis']/article[contains(@class, 'stores')]/t[@t-foreach='state.stores']" position="replace">
+            <section class="pt-eb-store-summary">
+                <div><span>Ventes totales</span><strong><t t-esc="format(state.store_summary.total || 0, 'FCFA')"/></strong></div>
+                <div><span>Commandes</span><strong><t t-esc="format(state.store_summary.orders || 0)"/></strong></div>
+            </section>
+            <div class="pt-eb-card-list-scroll pt-eb-stores-scroll">
+                <t t-foreach="state.stores" t-as="store" t-key="store.id || store.name">
+                    <button class="pt-eb-store-rich" type="button" t-att-title="store.name" t-on-click="() => this.openAction(store.action)">
+                        <span class="pt-eb-store-heading">
+                            <span class="pt-eb-store-name"><i t-att-class="'tone-' + store.tone"/><span><strong><t t-esc="store.name"/></strong><small><t t-esc="store.code || ('Magasin #' + store.rank)"/></small></span></span>
+                            <strong class="pt-eb-store-value"><t t-esc="format(store.value, 'FCFA')"/></strong>
+                        </span>
+                        <span class="pt-eb-store-metrics">
+                            <span><small>Commandes</small><strong><t t-esc="format(store.orders || 0)"/></strong></span>
+                            <span><small>Ticket moyen</small><strong><t t-esc="format(store.average_ticket || 0, 'FCFA')"/></strong></span>
+                        </span>
+                        <span class="pt-eb-store-progress" t-att-aria-label="'Taux de ventes : ' + Math.round(store.percent || 0) + '%'">
+                            <i t-att-class="'tone-' + store.tone" t-att-style="'width:' + store.percent + '%'"/>
+                        </span>
+                        <small class="pt-eb-store-channels"><b><t t-esc="Math.round(store.share || 0)"/>% du total</b><span>·</span> PDV : <b><t t-esc="store.pos_orders || 0"/></b></small>
+                    </button>
+                </t>
+                <div t-if="!(state.stores || []).length" class="pt-eb-store-empty"><i class="fa fa-building-o"/><span>Aucun magasin configuré</span></div>
+            </div>
+        </xpath>
+
+        <xpath expr="//section[@data-scroll-key='main-analysis']//section[@class='pt-category-rows']" position="replace">
+            <section class="pt-category-rows pt-eb-card-list-scroll pt-eb-categories-scroll">
+                <t t-foreach="state.categories.items.slice(0, 5)" t-as="cat" t-key="cat.name"><button t-on-click="() => this.openAction(cat.action)"><span class="pt-category-name"><i/><t t-esc="cat.name"/></span><b><t t-esc="Math.round(cat.percent)"/>%</b><em><i t-att-style="'width:' + cat.percent + '%'"/></em><small><t t-esc="format(cat.value, 'FCFA')"/></small></button></t>
+            </section>
+        </xpath>
+
+        <xpath expr="//section[@data-scroll-key='secondary-analysis']/article[1]/table" position="replace">
+            <div class="pt-eb-cash-fixed">
+                <table class="pt-eb-cash-table"><thead><tr><th>Date</th><th>Caissier</th><th>Solde</th><th>Statut</th></tr></thead><tbody><t t-foreach="state.cash" t-as="cash" t-key="cash.id or cash.name"><tr t-on-click="() => this.openAction(cash.action)"><td><t t-esc="cash.opening_date || '-'"/></td><td><t t-esc="cash.cashier"/></td><td class="pt-eb-cash-balance"><t t-esc="format(cash.balance, 'FCFA')"/></td><td><span t-att-class="'pt-eb-status ' + (cash.status_class || 'muted')"><t t-esc="cash.state"/></span></td></tr></t></tbody></table>
+            </div>
+        </xpath>
+
+        <xpath expr="//section[@data-scroll-key='secondary-analysis']/article[4]/t[@t-foreach='state.banks']" position="replace">
+            <div class="pt-eb-card-list-scroll pt-eb-banks-scroll">
+                <t t-foreach="state.banks" t-as="bank" t-key="bank.id"><div class="pt-eb-bank" t-on-click="() => this.openAction(bank.action)"><span><i class="fa fa-bank"/> <t t-esc="bank.name"/></span><strong><t t-esc="format(bank.balance, 'FCFA')"/></strong></div></t>
+            </div>
+        </xpath>
+
+        <xpath expr="//section[@data-scroll-key='secondary-analysis']/article[contains(@class, 'stock')]" position="replace"/>
+    </t>
+</templates>

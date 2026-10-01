@@ -1,0 +1,401 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_movement_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ========================= -->
+          <!-- ENTETE -->
+          <!-- ========================= -->
+          <h2>
+
+                        MOUVEMENTS DE STOCK
+
+                    </h2>
+          <div>
+
+                        Société :
+
+                        <strong><t t-esc="wizard.company_id.name"/></strong>
+
+                    </div>
+          <div>
+
+                        Période :
+
+                        <strong><t t-esc="wizard.date_from"/>
+
+                            →
+
+                            <t t-esc="wizard.date_to"/>
+
+                        </strong>
+
+                    </div>
+          <br/>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <tr>
+              <td class="kpi">
+
+                                Produits
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['products_count']"/></strong>
+
+                            </td>
+              <td class="kpi">
+
+                                Mouvements
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['movements_count']"/></strong>
+
+                            </td>
+              <td class="kpi">
+
+                                Lots
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['lots_count']"/></strong>
+
+                            </td>
+            </tr>
+          </table>
+          <!-- ========================= -->
+          <!-- PRODUITS -->
+          <!-- ========================= -->
+          <t t-foreach="data['products']" t-as="product">
+            <div style="margin-top:20px; border:1px solid black; padding:10px; page-break-inside:avoid;">
+              <!-- ========================= -->
+              <!-- TITRE PRODUIT -->
+              <!-- ========================= -->
+              <div style="font-size:16px; font-weight:bold; margin-bottom:10px;">
+                <t t-esc="product['product_name']"/>
+              </div>
+              <!-- ========================= -->
+              <!-- INFOS -->
+              <!-- ========================= -->
+              <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                <tr>
+                  <td width="15%">
+                    <strong>
+                                            Référence
+                                        </strong>
+                  </td>
+                  <td width="35%">
+                    <t t-esc="product['default_code']"/>
+                  </td>
+                  <td width="15%">
+                    <strong>
+                                            Catégorie
+                                        </strong>
+                  </td>
+                  <td width="35%">
+                    <t t-esc="product['category_name']"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>
+                                            Stock Final
+                                        </strong>
+                  </td>
+                  <td>
+                    <t t-out="'{:,.2f}'.format( product['balance'] )"/>
+                  </td>
+                  <td>
+                    <strong>
+                                            Valeur Finale
+                                        </strong>
+                  </td>
+                  <td>
+                    <t t-out="'{:,.2f}'.format( product['valuation'] )"/>
+                  </td>
+                </tr>
+              </table>
+              <!-- ========================= -->
+              <!-- TABLEAU -->
+              <!-- ========================= -->
+              <table class="movement_table" style="width:100%; border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th>
+                                            Date
+                                        </th>
+                    <th>
+                                            Partenaire
+                                        </th>
+                    <th>
+                                            Document
+                                        </th>
+                    <th>
+                                            Origine
+                                        </th>
+                    <th>
+                                            Destination
+                                        </th>
+                    <th>
+                                            Lot
+                                        </th>
+                    <th>
+                                            Entrée
+                                        </th>
+                    <th>
+                                            Sortie
+                                        </th>
+                    <th>
+                                            Solde
+                                        </th>
+                    <th t-if="wizard.show_cost">
+                                            Coût
+                                        </th>
+                    <th t-if="wizard.show_valuation">
+                                            Valorisation
+                                        </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <t t-foreach="product['lines']" t-as="line">
+                    <tr t-att-style="'background:#ecfdf5;color:#166534;' if line['is_entry'] else 'background:#fef2f2;color:#991b1b;'">
+                      <!-- ========================= -->
+                      <!-- DATE -->
+                      <!-- ========================= -->
+                      <td>
+                        <t t-out="line['date'].strftime( '%d/%m/%Y' ) if line['date'] else ''"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- PARTENAIRE -->
+                      <!-- ========================= -->
+                      <td>
+                        <t t-esc="line['partner_name']"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- DOCUMENT -->
+                      <!-- ========================= -->
+                      <td>
+                        <t t-esc="line['document']"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- ORIGINE -->
+                      <!-- ========================= -->
+                      <td>
+                        <t t-esc="line['source_name']"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- DESTINATION -->
+                      <!-- ========================= -->
+                      <td>
+                        <t t-esc="line['destination_name']"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- LOT -->
+                      <!-- ========================= -->
+                      <td>
+                        <t t-esc="line['lot_name']"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- ENTREE -->
+                      <!-- ========================= -->
+                      <td style="text-align:right;">
+                        <t t-if="line['qty_in']">
+                          <t t-out="'{:,.2f}'.format( line['qty_in'] )"/>
+                        </t>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- SORTIE -->
+                      <!-- ========================= -->
+                      <td style="text-align:right;">
+                        <t t-if="line['qty_out']">
+                          <t t-out="'{:,.2f}'.format( line['qty_out'] )"/>
+                        </t>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- SOLDE -->
+                      <!-- ========================= -->
+                      <td style="text-align:right; font-weight:bold;">
+                        <t t-out="'{:,.2f}'.format( line['balance'] )"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- COUT -->
+                      <!-- ========================= -->
+                      <td t-if="wizard.show_cost" style="text-align:right;">
+                        <t t-out="'{:,.2f}'.format( line['cost'] )"/>
+                      </td>
+                      <!-- ========================= -->
+                      <!-- VALORISATION -->
+                      <!-- ========================= -->
+                      <td t-if="wizard.show_valuation" style="text-align:right;">
+                        <t t-out="'{:,.2f}'.format( line['valuation'] )"/>
+                      </td>
+                    </tr>
+                  </t>
+                </tbody>
+              </table>
+              <!-- ========================= -->
+              <!-- TOTAL ARTICLE -->
+              <!-- ========================= -->
+              <table style="width:100%; border-collapse:collapse; margin-top:8px; margin-bottom:20px;">
+                <tr>
+                  <td class="total_label">
+                                        Total Entrées
+                                    </td>
+                  <td class="total_value">
+                    <t t-out="'{:,.2f}'.format( product['total_in'] )"/>
+                  </td>
+                  <td class="total_label">
+                                        Total Sorties
+                                    </td>
+                  <td class="total_value">
+                    <t t-out="'{:,.2f}'.format( product['total_out'] )"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="total_label">
+                                        Stock Final
+                                    </td>
+                  <td class="total_value">
+                    <t t-out="'{:,.2f}'.format( product['balance'] )"/>
+                  </td>
+                  <td class="total_label">
+                                        Valeur Finale
+                                    </td>
+                  <td class="total_value">
+                    <t t-out="'{:,.2f}'.format( product['valuation'] )"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </t>
+          <!-- ========================= -->
+          <!-- OBSERVATIONS -->
+          <!-- ========================= -->
+          <t t-if="wizard.observations">
+            <div style="margin-top:20px; border:1px solid black; padding:12px;">
+              <strong>
+
+                                Observations
+
+                            </strong>
+              <div style="margin-top:10px;">
+                <t t-esc="wizard.observations"/>
+              </div>
+            </div>
+          </t>
+          <!-- ========================= -->
+          <!-- SIGNATURES -->
+          <!-- ========================= -->
+          <table style="width:100%; margin-top:40px; border-collapse:collapse;">
+            <tr>
+              <td style="text-align:center; width:33%;">
+
+                                Préparé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                __________________
+
+                            </td>
+              <td style="text-align:center; width:33%;">
+
+                                Contrôlé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                __________________
+
+                            </td>
+              <td style="text-align:center; width:33%;">
+
+                                Validé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                __________________
+
+                            </td>
+            </tr>
+          </table>
+          <!-- ========================= -->
+          <!-- DATE IMPRESSION -->
+          <!-- ========================= -->
+          <div style="margin-top:20px; text-align:right; font-size:10px;">
+
+                        Généré le :
+
+                        <t t-esc="context_timestamp( wizard.create_date ).strftime( '%d/%m/%Y %H:%M' ) if wizard.create_date else ''"/>
+
+                    </div>
+          <!-- ========================= -->
+          <!-- STYLES -->
+          <!-- ========================= -->
+          <style>
+
+                        .kpi{
+
+                            border:1px solid black;
+
+                            text-align:center;
+
+                            padding:8px;
+
+                            font-size:11px;
+                        }
+
+                        .movement_table th{
+
+                            border:1px solid black;
+
+                            background:#f2f2f2;
+
+                            padding:5px;
+
+                            font-size:10px;
+                        }
+
+                        .movement_table td{
+
+                            border:1px solid black;
+
+                            padding:4px;
+
+                            font-size:9px;
+                        }
+
+                        .total_label{
+
+                            border:1px solid black;
+
+                            background:#f2f2f2;
+
+                            padding:6px;
+
+                            font-weight:bold;
+                        }
+
+                        .total_value{
+
+                            border:1px solid black;
+
+                            padding:6px;
+
+                            text-align:right;
+                        }
+
+                    </style>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_cash_period_report" model="ir.actions.act_window">
+    <field name="name">Rapport Périodique de Trésorerie</field>
+    <field name="res_model">pt.cash.period.wiz</field>
+    <field name="view_mode">form</field>
+    <field name="view_id" ref="view_cash_period_report_wizard"/>
+    <field name="target">new</field>
+  </record>
+</odoo>

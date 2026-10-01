@@ -1,0 +1,45 @@
+.pt-charts-grid {
+
+    display: grid;
+
+    grid-template-columns: 2fr 1fr;
+
+    gap: 24px;
+
+    margin-bottom: 24px;
+
+}
+
+.pt-chart-card {
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 20px;
+
+    box-shadow: var(--pt-shadow);
+
+    min-height: 420px;
+
+}
+
+.pt-chart-title {
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    margin-bottom: 20px;
+
+    color: var(--pt-text);
+
+}
+
+.pt-chart-card canvas {
+
+    width: 100% !important;
+
+    height: 320px !important;
+
+}

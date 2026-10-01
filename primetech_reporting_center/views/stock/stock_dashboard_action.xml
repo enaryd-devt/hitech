@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_stock_dashboard" model="ir.actions.client">
+    <field name="name">Vue d'Ensemble</field>
+    <field name="tag">primetech_stock_dashboard</field>
+  </record>
+</odoo>

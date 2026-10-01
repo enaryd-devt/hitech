@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//select[contains(@t-on-change, 'cash_period')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('cash_period')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'billing_period')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('billing_period')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'store_period')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('store_period')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'revenue_period')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('revenue_period')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'cashflow_period')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('cashflow_period')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'top_watch_period')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('top_watch_period')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'customer_receivable_filter')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('customer_receivable_filter')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+        <xpath expr="//select[contains(@t-on-change, 'supplier_receivable_filter')]/ancestor::article[1]" position="inside">
+            <div t-if="isKpiLoading('supplier_receivable_filter')" class="pt-kpi-loading-overlay" role="status" aria-live="polite"><i class="fa fa-spinner fa-spin"/><span>Mise à jour des données…</span></div>
+        </xpath>
+    </t>
+</templates>

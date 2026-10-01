@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_executive_top_watch_pdf" model="ir.actions.report">
+        <field name="name">Rapport des produits à surveiller</field>
+        <field name="model">res.company</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_reporting_center.executive_top_watch_pdf</field>
+        <field name="report_file">primetech_reporting_center.executive_top_watch_pdf</field>
+        <field name="paperformat_id" eval="False"/>
+        <field name="print_report_name">'Top_produits_a_surveiller_%s' % (object.name)</field>
+    </record>
+</odoo>

@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_report_preview_wizard" model="ir.ui.view">
+    <field name="name">report.preview.wizard.form</field>
+    <field name="model">primetech.report.preview.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Prévisualisation du rapport" create="0" edit="0">
+        <header>
+          <button name="action_print" type="object" string="Imprimer PDF" class="btn-primary" icon="fa-file-pdf-o"/>
+        </header>
+        <sheet>
+          <field name="name" readonly="1"/>
+          <field name="html_content" widget="html" readonly="1" nolabel="1"/>
+        </sheet>
+      </form>
+    </field>
+  </record>
+</odoo>

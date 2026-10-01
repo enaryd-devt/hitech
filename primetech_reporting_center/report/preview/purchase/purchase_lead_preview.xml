@@ -1,0 +1,235 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_lead_preview_template">
+    <div class="container-fluid">
+      <!-- ===================================== -->
+      <!-- ENTETE -->
+      <!-- ===================================== -->
+      <div class="mb-4">
+        <h2>
+                    Délais d'Approvisionnement
+                </h2>
+        <p class="text-muted">
+
+                    Analyse des délais entre les
+                    commandes d'achat et les
+                    réceptions effectives.
+
+                </p>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Commandes</h6>
+              <h3>
+                <t t-out="data['kpi']['order_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Réceptions</h6>
+              <h3>
+                <t t-out="data['kpi']['receipt_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Délai Moyen</h6>
+              <h3>
+                <t t-out="round(data['kpi']['avg_delay'], 2)"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Délai Mini</h6>
+              <h3>
+                <t t-out="data['kpi']['min_delay']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Délai Maxi</h6>
+              <h3>
+                <t t-out="data['kpi']['max_delay']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Hors Délai</h6>
+              <h3>
+                <t t-out="data['kpi']['late_orders']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- ANALYSE FOURNISSEURS -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Analyse Fournisseurs
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Commandes</th>
+                <th>Délai Moyen</th>
+                <th>Délai Mini</th>
+                <th>Délai Maxi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['supplier_analysis']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_count']"/>
+                  </td>
+                  <td>
+                    <t t-out="round(line['avg_delay'], 2)"/>
+                  </td>
+                  <td>
+                    <t t-out="line['min_delay']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['max_delay']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- TOP RAPIDES -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Top 10 Fournisseurs les Plus Rapides
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Délai Moyen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['top_fast']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="round(line['avg_delay'], 2)"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- TOP LENTS -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Top 10 Fournisseurs les Plus Lents
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Délai Moyen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['top_slow']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="round(line['avg_delay'], 2)"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- DETAILS -->
+      <!-- ===================================== -->
+      <div class="card">
+        <div class="card-header">
+                    Détails des Délais
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Commande</th>
+                <th>Fournisseur</th>
+                <th>Date Commande</th>
+                <th>Date Réception</th>
+                <th>Délai (jours)</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['details']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['order']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['receipt_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['delay']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+</odoo>

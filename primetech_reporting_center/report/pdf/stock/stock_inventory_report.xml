@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_stock_inventory_pdf" model="ir.actions.report">
+    <field name="name">Inventaire</field>
+    <field name="model">pt.stock.inventory.wizard</field>
+    <field name="report_name">primetech_reporting_center.stock_inventory_pdf</field>
+    <field name="report_file">primetech_reporting_center.stock_inventory_pdf</field>
+    <field name="binding_model_id" ref="model_pt_stock_inventory_wizard"/>
+  </record>
+</odoo>

@@ -1,0 +1,267 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_orders_tracking_preview">
+    <div class="container-fluid">
+      <h2 class="text-center mb-4">
+                SUIVI DES COMMANDES
+            </h2>
+      <div class="row mb-3">
+        <div class="col-12">
+          <table class="table table-bordered table-sm">
+            <tr>
+              <td>
+                <strong>Date début</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.date_from"/>
+              </td>
+              <td>
+                <strong>Date fin</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.date_to"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Société</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.company_id.name"/>
+              </td>
+              <td>
+                <strong>Commercial</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.user_id.name if wizard.user_id else 'Tous'"/>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <h4>
+                Résumé Exécutif
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Commandes</th>
+            <th>Clients</th>
+            <th>Quantité</th>
+            <th>CA HT</th>
+            <th>CA TTC</th>
+            <th>Panier Moyen</th>
+            <th>Taux Confirmation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <t t-esc="report_data['summary']['order_count']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['customer_count']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['qty']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['turnover_ht']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['turnover_ttc']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['average_ticket']"/>
+            </td>
+            <td><t t-esc="report_data['summary']['confirmation_rate']"/>
+                            %
+                        </td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+                Répartition par Statut
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Statut</th>
+            <th>Nombre</th>
+            <th>Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['status_summary'].items()" t-as="status">
+            <td>
+              <t t-esc="status[0]"/>
+            </td>
+            <td>
+              <t t-esc="status[1]['count']"/>
+            </td>
+            <td>
+              <t t-esc="status[1]['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+                Top Commerciaux
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Commercial</th>
+            <th>Commandes</th>
+            <th>Quantité</th>
+            <th>CA</th>
+            <th>Panier Moyen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['salesperson_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['salesperson']"/>
+            </td>
+            <td>
+              <t t-esc="line['order_count']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount']"/>
+            </td>
+            <td>
+              <t t-esc="line['average_ticket']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+                Top Clients
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Commandes</th>
+            <th>Montant TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['customer_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['order_count']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+                Top Produits
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['product_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['product']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+                Alertes
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Commande</th>
+            <th>Client</th>
+            <th>Jours</th>
+            <th>Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['alerts']['delayed_orders']" t-as="alert">
+            <td>
+              <t t-esc="alert['name']"/>
+            </td>
+            <td>
+              <t t-esc="alert['customer']"/>
+            </td>
+            <td>
+              <t t-esc="alert['days']"/>
+            </td>
+            <td>
+              <t t-esc="alert['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+                Détail des Commandes
+            </h4>
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Commande</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th>Etat</th>
+            <th>Qté</th>
+            <th>HT</th>
+            <th>TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['order_lines']" t-as="line">
+            <td>
+              <t t-esc="line['name']"/>
+            </td>
+            <td>
+              <t t-esc="line['date']"/>
+            </td>
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['salesperson']"/>
+            </td>
+            <td>
+              <t t-esc="line['state']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount_ht']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount_ttc']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</odoo>

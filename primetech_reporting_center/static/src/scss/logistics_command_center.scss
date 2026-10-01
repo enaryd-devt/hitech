@@ -1,0 +1,60 @@
+.pt-logistics-command-center {
+    background: #f4f7fb;
+    color: #0f172a;
+    min-height: 100vh;
+    padding: 18px;
+    font-size: 13px;
+
+    button { border: 0; cursor: pointer; }
+    .pt-logistics-loader { display: grid; gap: 12px; min-height: 360px; place-items: center; text-align: center; }
+    .pt-logistics-hero { align-items: center; background: linear-gradient(135deg, #0f172a, #1d4ed8); border-radius: 18px; color: #fff; display: flex; justify-content: space-between; margin-bottom: 14px; padding: 24px; box-shadow: 0 18px 35px rgba(15, 23, 42, .16); }
+    .pt-logistics-hero span { color: #bfdbfe; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .pt-logistics-hero h1 { font-size: 28px; font-weight: 900; margin: 6px 0; }
+    .pt-logistics-hero p { margin: 0; opacity: .9; }
+    .pt-logistics-actions { display: flex; gap: 10px; }
+    .pt-logistics-actions button { background: rgba(255, 255, 255, .13); border: 1px solid rgba(255, 255, 255, .28); border-radius: 9px; color: #fff; font-weight: 800; padding: 10px 14px; }
+
+    .pt-logistics-kpis { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .pt-logistics-kpis button, .pt-logistics-card { background: #fff; border: 1px solid #dbe7f3; border-radius: 10px; box-shadow: 0 5px 18px rgba(15, 23, 42, .05); }
+    .pt-logistics-kpis button { padding: 14px; text-align: left; transition: .2s ease; }
+    .pt-logistics-kpis button:hover, .pt-status-lane button:hover, .pt-mini-list button:hover, tbody tr:hover { transform: translateY(-2px); box-shadow: 0 12px 22px rgba(37, 99, 235, .10); }
+    .pt-logistics-kpis span { color: #1d4ed8; display: block; font-size: 11px; font-weight: 900; margin-bottom: 10px; }
+    .pt-logistics-kpis strong { display: block; font-size: 24px; font-weight: 900; }
+    .pt-logistics-kpis small { color: #64748b; display: block; font-size: 11px; margin-top: 8px; }
+
+    .pt-logistics-grid-main { display: grid; grid-template-columns: 1.5fr 1fr .8fr; gap: 12px; margin-bottom: 12px; }
+    .pt-logistics-grid-bottom { display: grid; grid-template-columns: 1.5fr .85fr .95fr; gap: 12px; }
+    .pt-logistics-card { padding: 15px; overflow: hidden; }
+    .pt-logistics-card.wide { min-width: 0; }
+    .pt-logistics-card header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .pt-logistics-card h3 { font-size: 15px; font-weight: 900; margin: 0; }
+    .pt-logistics-card header button, .pt-card-link { background: #f8fbff; border: 1px solid #b7cff5; border-radius: 6px; color: #1d4ed8; font-size: 12px; font-weight: 900; padding: 8px 12px; }
+
+    .pt-status-lane { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; }
+    .pt-status-lane button { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: 13px 8px; text-align: center; transition: .2s ease; }
+    .pt-status-lane span { color: #475569; display: block; font-size: 11px; font-weight: 800; min-height: 28px; }
+    .pt-status-lane strong { display: block; font-size: 22px; font-weight: 900; margin-top: 7px; }
+
+    .pt-chart-box { height: 220px; }
+    .pt-chart-box.large { height: 210px; margin-bottom: 8px; }
+    canvas { height: 100% !important; width: 100% !important; }
+    .pt-fleet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .pt-fleet-grid button { background: #f8fafc; border-radius: 10px; padding: 15px; text-align: center; }
+    .pt-fleet-grid i { color: #2563eb; font-size: 20px; }
+    .pt-fleet-grid strong { display: block; font-size: 24px; font-weight: 900; }
+    .pt-fleet-grid span { color: #64748b; font-size: 11px; font-weight: 800; }
+
+    .pt-mini-list { display: grid; gap: 7px; }
+    .pt-mini-list button { align-items: center; background: transparent; border-bottom: 1px solid #edf2f7; border-radius: 6px; display: flex; justify-content: space-between; padding: 9px 4px; text-align: left; transition: .2s ease; width: 100%; }
+    .pt-mini-list small { color: #64748b; display: block; font-size: 10px; margin-top: 2px; }
+    .pt-mini-list strong { color: #0f172a; font-weight: 900; }
+    .pt-mini-list.urgent strong, .danger { color: #dc2626; }
+
+    table { border-collapse: collapse; font-size: 12px; width: 100%; }
+    th { color: #334155; font-size: 11px; padding: 8px; text-align: left; }
+    td { border-top: 1px solid #edf2f7; font-weight: 700; padding: 9px 8px; }
+    tbody tr { cursor: pointer; transition: .2s ease; }
+
+    @media (max-width: 1400px) { .pt-logistics-kpis { grid-template-columns: repeat(3, 1fr); } .pt-logistics-grid-main, .pt-logistics-grid-bottom { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .pt-logistics-hero { align-items: flex-start; flex-direction: column; gap: 14px; } .pt-logistics-kpis, .pt-status-lane { grid-template-columns: 1fr; } }
+}

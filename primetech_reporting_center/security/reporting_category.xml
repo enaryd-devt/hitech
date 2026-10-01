@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="module_category_reporting_center" model="ir.module.category">
+    <field name="name">PrimeTech Reporting</field>
+    <field name="description">Gestion des accès au Centre de Reporting PrimeTech</field>
+    <field name="sequence">50</field>
+  </record>
+</odoo>

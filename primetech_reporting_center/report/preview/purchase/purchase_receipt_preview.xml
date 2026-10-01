@@ -1,0 +1,252 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_receipt_preview_template">
+    <div class="container-fluid">
+      <!-- ===================================== -->
+      <!-- EN-TÊTE -->
+      <!-- ===================================== -->
+      <div class="mb-4">
+        <h2>
+                    Rapport des Réceptions
+                </h2>
+        <p class="text-muted">
+
+                    Analyse des réceptions fournisseurs
+                    sur la période sélectionnée.
+
+                </p>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Réceptions
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['receipt_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Fournisseurs
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['supplier_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Produits
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['product_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Terminées
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['done_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                En attente
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['waiting_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Annulées
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['cancel_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Qté Prévue
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['total_expected_qty']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body">
+              <h6>
+                                Qté Reçue
+                            </h6>
+              <h3>
+                <t t-out="data['kpi']['total_received_qty']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- ANALYSE FOURNISSEURS -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Analyse Fournisseurs
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>
+                                    Fournisseur
+                                </th>
+                <th>
+                                    Réceptions
+                                </th>
+                <th>
+                                    Quantité
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['supplier_analysis'].items()" t-as="supplier">
+                <tr>
+                  <td>
+                    <t t-out="supplier[0]"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['count']"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['qty']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- ANALYSE PRODUITS -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Analyse Produits
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>
+                                    Produit
+                                </th>
+                <th>
+                                    Quantité
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['product_analysis'].items()" t-as="product">
+                <tr>
+                  <td>
+                    <t t-out="product[0]"/>
+                  </td>
+                  <td>
+                    <t t-out="product[1]"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- DÉTAILS -->
+      <!-- ===================================== -->
+      <div class="card">
+        <div class="card-header">
+                    Détail des Réceptions
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Référence</th>
+                <th>Date</th>
+                <th>Fournisseur</th>
+                <th>Origine</th>
+                <th>Produit</th>
+                <th>Qté Prévue</th>
+                <th>Qté Reçue</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['details']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['reference']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['origin']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['product']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['qty_expected']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['qty_received']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['state']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+</odoo>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'status-buttons')]" position="inside">
+            <div class="primetech-pos-brand" title="Point de vente">
+                <img t-attf-src="/web/image?model=res.company&amp;id={{pos.company.id}}&amp;field=logo" alt="Logo de l'entreprise"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'status-buttons')]/Dropdown" position="before">
+            <div class="primetech-live-clock" t-if="!ui.isSmall" title="Heure locale">
+                <i class="fa fa-clock-o"/>
+                <span t-esc="hitechCurrentTime"/>
+            </div>
+            <button class="primetech-theme-toggle" t-on-click="toggleHitechDarkMode" t-att-title="hitechDarkMode ? 'Passer en mode clair' : 'Passer en mode sombre'" t-att-aria-label="hitechDarkMode ? 'Passer en mode clair' : 'Passer en mode sombre'">
+                <i t-att-class="hitechDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"/>
+            </button>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'pos-centerheader')]" position="inside">
+            <button class="primetech-active-orders" t-on-click="() => this.pos.showScreen('TicketScreen')" title="Afficher les commandes actives">
+                <i class="fa fa-shopping-bag"/>
+                <span>Commandes actives</span>
+                <b t-esc="orderCount"/>
+            </button>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//CategorySelector" position="before">
+            <div class="primetech-product-toolbar">
+                <div class="primetech-product-title">
+                    <h2>Produits</h2>
+                    <span><t t-esc="productsToDisplay.length"/> articles</span>
+                </div>
+                <div class="primetech-sort-hint d-none d-xl-flex">
+                    <span>Trier par :</span>
+                    <div class="primetech-sort-options">
+                        <button t-on-click="() => this.setHitechSort('recent')" t-att-class="{'active': hitechSort === 'recent'}">Plus récents</button>
+                        <button t-on-click="() => this.setHitechSort('name')" t-att-class="{'active': hitechSort === 'name'}">Nom</button>
+                        <button t-on-click="() => this.setHitechSort('price')" t-att-class="{'active': hitechSort === 'price'}">Prix</button>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//OrderSummary" position="before">
+            <div class="primetech-cart-heading">
+                <span><i class="fa fa-shopping-cart me-2"/>Panier</span>
+                <div class="primetech-cart-actions">
+                    <small><t t-esc="currentOrder.totalQuantity || 0"/> article(s)</small>
+                    <button t-if="currentOrder.lines.length" class="primetech-clear-cart" t-on-click="clearHitechCart" title="Vider entièrement le panier">
+                        <i class="fa fa-trash-o"/><span>Vider</span>
+                    </button>
+                </div>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ProductCard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//article" position="attributes">
+            <attribute name="t-att-class">{'primetech-product-out-of-stock': props.product.is_storable &amp;&amp; this.availableQuantity &lt;= 0}</attribute>
+            <attribute name="t-on-click">(event) => props.product.is_storable &amp;&amp; this.availableQuantity &lt;= 0 ? null : props.onClick(event)</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'product-content')]" position="after">
+            <div t-if="props.product.is_storable" class="primetech-stock-badge" t-att-class="{'is-empty': this.availableQuantity &lt;= 0, 'is-critical': this.primetechStockLevel === 'critical', 'is-warning': this.primetechStockLevel === 'warning', 'is-available': this.primetechStockLevel === 'available'}">
+                <i class="fa fa-cubes me-1"/>
+                <span t-esc="this.availableQuantity"/>
+            </div>
+            <div class="primetech-product-price">
+                <t t-esc="env.services.pos.getProductPriceFormatted(props.product)"/>
+                <button class="primetech-product-info" title="Voir les informations de l'article" t-on-click.stop="props.onProductInfoClick">
+                    <i class="fa fa-info"/>
+                </button>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.CategorySelector" t-inherit-mode="extension" owl="1">
+        <xpath expr="//t[@t-foreach='props.categories']" position="before">
+            <button class="category-button primetech-category-all px-2 btn d-flex align-items-center rounded-3" t-att-class="{'primetech-category-active': primetechAllCategoriesSelected}" t-on-click="() => props.onClick(0)">
+                <i class="fa fa-th-large me-1"/>
+                <span class="text-wrap-categ text-center">Tous</span>
+            </button>
+        </xpath>
+        <xpath expr="//t[@t-foreach='props.categories']/button" position="attributes">
+            <attribute name="t-att-class">{'opacity-50': !category.isChildren &amp;&amp; !category.isSelected, 'justify-content-center': ui.isSmall, 'primetech-category-active': category.isSelected}</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.Chrome" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'pos-content')]" position="after">
+            <footer class="primetech-pos-footer">
+                <button class="primetech-new-order" t-on-click="() => pos.add_new_order()" title="Créer une nouvelle commande">
+                    <i class="fa fa-plus"/>
+                </button>
+                <div class="primetech-open-orders">
+                    <button t-foreach="pos.get_open_orders()" t-as="order" t-key="order.uuid" class="primetech-order-chip" t-att-class="{'is-active': pos.get_order() &amp;&amp; order.uuid === pos.get_order().uuid}" t-on-click="() => { pos.set_order(order); pos.showScreen('ProductScreen'); }" title="Ouvrir cette commande">
+                        <div class="primetech-order-chip-head">
+                            <b t-esc="order.pos_reference || order.name || 'Commande'"/>
+                            <span title="Commande en cours"><i class="fa fa-circle"/></span>
+                        </div>
+                        <strong t-esc="env.utils.formatCurrency(order.get_total_with_tax())"/>
+                        <small><i class="fa fa-shopping-basket me-1"/><t t-esc="order.totalQuantity || order.lines.length"/> article(s)</small>
+                        <button class="primetech-delete-order" t-if="!order.finalized" t-on-click.stop="() => pos.onDeleteOrder(order)" title="Supprimer cette commande" aria-label="Supprimer cette commande">
+                            <i class="fa fa-trash"/>
+                        </button>
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+                <span class="primetech-footer-status"><i class="fa fa-circle text-success me-2"/>Connecté</span>
+                <span class="primetech-footer-location"><i class="fa fa-cubes me-2"/><b>Entrepôt de déstockage :</b><t t-esc="pos.pickingType.primetech_warehouse_name || 'Non défini'"/></span>
+                <span class="primetech-footer-location"><i class="fa fa-building me-2"/><b>Point de vente :</b><t t-esc="pos.config.name"/></span>
+            </footer>
+        </xpath>
+    </t>
+
+</templates>

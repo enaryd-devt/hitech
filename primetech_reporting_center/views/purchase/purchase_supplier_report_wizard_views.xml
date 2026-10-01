@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_purchase_supplier_report_wizard" model="ir.ui.view">
+    <field name="name">purchase.supplier.report.wizard.form</field>
+    <field name="model">primetech.purchase.supplier.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Achats par Fournisseur" create="false" edit="false">
+        <sheet>
+          <!-- ===================================== -->
+          <!-- HEADER -->
+          <!-- ===================================== -->
+          <div class="d-flex align-items-center mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:64px; height:64px; background:#EEF2FF; color:#4F46E5; font-size:26px;">
+              <i class="fa fa-truck"/>
+            </div>
+            <div>
+              <h1 class="mb-1">
+                                Achats par Fournisseur
+                            </h1>
+              <div class="text-muted">
+                                Analyse détaillée des achats,
+                                produits, quantités et montants
+                                par fournisseur.
+                            </div>
+            </div>
+          </div>
+          <!-- ===================================== -->
+          <!-- FILTRES -->
+          <!-- ===================================== -->
+          <group string="Période">
+            <group>
+              <field name="date_from"/>
+              <field name="date_to"/>
+            </group>
+            <group>
+              <field name="company_id"/>
+              <field name="state"/>
+            </group>
+          </group>
+          <group string="Fournisseurs">
+            <field name="supplier_ids" widget="many2many_tags"/>
+          </group>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/>
+          <button name="action_print_pdf" type="object" string="PDF" icon="fa-file-pdf-o" class="btn btn-secondary"/>
+          <button name="action_export_xlsx" type="object" string="Excel" icon="fa-file-excel-o" class="btn btn-success"/>
+          <button string="Fermer" special="cancel" class="btn btn-light"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

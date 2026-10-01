@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.TargetsProgress" owl="1">
+
+    <div class="pt-targets-card">
+
+        <div class="pt-section-title">
+
+            Objectifs &amp; Performance
+
+        </div>
+
+        <div class="pt-target-item">
+
+            <div class="pt-target-header">
+
+                <span>
+                    Chiffre d'affaires
+                </span>
+
+                <span>
+
+                    <t t-esc="state.data.revenue?.percent || 0"/>%
+
+                </span>
+
+            </div>
+
+            <div class="pt-progress">
+
+                <div class="pt-progress-fill" t-att-style="'width:' + ( state.data.revenue?.percent || 0 ) + '%'"/>
+
+            </div>
+
+        </div>
+
+        <div class="pt-target-item">
+
+            <div class="pt-target-header">
+
+                <span>
+                    Commandes
+                </span>
+
+                <span>
+
+                    <t t-esc="state.data.orders?.percent || 0"/>%
+
+                </span>
+
+            </div>
+
+            <div class="pt-progress">
+
+                <div class="pt-progress-fill orders" t-att-style="'width:' + ( state.data.orders?.percent || 0 ) + '%'"/>
+
+            </div>
+
+        </div>
+
+        <div class="pt-target-item">
+
+            <div class="pt-target-header">
+
+                <span>
+                    Clients
+                </span>
+
+                <span>
+
+                    <t t-esc="state.data.customers?.percent || 0"/>%
+
+                </span>
+
+            </div>
+
+            <div class="pt-progress">
+
+                <div class="pt-progress-fill customers" t-att-style="'width:' + ( state.data.customers?.percent || 0 ) + '%'"/>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

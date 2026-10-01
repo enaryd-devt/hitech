@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[@data-scroll-key='logistics-summary']" position="replace">
+            <section class="pt-eb-logistics pt-eb-logistics-status" data-scroll-key="logistics-summary">
+                <article class="pt-eb-card pt-eb-logistics-flow">
+                    <header class="pt-eb-logistics-flow-header">
+                        <div><h3><i class="fa fa-sitemap"/> Centre de commandement logistique</h3><small>Demandes d'approvisionnement</small></div>
+                        <span class="pt-eb-flow-pill primary">Flux achats</span>
+                    </header>
+                    <div class="pt-mini-donut pt-eb-logistics-donut" t-att-style="state.supply.requests.donut_style"><strong><t t-esc="state.supply.requests.total"/></strong><span>Total</span></div>
+                    <div class="pt-eb-logistics-status-list">
+                        <button type="button" t-foreach="state.supply.requests.items" t-as="it" t-key="it.label" t-att-class="'pt-eb-logistics-status-row tone-' + it.tone" t-on-click="() => this.openAction(it.action)">
+                            <span class="pt-eb-logistics-status-dot"/><span class="pt-eb-logistics-status-label"><b><t t-esc="it.label"/></b><small><t t-esc="it.indicator"/></small></span><strong><t t-esc="it.count"/><small><t t-esc="formatPercent(it.percent)"/></small></strong><em><i t-att-style="'width:' + it.percent + '%'"/></em><i class="fa fa-angle-right pt-eb-logistics-chevron"/>
+                        </button>
+                    </div>
+                </article>
+                <article class="pt-eb-card pt-eb-logistics-flow">
+                    <header class="pt-eb-logistics-flow-header">
+                        <div><h3><i class="fa fa-exchange"/> Bons de transfert</h3><small>Statuts des transferts</small></div>
+                        <span class="pt-eb-flow-pill info">Flux interne</span>
+                    </header>
+                    <div class="pt-mini-donut pt-eb-logistics-donut" t-att-style="state.supply.transfers.donut_style"><strong><t t-esc="state.supply.transfers.total"/></strong><span>Total</span></div>
+                    <div class="pt-eb-logistics-status-list">
+                        <button type="button" t-foreach="state.supply.transfers.items" t-as="it" t-key="it.label" t-att-class="'pt-eb-logistics-status-row tone-' + it.tone" t-on-click="() => this.openAction(it.action)">
+                            <span class="pt-eb-logistics-status-dot"/><span class="pt-eb-logistics-status-label"><b><t t-esc="it.label"/></b><small><t t-esc="it.indicator"/></small></span><strong><t t-esc="it.count"/><small><t t-esc="formatPercent(it.percent)"/></small></strong><em><i t-att-style="'width:' + it.percent + '%'"/></em><i class="fa fa-angle-right pt-eb-logistics-chevron"/>
+                        </button>
+                    </div>
+                </article>
+                <article class="pt-eb-card pt-eb-logistics-flow">
+                    <header class="pt-eb-logistics-flow-header">
+                        <div><h3><i class="fa fa-truck"/> Commandes clients</h3><small>Préparation &amp; livraison</small></div>
+                        <span class="pt-eb-flow-pill success">Service client</span>
+                    </header>
+                    <div class="pt-mini-donut pt-eb-logistics-donut" t-att-style="state.supply.customers.donut_style"><strong><t t-esc="state.supply.customers.total"/></strong><span>Total</span></div>
+                    <div class="pt-eb-logistics-status-list">
+                        <button type="button" t-foreach="state.supply.customers.items" t-as="it" t-key="it.label" t-att-class="'pt-eb-logistics-status-row tone-' + it.tone" t-on-click="() => this.openAction(it.action)">
+                            <span class="pt-eb-logistics-status-dot"/><span class="pt-eb-logistics-status-label"><b><t t-esc="it.label"/></b><small><t t-esc="it.indicator"/></small></span><strong><t t-esc="it.count"/><small><t t-esc="formatPercent(it.percent)"/></small></strong><em><i t-att-style="'width:' + it.percent + '%'"/></em><i class="fa fa-angle-right pt-eb-logistics-chevron"/>
+                        </button>
+                    </div>
+                </article>
+            </section>
+        </xpath>
+
+        <xpath expr="//section[@data-scroll-key='logistics-details']" position="replace">
+            <section class="pt-eb-logistics-details pt-eb-logistics-insights" data-scroll-key="logistics-details">
+                <article class="pt-eb-card pt-eb-logistics-workload">
+                    <header class="pt-eb-logistics-section-header"><div><h3><i class="fa fa-tachometer"/> Charge de travail par magasin</h3><small>Priorité relative des opérations en attente</small></div></header>
+                    <table class="pt-eb-workload-table"><thead><tr><th>Magasin</th><th>Préparations</th><th>Commandes</th><th>Priorité</th></tr></thead><tbody><tr t-foreach="state.warehouse_load" t-as="wh" t-key="wh.name" t-on-click="() => this.openAction(wh.action)"><td><strong><t t-esc="wh.name"/></strong></td><td><span class="pt-eb-workload-count"><t t-esc="wh.prep"/></span></td><td><span class="pt-eb-workload-count"><t t-esc="wh.orders"/></span></td><td><div t-att-class="'pt-eb-workload-meter tone-' + (wh.load_tone || 'muted')"><span><t t-esc="wh.load_indicator"/></span><em><i t-att-style="'width:' + wh.load + '%'"/></em></div></td></tr></tbody></table>
+                </article>
+                <article class="pt-eb-card pt-eb-logistics-alerts">
+                    <header class="pt-eb-logistics-section-header"><div><h3><i class="fa fa-bell"/> Alertes de stock</h3><small>Priorisation des actions à engager</small></div></header>
+                    <div class="pt-eb-logistics-alert-list"><button type="button" t-foreach="state.logistics_alerts" t-as="al" t-key="al.label" t-att-class="'pt-eb-logistics-alert-row tone-' + al.tone" t-on-click="() => this.openAction(al.action)"><i t-att-class="'fa ' + al.icon"/><span><b><t t-esc="al.label"/></b><small><t t-esc="al.indicator"/></small></span><strong><t t-esc="al.value"/></strong><i class="fa fa-angle-right pt-eb-logistics-chevron"/></button></div>
+                </article>
+                <article class="pt-eb-card pt-eb-logistics-performance">
+                    <header class="pt-eb-logistics-section-header"><div><h3><i class="fa fa-line-chart"/> Indicateurs logistiques</h3><small>Seuils de pilotage opérationnel</small></div></header>
+                    <div class="pt-eb-logistics-performance-list"><button type="button" t-foreach="state.performance" t-as="perf" t-key="perf.label" t-att-class="'pt-eb-logistics-performance-row tone-' + perf.tone" t-on-click="() => this.openAction(perf.action)"><i t-att-class="'fa ' + perf.icon"/><span><b><t t-esc="perf.label"/></b><small><t t-esc="perf.indicator"/> · <t t-esc="perf.trend"/></small></span><strong><t t-esc="perf.value"/></strong><em><i t-att-style="'width:' + perf.percent + '%'"/></em><i class="fa fa-angle-right pt-eb-logistics-chevron"/></button></div>
+                </article>
+            </section>
+        </xpath>
+    </t>
+</templates>

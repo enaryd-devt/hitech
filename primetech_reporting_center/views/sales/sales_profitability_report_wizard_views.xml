@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_sales_profitability_report_wizard_form" model="ir.ui.view">
+    <field name="name">sales.profitability.report.wizard.form</field>
+    <field name="model">primetech.sales.profitability.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Rentabilité Commerciale" create="0" edit="0">
+        <sheet>
+          <div class="oe_title">
+            <h1><i class="fa fa-line-chart me-2"/>
+
+                            Rentabilité Commerciale
+
+                        </h1>
+            <div class="text-muted">
+
+                            Analyse détaillée des marges,
+                            coûts, rentabilité des produits,
+                            clients et commerciaux.
+
+                        </div>
+          </div>
+          <separator string="Période d'Analyse" colspan="4"/>
+          <group col="4">
+            <group>
+              <field name="date_from" required="1"/>
+            </group>
+            <group>
+              <field name="date_to" required="1"/>
+            </group>
+            <group>
+              <field name="company_id"/>
+            </group>
+            <group/>
+          </group>
+          <separator string="Filtres" colspan="4"/>
+          <group col="4">
+            <group>
+              <field name="user_id"/>
+            </group>
+            <group>
+              <field name="partner_id"/>
+            </group>
+            <group>
+              <field name="product_id"/>
+            </group>
+            <group/>
+          </group>
+          <separator string="Indicateurs Inclus" colspan="4"/>
+          <div class="alert alert-info">
+            <ul style="margin-bottom:0;">
+              <li>
+                                Chiffre d'affaires HT
+                            </li>
+              <li>
+                                Coût de revient
+                            </li>
+              <li>
+                                Marge brute
+                            </li>
+              <li>
+                                Taux de marge
+                            </li>
+              <li>
+                                Top produits rentables
+                            </li>
+              <li>
+                                Produits à faible marge
+                            </li>
+              <li>
+                                Top clients rentables
+                            </li>
+              <li>
+                                Top commerciaux
+                            </li>
+              <li>
+                                Evolution mensuelle
+                            </li>
+              <li>
+                                Alertes ventes à perte
+                            </li>
+            </ul>
+          </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" string="Aperçu" type="object" class="btn btn-primary" icon="fa-search"/>
+          <button name="action_print_pdf" string="Exporter PDF" type="object" class="btn btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" string="Exporter Excel" type="object" class="btn btn-success" icon="fa-file-excel-o"/>
+          <button string="Fermer" special="cancel" class="btn btn-light" icon="fa-times"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

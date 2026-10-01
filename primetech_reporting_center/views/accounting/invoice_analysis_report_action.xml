@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_invoice_analysis_report_wizard" model="ir.actions.act_window">
+    <field name="name">Analyse de Facturation</field>
+    <field name="res_model">primetech.invoice.analysis.report.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

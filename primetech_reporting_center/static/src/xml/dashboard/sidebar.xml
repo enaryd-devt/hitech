@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.Sidebar" owl="1">
+
+        <aside t-att-class="props.collapsed ? 'pt-sidebar collapsed' : 'pt-sidebar'">
+
+            <div class="pt-sidebar-header">
+
+                <div class="pt-sidebar-brand" t-if="!props.collapsed">
+
+                    <div class="pt-sidebar-title">
+                        PrimeTech Reporting
+                    </div>
+
+                    <div class="pt-sidebar-subtitle">
+                        Business Intelligence
+                    </div>
+
+                </div>
+
+                <button class="btn btn-light pt-toggle-btn" t-on-click="props.onToggle">
+
+                    <i class="fa fa-bars"/>
+
+                </button>
+
+            </div>
+
+            <ul class="pt-sidebar-menu">
+
+                <li>
+                    <i class="fa fa-home"/>
+                    <span t-if="!props.collapsed">
+                        Dashboard
+                    </span>
+                </li>
+
+                <li>
+                    <i class="fa fa-star"/>
+                    <span t-if="!props.collapsed">
+                        Favoris
+                    </span>
+                </li>
+
+                <li>
+                    <i class="fa fa-clock-o"/>
+                    <span t-if="!props.collapsed">
+                        Activités
+                    </span>
+                </li>
+
+                <li>
+                    <i class="fa fa-print"/>
+                    <span t-if="!props.collapsed">
+                        Impression
+                    </span>
+                </li>
+
+                <li>
+                    <i class="fa fa-file-pdf-o"/>
+                    <span t-if="!props.collapsed">
+                        Export PDF
+                    </span>
+                </li>
+
+                <li>
+                    <i class="fa fa-file-excel-o"/>
+                    <span t-if="!props.collapsed">
+                        Export Excel
+                    </span>
+                </li>
+
+            </ul>
+
+        </aside>
+
+    </t>
+
+</templates>

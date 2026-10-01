@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="purchase_expense_xlsx" model="ir.actions.report">
+    <field name="name">Analyse des Dépenses Excel</field>
+    <field name="model">primetech.purchase.expense.wizard</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">primetech_reporting_center.purchase_expense_xlsx</field>
+    <field name="report_file">primetech_reporting_center.purchase_expense_xlsx</field>
+    <field name="binding_type">report</field>
+    <field name="print_report_name">'Analyse_Depenses'</field>
+  </record>
+</odoo>

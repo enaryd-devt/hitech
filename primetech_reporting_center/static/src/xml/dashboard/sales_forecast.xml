@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.SalesForecast" owl="1">
+
+    <div class="pt-forecast-card">
+
+        <div class="pt-forecast-header">
+
+            <h3>
+                Prévision Fin de Période
+            </h3>
+
+        </div>
+
+        <t t-if="state.loading">
+
+            <div class="pt-loader-container">
+
+                <i class="fa fa-spinner fa-spin"/>
+
+            </div>
+
+        </t>
+
+        <t t-else="">
+
+            <div class="pt-forecast-grid">
+
+                <div class="pt-forecast-item">
+
+                    <div class="pt-forecast-label">
+
+                        Réalisé
+
+                    </div>
+
+                    <div class="pt-forecast-value">
+
+                        <t t-esc="formatCurrency( state.forecast?.actual )"/>
+
+                    </div>
+
+                </div>
+
+                <div class="pt-forecast-item">
+
+                    <div class="pt-forecast-label">
+
+                        Projection
+
+                    </div>
+
+                    <div class="pt-forecast-value forecast">
+
+                        <t t-esc="formatCurrency( state.forecast?.projection )"/>
+
+                    </div>
+
+                </div>
+
+                <div class="pt-forecast-item">
+
+                    <div class="pt-forecast-label">
+
+                        Objectif
+
+                    </div>
+
+                    <div class="pt-forecast-value target">
+
+                        <t t-esc="formatCurrency( state.forecast?.target )"/>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="pt-forecast-progress">
+
+                <div class="pt-forecast-progress-fill" t-att-style="'width:' + ( state.forecast?.achievement || 0 ) + '%'"/>
+
+            </div>
+
+            <div class="pt-forecast-footer">
+
+                <span>
+
+                    <t t-esc="state.forecast?.achievement || 0"/>%
+
+                    de l'objectif
+
+                </span>
+
+            </div>
+
+        </t>
+
+    </div>
+
+</t>
+
+</templates>

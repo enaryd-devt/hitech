@@ -1,0 +1,256 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_bill_preview_template">
+    <div class="container-fluid">
+      <!-- ===================================== -->
+      <!-- EN-TÊTE -->
+      <!-- ===================================== -->
+      <div class="mb-4">
+        <h2>
+                    Rapport des Factures Fournisseurs
+                </h2>
+        <p class="text-muted">
+
+                    Analyse détaillée des factures
+                    fournisseurs sur la période
+                    sélectionnée.
+
+                </p>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Factures</h6>
+              <h3>
+                <t t-out="data['kpi']['bill_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>HT</h6>
+              <h3>
+                <t t-out="data['kpi']['total_untaxed']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Taxes</h6>
+              <h3>
+                <t t-out="data['kpi']['total_tax']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>TTC</h6>
+              <h3>
+                <t t-out="data['kpi']['total_amount']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Payé</h6>
+              <h3>
+                <t t-out="data['kpi']['total_paid']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card">
+            <div class="card-body">
+              <h6>Solde</h6>
+              <h3>
+                <t t-out="data['kpi']['total_residual']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- STATUTS -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-4">
+          <div class="card">
+            <div class="card-body">
+              <h6>Payées</h6>
+              <h3>
+                <t t-out="data['kpi']['paid_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card">
+            <div class="card-body">
+              <h6>Partielles</h6>
+              <h3>
+                <t t-out="data['kpi']['partial_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card">
+            <div class="card-body">
+              <h6>Non Payées</h6>
+              <h3>
+                <t t-out="data['kpi']['unpaid_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- ANALYSE FOURNISSEURS -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Analyse Fournisseurs
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Factures</th>
+                <th>Montant TTC</th>
+                <th>Reste Dû</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['supplier_analysis'].items()" t-as="supplier">
+                <tr>
+                  <td>
+                    <t t-out="supplier[0]"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['count']"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['amount']"/>
+                  </td>
+                  <td>
+                    <t t-out="supplier[1]['residual']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- ÉVOLUTION MENSUELLE -->
+      <!-- ===================================== -->
+      <div class="card mb-4">
+        <div class="card-header">
+                    Évolution Mensuelle
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Mois</th>
+                <th>Montant TTC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['monthly_analysis'].items()" t-as="month">
+                <tr>
+                  <td>
+                    <t t-out="month[0]"/>
+                  </td>
+                  <td>
+                    <t t-out="month[1]"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- DÉTAILS -->
+      <!-- ===================================== -->
+      <div class="card">
+        <div class="card-header">
+                    Détail des Factures
+                </div>
+        <div class="card-body">
+          <table class="table table-sm table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Facture</th>
+                <th>Date</th>
+                <th>Échéance</th>
+                <th>Fournisseur</th>
+                <th>Référence</th>
+                <th>HT</th>
+                <th>Taxes</th>
+                <th>TTC</th>
+                <th>Payé</th>
+                <th>Solde</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['details']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['number']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['due_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['reference']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['untaxed']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['tax']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['total']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['paid']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['residual']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['payment_state']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+</odoo>

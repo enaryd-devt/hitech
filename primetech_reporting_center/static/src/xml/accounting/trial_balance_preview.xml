@@ -1,0 +1,446 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.TrialBalancePreview" owl="1">
+
+    <div class="pt-trial-balance-page">
+
+        <!-- ===================================================== -->
+        <!-- HEADER -->
+        <!-- ===================================================== -->
+
+        <div class="pt-page-header">
+
+            <div>
+
+                <h1>
+                    Balance Générale
+                </h1>
+
+                <div class="pt-breadcrumb">
+
+                    Comptabilité
+                    /
+
+                    Rapports
+                    /
+
+                    Balance Générale
+
+                </div>
+
+            </div>
+
+            <div class="pt-header-actions">
+
+                <button class="btn btn-success" t-on-click="exportExcel">
+
+                    <i class="fa fa-file-excel-o me-2"/>
+
+                    Exporter Excel
+
+                </button>
+
+                <button class="btn btn-danger" t-on-click="exportPdf">
+
+                    <i class="fa fa-file-pdf-o me-2"/>
+
+                    Exporter PDF
+
+                </button>
+
+                <button class="btn btn-primary" t-on-click="printReport">
+
+                    <i class="fa fa-print me-2"/>
+
+                    Imprimer
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- FILTRES -->
+        <!-- ===================================================== -->
+
+        <div class="pt-filters-card">
+
+            <div class="row g-3">
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Date début
+
+                    </label>
+
+                    <input type="date" class="form-control" t-model="state.date_from"/>
+
+                </div>
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Date fin
+
+                    </label>
+
+                    <input type="date" class="form-control" t-model="state.date_to"/>
+
+                </div>
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Niveau
+
+                    </label>
+
+                    <select class="form-select" t-model="state.level">
+
+                        <option value="">
+                            Tous
+                        </option>
+
+                        <option value="1">
+                            Niveau 1
+                        </option>
+
+                        <option value="2">
+                            Niveau 2
+                        </option>
+
+                        <option value="3">
+                            Niveau 3
+                        </option>
+
+                        <option value="4">
+                            Niveau 4
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-lg-3">
+
+                    <label class="form-label">
+
+                        Compte
+
+                    </label>
+
+                    <input type="text" class="form-control" placeholder="Recherche compte..." t-model="state.account_filter"/>
+
+                </div>
+
+                <div class="col-lg-3 d-flex align-items-end gap-2">
+
+                    <button class="btn btn-primary" t-on-click="loadData">
+
+                        <i class="fa fa-search me-2"/>
+
+                        Rechercher
+
+                    </button>
+
+                    <button class="btn btn-secondary" t-on-click="resetFilters">
+
+                        Réinitialiser
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- TABLE -->
+        <!-- ===================================================== -->
+
+        <div class="pt-table-card">
+
+            <table class="table pt-balance-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th rowspan="2">
+
+                            Numéro
+                            <br/>
+                            de compte
+
+                        </th>
+
+                        <th rowspan="2">
+
+                            Intitulé des comptes
+
+                        </th>
+
+                        <th colspan="2">
+
+                            Mouvements à l'année n-1
+                            <br/>
+                            (soldes initiaux)
+
+                        </th>
+
+                        <th colspan="2">
+
+                            Mouvements
+
+                        </th>
+
+                        <th colspan="2">
+
+                            Soldes cumulés
+
+                        </th>
+
+                    </tr>
+
+                    <tr>
+
+                        <th>
+                            Débit
+                        </th>
+
+                        <th>
+                            Crédit
+                        </th>
+
+                        <th>
+                            Débit
+                        </th>
+
+                        <th>
+                            Crédit
+                        </th>
+
+                        <th>
+                            Débit
+                        </th>
+
+                        <th>
+                            Crédit
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <t t-foreach="state.data.lines" t-as="line" t-key="line.code">
+
+                        <tr t-attf-class="pt-level-#{line.level}">
+
+                            <tr t-attf-class="pt-level-#{line.level}">
+
+
+                            <td>
+
+                                <div class="pt-account-code">
+
+                                    <t t-if="line.level != 4">
+
+                                        <i class="fa fa-caret-right me-2"/>
+
+                                    </t>
+
+                                    <t t-esc="line.code"/>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div t-att-style="'padding-left:' + ((line.level - 1) * 22) + 'px'">
+
+                                    <t t-esc="line.name"/>
+
+                                </div>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <t t-esc="formatCurrency( line.opening_debit )"/>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <t t-esc="formatCurrency( line.opening_credit )"/>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <t t-esc="formatCurrency( line.period_debit )"/>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <t t-esc="formatCurrency( line.period_credit )"/>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <t t-esc="formatCurrency( line.closing_debit )"/>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <t t-esc="formatCurrency( line.closing_credit )"/>
+
+                            </td>
+
+
+                            </tr>
+
+
+                        </tr>
+
+                    </t>
+
+                </tbody>
+
+                <!-- ================================================= -->
+                <!-- TOTALS -->
+                <!-- ================================================= -->
+
+                <tfoot>
+
+                    <tr class="pt-total-bilan">
+
+                        <th colspan="2">
+                            Totaux comptes de bilan
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_bilan || {}).opening_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_bilan || {}).opening_credit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_bilan || {}).period_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_bilan || {}).period_credit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_bilan || {}).closing_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_bilan || {}).closing_credit || 0)"/>
+                        </th>
+
+                    </tr>
+
+                    <tr class="pt-total-gestion">
+
+                        <th colspan="2">
+                            Totaux comptes de gestion
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_gestion || {}).opening_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_gestion || {}).opening_credit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_gestion || {}).period_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_gestion || {}).period_credit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_gestion || {}).closing_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_gestion || {}).closing_credit || 0)"/>
+                        </th>
+
+                    </tr>
+
+                    <tr class="pt-total-balance">
+
+                        <th colspan="2">
+                            Totaux de la balance
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_balance || {}).opening_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_balance || {}).opening_credit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_balance || {}).period_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_balance || {}).period_credit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_balance || {}).closing_debit || 0)"/>
+                        </th>
+
+                        <th>
+                            <t t-esc="formatCurrency((state.data.totals_balance || {}).closing_credit || 0)"/>
+                        </th>
+
+                    </tr>
+
+                </tfoot>
+            </table>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================================== -->
+
+        <div class="pt-report-footer">
+
+            <i class="fa fa-info-circle me-2"/>
+
+            Les montants sont exprimés en FCFA
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

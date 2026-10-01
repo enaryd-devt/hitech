@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================== -->
+  <!-- FORMULAIRE -->
+  <!-- ===================================== -->
+  <record id="view_stock_card_wizard_form" model="ir.ui.view">
+    <field name="name">pt.stock.card.wizard.form</field>
+    <field name="model">pt.stock.card.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Fiche de Stock">
+        <sheet>
+          <!-- HEADER -->
+          <div style="display:flex; align-items:center; gap:20px; background:#ffffff; border-radius:18px; padding:24px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.08);">
+            <div style="width:70px; height:70px; border-radius:16px; background:linear-gradient( 135deg, #2563eb, #1d4ed8 ); display:flex; align-items:center; justify-content:center; color:white; font-size:30px;">
+              <i class="fa fa-cubes"/>
+            </div>
+            <div>
+              <h1 style="margin:0; font-size:28px; font-weight:700;">
+                                Fiche de Stock
+                            </h1>
+              <div style="color:#64748b; margin-top:6px;">
+                                Consultation rapide des quantités,
+                                coûts, prix de vente et lots.
+                            </div>
+            </div>
+          </div>
+          <!-- FILTRES -->
+          <div style="background:white; border-radius:18px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.06);">
+            <h3 style="margin-bottom:20px; font-weight:700;"><i class="fa fa-filter" style="color:#2563eb; margin-right:8px;"/>
+
+                            Filtres
+
+                        </h3>
+            <group col="2">
+              <group>
+                <field name="company_id"/>
+                <field name="warehouse_ids" widget="many2many_tags"/>
+                <field name="location_ids" widget="many2many_tags"/>
+              </group>
+              <group>
+                <field name="category_ids" widget="many2many_tags"/>
+                <field name="product_ids" widget="many2many_tags"/>
+                <field name="supplier_ids" widget="many2many_tags"/>
+                <field name="group_by_supplier"/>
+                <field name="only_available"/>
+              </group>
+            </group>
+          </div>
+          <!-- OBSERVATIONS -->
+          <div style="background:white; border-radius:18px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.06);">
+            <h3 style="margin-bottom:20px; font-weight:700;"><i class="fa fa-file-text-o" style="color:#2563eb; margin-right:8px;"/>
+
+                            Observations
+
+                        </h3>
+            <field name="observations" nolabel="1" placeholder="Ajouter une observation..."/>
+          </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" class="btn btn-primary" icon="fa-eye"/>
+          <button name="action_print_pdf" type="object" string="PDF" class="btn btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" type="object" string="Excel" class="btn btn-success" icon="fa-file-excel-o"/>
+          <button name="action_back" type="object" string="Dashboard" class="btn btn-light" icon="fa-bar-chart"/>
+          <button string="Fermer" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.ReportPlaceholder" owl="1">
+
+        <div class="pt-reporting-dashboard">
+
+            <div class="pt-dashboard-header">
+
+                <h1>PrimeTech Reporting Center</h1>
+
+                <p>
+                    Fonctionnalité en cours de développement
+                </p>
+
+            </div>
+
+            <div class="pt-dashboard-placeholder">
+
+                Cette section sera développée
+                dans une prochaine étape.
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>

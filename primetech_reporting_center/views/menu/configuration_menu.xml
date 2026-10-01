@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <menuitem id="menu_config_templates" name="Modèles de Rapports" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_header_footer" name="En-têtes et Pieds de Page" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_logo_signature" name="Logos et Signatures" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_pdf" name="Formats PDF" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_excel" name="Formats Excel" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_access" name="Droits d'Accès" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_scheduled" name="Rapports Planifiés" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+  <menuitem id="menu_config_general" name="Paramètres Généraux" parent="menu_primetech_reporting_configuration" action="action_reporting_placeholder"/>
+</odoo>

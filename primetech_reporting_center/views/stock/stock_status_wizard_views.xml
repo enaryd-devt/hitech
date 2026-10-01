@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_stock_status_wizard_form" model="ir.ui.view">
+    <field name="name">pt.stock.status.wizard.form</field>
+    <field name="model">pt.stock.status.wizard</field>
+    <field name="arch" type="xml">
+      <form string="État de Stock" create="false" edit="true">
+        <sheet style="background:#f4f7fb; padding:16px;">
+          <!-- ===================================== -->
+          <!-- HERO HEADER -->
+          <!-- ===================================== -->
+          <div style="background: linear-gradient( 135deg, #2563eb, #1d4ed8 ); padding:34px; border-radius:24px; color:white; margin-bottom:24px; box-shadow: 0 10px 25px rgba(37,99,235,.25);">
+            <div style="display:flex; align-items:center; gap:24px;">
+              <div style="width:80px; height:80px; border-radius:22px; background: rgba( 255, 255, 255, .18 ); display:flex; justify-content:center; align-items:center; font-size:36px;">
+                <i class="fa fa-cubes"/>
+              </div>
+              <div>
+                <h1 style="margin:0; color:white; font-size:32px; font-weight:700;">
+
+                                    État de Stock
+
+                                </h1>
+                <div style="margin-top:8px; opacity:.95; font-size:15px;">
+
+                                    Disponibilités • Réservations •
+                                    Valorisation • Ruptures •
+                                    Traçabilité des Lots
+
+                                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ===================================== -->
+          <!-- PARAMETRES -->
+          <!-- ===================================== -->
+          <div style="background:white; border-radius:18px; padding:22px; margin-bottom:18px; box-shadow: 0 2px 8px rgba(0,0,0,.05);">
+            <h3 style="margin-top:0; margin-bottom:18px; font-weight:700;"><i class="fa fa-clock-o" style="color:#2563eb; margin-right:8px;"/>
+
+                            Paramètres d'Analyse
+
+                        </h3>
+            <group col="4">
+              <field name="date_from"/>
+              <field name="date_to"/>
+              <field name="only_available"/>
+              <field name="only_out_of_stock"/>
+            </group>
+          </div>
+          <!-- ===================================== -->
+          <!-- STRUCTURE LOGISTIQUE -->
+          <!-- ===================================== -->
+          <div style="background:white; border-radius:18px; padding:22px; margin-bottom:18px; box-shadow: 0 2px 8px rgba(0,0,0,.05);">
+            <h3 style="margin-top:0; margin-bottom:18px; font-weight:700;"><i class="fa fa-building" style="color:#2563eb; margin-right:8px;"/>
+
+                            Structure Logistique
+
+                        </h3>
+            <group col="2">
+              <field name="warehouse_ids" widget="many2many_tags"/>
+              <field name="location_ids" widget="many2many_tags"/>
+            </group>
+          </div>
+          <!-- ===================================== -->
+          <!-- PRODUITS -->
+          <!-- ===================================== -->
+          <div style="background:white; border-radius:18px; padding:22px; margin-bottom:18px; box-shadow: 0 2px 8px rgba(0,0,0,.05);">
+            <h3 style="margin-top:0; margin-bottom:18px; font-weight:700;"><i class="fa fa-tags" style="color:#2563eb; margin-right:8px;"/>
+
+                            Produits et Catégories
+
+                        </h3>
+            <group col="2">
+              <field name="category_ids" widget="many2many_tags"/>
+              <field name="product_ids" widget="many2many_tags"/>
+              <field name="supplier_ids" widget="many2many_tags"/>
+              <field name="group_by_supplier"/>
+            </group>
+          </div>
+          <!-- ===================================== -->
+          <!-- TRACABILITE -->
+          <!-- ===================================== -->
+          <div style="background:white; border-radius:18px; padding:22px; margin-bottom:18px; box-shadow: 0 2px 8px rgba(0,0,0,.05);">
+            <h3 style="margin-top:0; margin-bottom:18px; font-weight:700;"><i class="fa fa-qrcode" style="color:#2563eb; margin-right:8px;"/>
+
+                            Traçabilité
+
+                        </h3>
+            <field name="lot_ids" widget="many2many_tags"/>
+          </div>
+          <!-- ===================================== -->
+          <!-- CONSEIL -->
+          <!-- ===================================== -->
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:16px; padding:18px;">
+            <strong><i class="fa fa-exclamation-triangle" style="color:#2563eb; margin-right:6px;"/>
+
+                            Conseil PrimeTech
+
+                        </strong>
+            <div style="margin-top:8px; color:#475569;">
+
+                            Utilisez les filtres de catégories,
+                            emplacements et entrepôts afin
+                            d'obtenir une analyse précise
+                            de vos stocks et de leur valorisation.
+
+                        </div>
+          </div>
+        </sheet>
+        <!-- ===================================== -->
+        <!-- FOOTER PREMIUM -->
+        <!-- ===================================== -->
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" class="btn-primary" icon="fa-search"/>
+          <button name="action_print_pdf" type="object" string="Exporter PDF" class="btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" type="object" string="Exporter Excel" class="btn-secondary" icon="fa-file-excel-o"/>
+          <button name="action_back" type="object" string="Dashboard" class="btn-light" icon="fa-arrow-left"/>
+          <button string="Fermer" special="cancel" class="btn-light"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

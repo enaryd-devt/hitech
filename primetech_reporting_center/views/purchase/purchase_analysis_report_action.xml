@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ========================================= -->
+  <!-- ACTION WIZARD -->
+  <!-- ========================================= -->
+  <record id="action_purchase_analysis_report" model="ir.actions.act_window">
+    <field name="name">Analyse des Achats</field>
+    <field name="res_model">primetech.purchase.analysis.report.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

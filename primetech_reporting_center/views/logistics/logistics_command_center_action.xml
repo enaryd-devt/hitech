@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="action_logistics_command_center" model="ir.actions.client">
+    <field name="name">Centre de Commandement Logistique</field>
+    <field name="tag">primetech_logistics_command_center</field>
+  </record>
+</odoo>

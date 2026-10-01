@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.Champions" owl="1">
+
+    <div class="pt-champions-grid">
+
+        <!-- CLIENT -->
+
+        <div class="pt-champion-card pt-clickable-card pt-client-card" t-on-click="() =&gt; this.openCustomer()">
+
+            <div class="pt-champion-header">
+
+                <span class="pt-champion-icon">
+                    🏆
+                </span>
+
+                <span class="pt-champion-badge">
+                    LEADER
+                </span>
+
+            </div>
+
+            <div class="pt-champion-label">
+
+                Client Leader
+
+            </div>
+
+            <div class="pt-champion-name">
+
+                <t t-esc="state.customer ? state.customer.name : '-'"/>
+
+            </div>
+
+            <div class="pt-champion-amount">
+
+                <t t-esc="formatCurrency( state.customer ? state.customer.amount : 0 )"/>
+
+            </div>
+
+            <div class="pt-champion-meta">
+
+                <span>
+
+                    <t t-esc="state.customer ? state.customer.count : 0"/>
+
+                    Factures
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- PRODUIT -->
+
+        <div class="pt-champion-card pt-clickable-card pt-product-card" t-on-click="() =&gt; this.openProduct()">
+
+            <div class="pt-champion-header">
+
+                <span class="pt-champion-icon">
+                    ⭐
+                </span>
+
+                <span class="pt-champion-badge">
+
+                    TOP SELLER
+
+                </span>
+
+            </div>
+
+            <div class="pt-champion-label">
+
+                Produit Vedette
+
+            </div>
+
+            <div class="pt-champion-name">
+
+                <t t-esc="state.product ? state.product.name : '-'"/>
+
+            </div>
+
+            <div class="pt-champion-amount">
+
+                <t t-esc="formatCurrency( state.product ? state.product.amount : 0 )"/>
+
+            </div>
+
+            <div class="pt-champion-meta">
+
+                <span>
+
+                    <t t-esc="state.product ? state.product.qty : 0"/>
+
+                    Unités vendues
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- COMMERCIAL -->
+
+        <div class="pt-champion-card pt-clickable-card pt-sales-card" t-on-click="() =&gt; this.openSalesperson()">
+
+            <div class="pt-champion-header">
+
+                <span class="pt-champion-icon">
+                    👑
+                </span>
+
+                <span class="pt-champion-badge">
+
+                    PERFORMER
+
+                </span>
+
+            </div>
+
+            <div class="pt-champion-label">
+
+                Commercial Leader
+
+            </div>
+
+            <div class="pt-champion-name">
+
+                <t t-esc="state.salesperson ? state.salesperson.name : '-'"/>
+
+            </div>
+
+            <div class="pt-champion-amount">
+
+                <t t-esc="formatCurrency( state.salesperson ? state.salesperson.amount : 0 )"/>
+
+            </div>
+
+            <div class="pt-champion-meta">
+
+                <span>
+
+                    <t t-esc="state.salesperson ? state.salesperson.orders : 0"/>
+
+                    Commandes
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

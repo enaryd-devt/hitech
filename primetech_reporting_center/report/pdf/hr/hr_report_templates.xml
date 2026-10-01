@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <template id="hr_report_preview_template">
+    <div class="pt-hr-report-preview" style="font-family:Arial,sans-serif;color:#0f172a;">
+      <div style="border-bottom:3px solid #0d9488;padding-bottom:12px;margin-bottom:18px;">
+        <h2 style="margin:0;">Ressources Humaines - <t t-esc="title"/></h2>
+        <p style="margin:5px 0 0;color:#64748b;">Période : <t t-esc="filters['date_from']"/> au <t t-esc="filters['date_to']"/></p>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:15px;">
+        <div style="background:#ecfeff;padding:10px;border-radius:8px;"><b>Total lignes</b><br/><t t-esc="total_lines"/></div>
+        <div style="background:#f0fdf4;padding:10px;border-radius:8px;"><b>Total / volume</b><br/><t t-esc="round(total_amount, 2)"/></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="padding:8px;text-align:left;">Employé</th>
+            <th style="padding:8px;text-align:left;">Département</th>
+            <th style="padding:8px;text-align:left;">Référence</th>
+            <th style="padding:8px;text-align:left;">Statut</th>
+            <th style="padding:8px;text-align:right;">Valeur</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-if="not lines">
+            <td colspan="5" style="padding:14px;border-top:1px solid #e2e8f0;text-align:center;color:#64748b;">Aucune donnée trouvée pour les critères sélectionnés.</td>
+          </tr>
+          <tr t-foreach="lines" t-as="line">
+            <td style="padding:7px;border-top:1px solid #e2e8f0;"><t t-esc="line['name']"/></td>
+            <td style="padding:7px;border-top:1px solid #e2e8f0;"><t t-esc="line['department']"/></td>
+            <td style="padding:7px;border-top:1px solid #e2e8f0;"><t t-esc="line['job']"/></td>
+            <td style="padding:7px;border-top:1px solid #e2e8f0;"><t t-esc="line['metric']"/></td>
+            <td style="padding:7px;border-top:1px solid #e2e8f0;text-align:right;"><t t-esc="round(line.get('amount') or 0, 2)"/></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+
+  <template id="hr_report_pdf_document">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="doc">
+        <t t-set="values" t-value="doc.get_report_values()"/>
+        <t t-call="web.external_layout">
+          <t t-set="title" t-value="values['title']"/>
+          <t t-set="filters" t-value="values['filters']"/>
+          <t t-set="lines" t-value="values['lines']"/>
+          <t t-set="total_lines" t-value="values['total_lines']"/>
+          <t t-set="total_amount" t-value="values['total_amount']"/>
+          <t t-call="primetech_reporting_center.hr_report_preview_template"/>
+        </t>
+      </t>
+    </t>
+  </template>
+
+  <record id="action_hr_report_preview" model="ir.actions.report">
+    <field name="name">Aperçu Rapport RH</field>
+    <field name="model">primetech.hr.report.wizard</field>
+    <field name="report_type">qweb-html</field>
+    <field name="report_name">primetech_reporting_center.hr_report_pdf_document</field>
+    <field name="report_file">primetech_reporting_center.hr_report_pdf_document</field>
+  </record>
+
+  <record id="action_hr_report_pdf" model="ir.actions.report">
+    <field name="name">Rapport RH PDF</field>
+    <field name="model">primetech.hr.report.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.hr_report_pdf_document</field>
+    <field name="report_file">primetech_reporting_center.hr_report_pdf_document</field>
+    <field name="print_report_name">'Rapport_RH_%s' % (object.report_type)</field>
+  </record>
+</odoo>

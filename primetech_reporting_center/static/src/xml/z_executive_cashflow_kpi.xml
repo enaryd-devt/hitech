@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-eb-partner-kpis')]" position="after">
+            <section class="pt-eb-cashflow-kpi" data-scroll-key="cashflow-analysis">
+                <article class="pt-eb-card pt-cashflow-card">
+                    <header class="pt-cashflow-header">
+                        <div class="pt-cashflow-heading">
+                            <span class="pt-cashflow-icon"><i class="fa fa-exchange"/></span>
+                            <div>
+                                <h2><t t-esc="cashflowLabel('title')"/></h2>
+                                <p><t t-esc="cashflowLabel('subtitle')"/></p>
+                            </div>
+                        </div>
+                        <div class="pt-eb-card-period pt-cashflow-period">
+                            <label class="pt-eb-filter-control">
+                                <select class="pt-eb-filter-select" t-att-aria-label="cashflowLabel('periodAria')" t-att-value="state.kpiFilters.cashflow_period" t-on-change="(ev) => this.onKpiFilterChange('cashflow_period', ev)">
+                                    <option value="today"><t t-esc="cashflowLabel('today')"/></option>
+                                    <option value="week"><t t-esc="cashflowLabel('week')"/></option>
+                                    <option value="month"><t t-esc="cashflowLabel('month')"/></option>
+                                    <option value="year"><t t-esc="cashflowLabel('year')"/></option>
+                                    <option value="custom"><t t-esc="cashflowLabel('period')"/></option>
+                                </select>
+                            </label>
+                            <div t-if="state.kpiFilters.cashflow_period === 'custom'" class="pt-eb-card-custom-dates">
+                                <label><t t-esc="cashflowLabel('from')"/><input type="date" t-att-aria-label="cashflowLabel('startDate')" t-att-value="kpiCustomRange('cashflow_period').dateFrom" t-att-max="kpiCustomRange('cashflow_period').dateTo || undefined" t-on-change="(ev) => this.onKpiCustomDateChange('cashflow_period', 'dateFrom', ev)"/></label>
+                                <label><t t-esc="cashflowLabel('to')"/><input type="date" t-att-aria-label="cashflowLabel('endDate')" t-att-value="kpiCustomRange('cashflow_period').dateTo" t-att-min="kpiCustomRange('cashflow_period').dateFrom || undefined" t-on-change="(ev) => this.onKpiCustomDateChange('cashflow_period', 'dateTo', ev)"/></label>
+                            </div>
+                        </div>
+                        <div class="pt-dashboard-report-menu">
+                            <button class="pt-dashboard-report-menu-trigger" type="button" t-att-aria-expanded="state.cashflowMenuOpen" t-att-title="cashflowLabel('reportActions')" t-on-click="toggleCashflowMenu">
+                                <i class="fa fa-ellipsis-v"/>
+                            </button>
+                            <div t-if="state.cashflowMenuOpen" class="pt-dashboard-report-menu-items">
+                                <button type="button" t-on-click="previewCashflowReport"><i class="fa fa-eye"/><t t-esc="cashflowLabel('previewReport')"/></button>
+                                <button type="button" t-on-click="printCashflowReport"><i class="fa fa-print"/><t t-esc="cashflowLabel('printReport')"/></button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section class="pt-cashflow-summary">
+                        <button class="pt-cashflow-total receipt" t-on-click="() => this.openAction(state.cashflow_analysis.receipts_action)">
+                            <span><i class="fa fa-arrow-down"/><t t-esc="cashflowLabel('receipts')"/></span>
+                            <strong><t t-esc="format(state.cashflow_analysis.receipts, 'FCFA')"/></strong>
+                            <small><t t-esc="state.cashflow_analysis.period_label"/></small>
+                        </button>
+                        <button class="pt-cashflow-total disbursement" t-on-click="() => this.openAction(state.cashflow_analysis.disbursements_action)">
+                            <span><i class="fa fa-arrow-up"/><t t-esc="cashflowLabel('disbursements')"/></span>
+                            <strong><t t-esc="format(state.cashflow_analysis.disbursements, 'FCFA')"/></strong>
+                            <small><t t-esc="state.cashflow_analysis.period_label"/></small>
+                        </button>
+                        <button t-att-class="'pt-cashflow-total net ' + (state.cashflow_analysis.net_cashflow &gt;= 0 ? 'positive' : 'negative')" t-on-click="() => this.openAction(state.cashflow_analysis.cashflow_action)">
+                            <span><i t-att-class="state.cashflow_analysis.net_cashflow &gt;= 0 ? 'fa fa-line-chart' : 'fa fa-warning'"/><t t-esc="cashflowLabel('netCashflow')"/></span>
+                            <strong><t t-esc="format(state.cashflow_analysis.net_cashflow, 'FCFA')"/></strong>
+                            <small><t t-esc="cashflowLabel('coverage')"/> : <t t-esc="formatPercent(state.cashflow_analysis.coverage_rate)"/></small>
+                        </button>
+                        <button class="pt-cashflow-total expenses" t-on-click="() => this.openAction(state.cashflow_analysis.expenses_action)">
+                            <span><i class="fa fa-pie-chart"/><t t-esc="cashflowLabel('expenses')"/></span>
+                            <strong><t t-esc="format(state.cashflow_analysis.total_expenses, 'FCFA')"/></strong>
+                            <small><t t-esc="cashflowLabel('analyzedPeriod')"/></small>
+                        </button>
+                    </section>
+
+                    <section class="pt-cashflow-details">
+                        <section class="pt-cashflow-expenses pt-cashflow-receipts">
+                            <header class="pt-cashflow-expenses-header">
+                                <div>
+                                    <h3><i class="fa fa-bank"/><t t-esc="cashflowLabel('receiptAnalysis')"/></h3>
+                                    <small><t t-esc="state.cashflow_analysis.filtered_receipt_count || 0"/> <t t-esc="cashflowLabel('foundAccounts')"/></small>
+                                </div>
+                                <label class="pt-cashflow-search">
+                                    <i class="fa fa-search"/>
+                                    <input type="search" t-att-placeholder="cashflowLabel('searchReceipt')" t-att-aria-label="cashflowLabel('searchReceiptAria')" t-att-value="state.cashflowReceiptSearch" t-on-input="onCashflowReceiptSearch" autocomplete="off"/>
+                                </label>
+                            </header>
+                            <div class="pt-cashflow-list pt-cashflow-expense-list pt-cashflow-receipt-list">
+                                <button t-foreach="state.cashflow_analysis.receipt_accounts || []" t-as="row" t-key="row.id" class="pt-cashflow-row receipt-row" t-on-click="() => this.openAction(row.action)">
+                                    <span class="pt-cashflow-row-title">
+                                        <b><t t-esc="row.code"/></b>
+                                        <strong><t t-esc="row.name"/></strong>
+                                        <small><t t-esc="row.line_count"/> <t t-esc="cashflowLabel('entries')"/></small>
+                                    </span>
+                                    <span class="pt-cashflow-row-amount">
+                                        <strong><t t-esc="format(row.amount, 'FCFA')"/></strong>
+                                        <small><t t-esc="formatPercent(row.percent)"/></small>
+                                    </span>
+                                    <em><i t-att-style="'width:' + row.percent + '%'"/></em>
+                                </button>
+                                <p t-if="!(state.cashflow_analysis.receipt_accounts || []).length" class="pt-cashflow-empty"><t t-esc="cashflowLabel('noReceiptAccount')"/></p>
+                            </div>
+                        </section>
+                        <section class="pt-cashflow-expenses">
+                            <header class="pt-cashflow-expenses-header">
+                                <div>
+                                    <h3><i class="fa fa-search"/><t t-esc="cashflowLabel('expenseAnalysis')"/></h3>
+                                    <small><t t-esc="state.cashflow_analysis.filtered_expense_count || 0"/> <t t-esc="cashflowLabel('foundAccounts')"/></small>
+                                </div>
+                                <label class="pt-cashflow-search">
+                                    <i class="fa fa-search"/>
+                                    <input type="search" t-att-placeholder="cashflowLabel('searchExpense')" t-att-aria-label="cashflowLabel('searchExpenseAria')" t-att-value="state.cashflowChargeSearch" t-on-input="onCashflowChargeSearch" autocomplete="off"/>
+                                </label>
+                            </header>
+                            <div class="pt-cashflow-list pt-cashflow-expense-list">
+                                <button t-foreach="state.cashflow_analysis.expense_accounts || []" t-as="row" t-key="row.id" class="pt-cashflow-row expense-row" t-on-click="() => this.openAction(row.action)">
+                                    <span class="pt-cashflow-row-title">
+                                        <b><t t-esc="row.code"/></b>
+                                        <strong><t t-esc="row.name"/></strong>
+                                        <small><t t-esc="row.line_count"/> <t t-esc="cashflowLabel('entries')"/></small>
+                                    </span>
+                                    <span class="pt-cashflow-row-amount">
+                                        <strong><t t-esc="format(row.amount, 'FCFA')"/></strong>
+                                        <small><t t-esc="formatPercent(row.percent)"/></small>
+                                    </span>
+                                    <em><i t-att-style="'width:' + row.percent + '%'"/></em>
+                                </button>
+                                <p t-if="!(state.cashflow_analysis.expense_accounts || []).length" class="pt-cashflow-empty"><t t-esc="cashflowLabel('noExpenseAccount')"/></p>
+                            </div>
+                        </section>
+                    </section>
+                </article>
+            </section>
+        </xpath>
+    </t>
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-revenue-highlight')]/span" position="replace">
+            <span>Encaissements</span>
+        </xpath>
+        <xpath expr="//section[contains(@t-att-class, 'pt-revenue-cashflow-chart')]/div[contains(@class, 'pt-revenue-legend')]" position="replace">
+            <div class="pt-revenue-legend">
+                <span class="income">Encaissements</span>
+                <span class="expense">Décaissements</span>
+            </div>
+        </xpath>
+        <xpath expr="//section[contains(@t-att-class, 'pt-revenue-cashflow-chart')]/svg" position="replace">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <g class="pt-revenue-grid">
+                    <t t-foreach="revenueGridLines()" t-as="line" t-key="line.key">
+                        <line x1="0" x2="100" t-att-y1="line.y" t-att-y2="line.y"/>
+                        <line y1="8" y2="88" t-att-x1="line.x" t-att-x2="line.x"/>
+                    </t>
+                </g>
+                <t t-foreach="revenueIncomeBars()" t-as="bar" t-key="bar.key">
+                    <rect class="pt-revenue-bar income" t-att-x="bar.x" t-att-y="bar.y" t-att-width="bar.width" t-att-height="bar.height" rx=".8"/>
+                </t>
+                <path class="pt-revenue-line expense" t-att-d="revenueSeriesPath('expense')"/>
+                <t t-foreach="revenueSeriesDots('expense')" t-as="dot" t-key="dot.key">
+                    <circle class="expense" t-att-cx="dot.x" t-att-cy="dot.y" r="1.8"/>
+                </t>
+            </svg>
+        </xpath>
+    </t>
+</templates>

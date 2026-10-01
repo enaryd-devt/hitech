@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.FavoriteReports" owl="1">
+
+        <div class="pt-card">
+
+            <div class="pt-card-header">
+                Rapports Favoris
+            </div>
+
+            <ul class="pt-list">
+
+                <li>Aucun rapport favori</li>
+                <li>Aucun rapport favori</li>
+                <li>Aucun rapport favori</li>
+
+            </ul>
+
+        </div>
+
+    </t>
+
+</templates>

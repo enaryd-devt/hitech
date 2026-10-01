@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="income_statement_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 9px; color: #15294b;">
+                    <div style="text-align: center; border-bottom: 2px solid #1b366a; padding-bottom: 8px; margin-bottom: 12px;">
+                        <div style="font-size: 16px; font-weight: 700; letter-spacing: .4px;">COMPTE DE RÉSULTAT OHADA</div>
+                        <div style="margin-top: 4px; font-size: 10px;">Exercice du <strong t-esc="data['date_from']"/> au <strong t-esc="data['date_to']"/></div>
+                        <div t-if="data['company'].name" style="margin-top: 3px; color: #52657e;"><t t-esc="data['company'].name"/></div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <thead style="display: table-header-group;">
+                            <tr style="background: #1b366a; color: #ffffff;">
+                                <th style="width: 6%; border: 1px solid #1b366a; padding: 6px 3px;">RÉF.</th>
+                                <th style="width: 48%; border: 1px solid #1b366a; padding: 6px 4px; text-align: left;">LIBELLÉS</th>
+                                <th style="width: 5%; border: 1px solid #1b366a; padding: 6px 2px;">&#160;</th>
+                                <th style="width: 7%; border: 1px solid #1b366a; padding: 6px 2px;">SIGNE</th>
+                                <th style="width: 7%; border: 1px solid #1b366a; padding: 6px 2px;">NOTE</th>
+                                <th style="width: 14%; border: 1px solid #1b366a; padding: 6px 3px;">EXERCICE <t t-esc="data['year_n']"/></th>
+                                <th style="width: 13%; border: 1px solid #1b366a; padding: 6px 3px;">EXERCICE <t t-esc="data['year_n1']"/></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="data['lines']" t-as="line">
+                                <tr t-att-style="line['line_type'] == 'grand_total' and 'background:#1b366a; color:#ffffff; font-weight:700;' or (line['line_type'] == 'subtotal' and 'background:#e8eef8; font-weight:700;' or '')">
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px 3px; text-align: center;"><t t-esc="line['ref']"/></td>
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px;"><t t-esc="line['label']"/></td>
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px 2px; text-align: center;"><t t-esc="line['marker']"/></td>
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px 2px; text-align: center;"><t t-esc="line['sign']"/></td>
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px 2px; text-align: center;"><t t-esc="line['note']"/></td>
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px 5px; text-align: right; white-space: nowrap;"><t t-esc="'{:,.0f}'.format(line['amount']).replace(',', ' ')"/></td>
+                                    <td style="border: 1px solid #b8c5d8; padding: 4px 5px; text-align: right; white-space: nowrap;"><t t-esc="'{:,.0f}'.format(line['amount_n1']).replace(',', ' ')"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 8px; font-size: 8px; color: #63748a; display: flex; justify-content: space-between;">
+                        <span>Montants exprimés dans la devise de la société.</span>
+                        <span>Édité le <t t-esc="generated_at"/></span>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

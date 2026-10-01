@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[@data-scroll-key='resources-details']/article[3]" position="replace">
+            <article class="pt-eb-card pt-eb-top-watch">
+                <header class="pt-eb-top-watch-header">
+                    <div>
+                        <h3><i class="fa fa-fire"/><t t-esc="cashflowLabel('topWatchTitle')"/></h3>
+                        <small><t t-esc="cashflowLabel('topWatchSubtitle')"/></small>
+                    </div>
+                    <div class="pt-eb-top-watch-tools">
+                        <div class="pt-eb-card-period pt-eb-top-watch-period">
+                            <label class="pt-eb-filter-control">
+                                <select class="pt-eb-filter-select" t-att-aria-label="cashflowLabel('topWatchPeriodAria')" t-att-value="state.kpiFilters.top_watch_period" t-on-change="(ev) => this.onKpiFilterChange('top_watch_period', ev)">
+                                    <option value="today"><t t-esc="cashflowLabel('today')"/></option>
+                                    <option value="week"><t t-esc="cashflowLabel('week')"/></option>
+                                    <option value="month"><t t-esc="cashflowLabel('month')"/></option>
+                                    <option value="year"><t t-esc="cashflowLabel('year')"/></option>
+                                    <option value="custom"><t t-esc="cashflowLabel('period')"/></option>
+                                </select>
+                            </label>
+                            <div t-if="state.kpiFilters.top_watch_period === 'custom'" class="pt-eb-card-custom-dates pt-eb-top-watch-dates">
+                                <label><t t-esc="cashflowLabel('from')"/><input type="date" t-att-aria-label="cashflowLabel('startDate')" t-att-value="kpiCustomRange('top_watch_period').dateFrom" t-att-max="kpiCustomRange('top_watch_period').dateTo || undefined" t-on-change="(ev) => this.onKpiCustomDateChange('top_watch_period', 'dateFrom', ev)"/></label>
+                                <label><t t-esc="cashflowLabel('to')"/><input type="date" t-att-aria-label="cashflowLabel('endDate')" t-att-value="kpiCustomRange('top_watch_period').dateTo" t-att-min="kpiCustomRange('top_watch_period').dateFrom || undefined" t-on-change="(ev) => this.onKpiCustomDateChange('top_watch_period', 'dateTo', ev)"/></label>
+                            </div>
+                        </div>
+                        <span class="pt-eb-top-watch-count"><t t-esc="(state.top_watch || []).length"/> / 30</span>
+                        <div class="pt-dashboard-report-menu">
+                            <button class="pt-dashboard-report-menu-trigger" type="button" t-att-aria-expanded="state.topWatchMenuOpen" t-att-title="cashflowLabel('reportActions')" t-on-click="toggleTopWatchMenu">
+                                <i class="fa fa-ellipsis-v"/>
+                            </button>
+                            <div t-if="state.topWatchMenuOpen" class="pt-dashboard-report-menu-items">
+                                <button type="button" t-on-click="previewTopWatchReport"><i class="fa fa-eye"/><t t-esc="cashflowLabel('previewReport')"/></button>
+                                <button type="button" t-on-click="printTopWatchReport"><i class="fa fa-print"/><t t-esc="cashflowLabel('printReport')"/></button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <div class="pt-eb-top-watch-scroll">
+                    <table class="pt-eb-top-watch-table">
+                        <thead>
+                            <tr>
+                                <th><t t-esc="cashflowLabel('product')"/></th>
+                                <th><t t-esc="cashflowLabel('category')"/></th>
+                                <th><t t-esc="cashflowLabel('rotation')"/></th>
+                                <th><t t-esc="cashflowLabel('stockStatus')"/></th>
+                                <th><t t-esc="cashflowLabel('stock')"/></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.top_watch || []" t-as="product" t-key="product.id" t-on-click="() => this.openAction(product.action)">
+                                <td class="pt-eb-top-watch-product"><strong><t t-esc="product.product"/></strong></td>
+                                <td><span class="pt-eb-top-watch-category"><t t-esc="product.rayon"/></span></td>
+                                <td><span t-att-class="'pt-eb-rotation ' + (product.rotation_tone || 'normal')"><i class="fa fa-line-chart"/><t t-esc="format(product.rotation)"/> <small><t t-esc="cashflowLabel('sold')"/></small></span></td>
+                                <td><span t-att-class="'pt-eb-watch-status ' + (product.status_tone || 'warning')"><i t-att-class="product.status_tone === 'danger' ? 'fa fa-times-circle' : product.status_tone === 'critical' ? 'fa fa-exclamation-triangle' : 'fa fa-exclamation-circle'"/><t t-esc="product.status"/></span></td>
+                                <td class="pt-eb-top-watch-stock"><strong><t t-esc="format(product.stock)"/></strong></td>
+                            </tr>
+                            <tr t-if="!(state.top_watch || []).length"><td colspan="5" class="pt-eb-top-watch-empty"><t t-esc="cashflowLabel('noWatchProduct')"/></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="executive_top_watch_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="company" t-value="o"/>
+                <div class="page pt-top-watch-pdf">
+                    <style>
+                        .pt-top-watch-pdf { color: #24324a; font-family: Arial, sans-serif; font-size: 9px; }
+                        .pt-top-watch-pdf .report-title { margin-bottom: 16px; padding: 15px 18px; border-radius: 8px; background: #7c2d12; color: #fff; }
+                        .pt-top-watch-pdf .report-title h1 { margin: 0; color: #fff; font-size: 21px; letter-spacing: .3px; }
+                        .pt-top-watch-pdf .report-print-date { margin: 5px 0 0; color: #ffedd5; font-size: 10px; }
+                        .pt-top-watch-pdf .metrics { width: 100%; margin: 14px 0 18px; border-collapse: separate; border-spacing: 7px 0; }
+                        .pt-top-watch-pdf .metrics td { width: 25%; padding: 12px; border: 1px solid #fed7aa; border-radius: 6px; background: #fff; vertical-align: top; }
+                        .pt-top-watch-pdf .metric-label { display: block; color: #64748b; font-size: 8px; font-weight: bold; text-transform: uppercase; }
+                        .pt-top-watch-pdf .metric-value { display: block; margin-top: 7px; color: #9a3412; font-size: 16px; font-weight: bold; }
+                        .pt-top-watch-pdf .section-title { margin: 18px 0 8px; padding: 7px 10px; border-left: 4px solid #ea580c; background: #fff7ed; color: #7c2d12; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+                        .pt-top-watch-pdf table.data-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+                        .pt-top-watch-pdf .data-table th { padding: 7px 6px; background: #7c2d12; color: #fff; font-size: 8px; text-align: left; }
+                        .pt-top-watch-pdf .data-table td { padding: 7px 6px; border-bottom: 1px solid #fde4d0; vertical-align: top; }
+                        .pt-top-watch-pdf .data-table tbody tr:nth-child(even) { background: #fffaf5; }
+                        .pt-top-watch-pdf .number { text-align: right; white-space: nowrap; }
+                        .pt-top-watch-pdf .status { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 8px; font-weight: bold; }
+                        .pt-top-watch-pdf .status-danger { background: #fff0f2; color: #be123c; }
+                        .pt-top-watch-pdf .status-critical { background: #fff0e8; color: #c2410c; }
+                        .pt-top-watch-pdf .status-warning { background: #fff7e8; color: #a16207; }
+                        .pt-top-watch-pdf .muted { color: #64748b; }
+                        .pt-top-watch-pdf .summary-box { margin-top: 14px; padding: 10px 12px; border: 1px solid #fed7aa; border-radius: 6px; background: #fffaf5; }
+                        .pt-top-watch-pdf .summary-box p { margin: 3px 0; }
+                        .pt-top-watch-pdf .report-title, .pt-top-watch-pdf .metrics, .pt-top-watch-pdf .summary-box, .pt-top-watch-pdf .signatures { page-break-inside: avoid; }
+                        .pt-top-watch-pdf .signatures { width: 100%; margin-top: 34px; border-collapse: collapse; text-align: center; }
+                        .pt-top-watch-pdf .signatures td { width: 33.33%; padding-top: 26px; }
+                        .pt-top-watch-pdf thead { display: table-header-group; }
+                        .pt-top-watch-pdf tr { page-break-inside: avoid; }
+                    </style>
+
+                    <section class="report-title">
+                        <h1>Rapport — produits à surveiller</h1>
+                        <p class="report-print-date">Imprimé le <t t-esc="report_data['generated_at']"/></p>
+                    </section>
+
+                    <table class="metrics">
+                        <tr>
+                            <td><span class="metric-label">Produits à surveiller</span><strong class="metric-value"><t t-esc="report_data['total_products']"/></strong></td>
+                            <td><span class="metric-label">Ruptures</span><strong class="metric-value"><t t-esc="report_data['out_of_stock_count']"/></strong></td>
+                            <td><span class="metric-label">Stocks critiques</span><strong class="metric-value"><t t-esc="report_data['critical_count']"/></strong></td>
+                            <td><span class="metric-label">Rotation cumulée</span><strong class="metric-value"><t t-esc="'{:,.0f}'.format(report_data['total_rotation'] or 0).replace(',', ' ')"/></strong></td>
+                        </tr>
+                    </table>
+
+                    <h2 class="section-title">Produits prioritaires</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Produit</th><th>Rayon</th><th class="number">Rotation</th><th>État du stock</th><th class="number">Stock disponible</th></tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="report_data['rows']" t-as="row">
+                                <tr>
+                                    <td><t t-esc="row['product']"/></td>
+                                    <td><t t-esc="row['rayon']"/></td>
+                                    <td class="number"><t t-esc="'{:,.0f}'.format(row['rotation'] or 0).replace(',', ' ')"/> vendus</td>
+                                    <td><span t-att-class="'status status-' + row['status_tone']"><t t-esc="row['status']"/></span></td>
+                                    <td class="number"><t t-esc="'{:,.0f}'.format(row['stock'] or 0).replace(',', ' ')"/></td>
+                                </tr>
+                            </t>
+                            <tr t-if="not report_data['rows']"><td colspan="5" class="muted">Aucun produit à surveiller pour la période sélectionnée.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <section class="summary-box">
+                        <p><strong>Lecture opérationnelle :</strong> <t t-esc="report_data['out_of_stock_count']"/> produit(s) sont en rupture, <t t-esc="report_data['critical_count']"/> en stock critique et <t t-esc="report_data['minimum_count']"/> au seuil minimum.</p>
+                        <p>Les produits listés cumulent une rotation de <strong><t t-esc="'{:,.0f}'.format(report_data['total_rotation'] or 0).replace(',', ' ')"/> unités</strong> sur la période.</p>
+                    </section>
+
+                    <table class="signatures"><tr><td><strong>Responsable magasin</strong><br/><br/>______________________</td><td><strong>Responsable stock</strong><br/><br/>______________________</td><td><strong>Direction</strong><br/><br/>______________________</td></tr></table>
+                </div>
+            </t>
+            </t>
+        </t>
+    </template>
+</odoo>

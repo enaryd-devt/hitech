@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_sales_orders_tracking_report_wizard_form" model="ir.ui.view">
+    <field name="name">sales.orders.tracking.report.wizard.form</field>
+    <field name="model">primetech.sales.orders.tracking.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Suivi des Commandes" create="0" edit="0">
+        <sheet>
+          <div class="oe_title">
+            <h1><i class="fa fa-shopping-cart me-2"/>
+
+                        Suivi des Commandes
+
+                    </h1>
+            <div class="text-muted">
+
+                        Analyse détaillée des commandes clients,
+                        commerciaux et performances.
+
+                    </div>
+          </div>
+          <separator string="Critères du Rapport" colspan="4"/>
+          <group col="4">
+            <group>
+              <field name="date_from" required="1"/>
+              <field name="date_to" required="1"/>
+            </group>
+            <group>
+              <field name="company_id"/>
+              <field name="user_id"/>
+            </group>
+            <group>
+              <field name="partner_id"/>
+            </group>
+            <group>
+              <field name="state"/>
+            </group>
+          </group>
+        </sheet>
+        <footer>
+          <button name="action_preview" string="Aperçu" type="object" class="btn btn-primary" icon="fa-search"/>
+          <button name="action_print_pdf" string="Exporter PDF" type="object" class="btn btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" string="Exporter Excel" type="object" class="btn btn-success" icon="fa-file-excel-o"/>
+          <button string="Fermer" special="cancel" class="btn btn-light" icon="fa-times"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

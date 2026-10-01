@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_category_form_primetech_logistics" model="ir.ui.view">
+        <field name="name">product.category.form.primetech.logistics</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='first']" position="after">
+                <group string="Paramètres prix et logistique">
+                    <field name="primetech_cost_percentage"/>
+                    <field name="primetech_sale_percentage"/>
+                    <field name="primetech_rank"/>
+                    <field name="primetech_reference"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

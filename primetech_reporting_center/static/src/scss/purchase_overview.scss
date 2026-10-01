@@ -1,0 +1,81 @@
+.pt-purchase-overview {
+    background: #f4f7fb;
+    color: #111827;
+    min-height: 100vh;
+    padding: 18px;
+    font-size: 13px;
+
+    button { cursor: pointer; border: 0; }
+    .pt-purchase-loading { display: grid; place-items: center; min-height: 360px; gap: 16px; }
+    .pt-purchase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    h1 { font-size: 26px; font-weight: 900; margin: 0; }
+    h3 { font-size: 15px; font-weight: 900; margin: 0 0 14px; }
+    .pt-purchase-icons { display: flex; gap: 12px; }
+    .pt-purchase-icons button { width: 34px; height: 34px; border-radius: 50%; background: #fff; box-shadow: 0 4px 14px rgba(15, 23, 42, .08); }
+
+    .pt-purchase-filters { display: flex; align-items: end; gap: 24px; margin-bottom: 18px; }
+    .pt-purchase-filters label { display: grid; gap: 7px; font-size: 11px; font-weight: 800; }
+    .pt-purchase-filters select { min-width: 150px; border: 1px solid #dbe4f0; border-radius: 7px; padding: 9px 12px; background: #fff; font-size: 12px; }
+    .pt-purchase-filters span { margin-left: auto; font-weight: 800; font-size: 12px; }
+
+    .pt-purchase-kpis { display: grid; grid-template-columns: repeat(7, minmax(125px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .pt-purchase-kpi { text-align: left; background: #fff; border: 1px solid #dbe7f3; border-radius: 7px; padding: 14px 13px 12px; box-shadow: 0 5px 18px rgba(15, 23, 42, .05); transition: .2s ease; }
+    .pt-purchase-kpi:hover, .pt-purchase-card button:hover, tbody tr:hover { transform: translateY(-2px); box-shadow: 0 12px 22px rgba(37, 99, 235, .10); }
+    .pt-purchase-kpi span { display: block; color: #6d28d9; font-size: 11px; font-weight: 900; margin-bottom: 12px; }
+    .pt-purchase-kpi strong { display: block; font-size: 18px; font-weight: 900; white-space: nowrap; }
+    .pt-purchase-kpi em { display: inline-block; margin-top: 11px; color: #16a34a; font-size: 11px; font-style: normal; font-weight: 900; }
+    .pt-purchase-kpi .down { color: #dc2626; }
+    .pt-purchase-kpi small { float: right; color: #0f172a; margin-top: 11px; font-size: 10px; }
+
+    .pt-purchase-grid-top { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 12px; margin-bottom: 12px; }
+    .pt-purchase-grid-bottom { display: grid; grid-template-columns: 1.2fr 1.15fr .85fr; gap: 12px; margin-bottom: 12px; }
+    .pt-purchase-card, .pt-purchase-actions { background: #fff; border: 1px solid #dbe7f3; border-radius: 8px; padding: 15px; box-shadow: 0 5px 18px rgba(15, 23, 42, .05); overflow: hidden; }
+
+    .pt-cycle-steps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+    .pt-cycle-steps button { background: transparent; min-height: 128px; text-align: center; transition: .2s ease; border-radius: 8px; padding: 8px 6px; }
+    .pt-cycle-steps i { display: grid; place-items: center; width: 31px; height: 31px; margin: 0 auto 16px; border-radius: 5px; background: currentColor; color: #fff; }
+    .pt-cycle-steps i::before { color: #fff; }
+    .pt-cycle-steps .blue { color: #2563eb; }
+    .pt-cycle-steps .green { color: #16a34a; }
+    .pt-cycle-steps .orange { color: #f97316; }
+    .pt-cycle-steps .red { color: #ef4444; }
+    .pt-cycle-steps span { display: block; min-height: 30px; font-size: 10px; font-weight: 900; }
+    .pt-cycle-steps strong { display: block; margin-top: 12px; font-size: 20px; font-weight: 900; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { color: #334155; font-size: 11px; text-align: left; padding: 9px 8px; }
+    td { border-top: 1px solid #edf2f7; padding: 10px 8px; font-weight: 650; }
+    tbody tr { transition: .2s ease; cursor: pointer; }
+    .positive { color: #16a34a; }
+
+    .pt-chart-with-list { display: grid; grid-template-columns: 145px 1fr; gap: 16px; align-items: center; }
+    .pt-chart-box { height: 170px; }
+    canvas { width: 100% !important; height: 100% !important; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { display: grid; grid-template-columns: 8px 1fr auto; gap: 8px; align-items: center; padding: 8px 0; font-size: 11px; font-weight: 800; cursor: pointer; }
+    li b { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2563eb; }
+    li:nth-child(2) b { background: #16a34a; }
+    li:nth-child(3) b { background: #f59e0b; }
+    li:nth-child(4) b { background: #ef4444; }
+    li:nth-child(5) b { background: #7c3aed; }
+
+    .pt-card-link, .pt-alert-link { display: block; margin: 14px auto 0; padding: 10px 18px; border: 1px solid #b7cff5; border-radius: 5px; background: #f8fbff; color: #1d4ed8; font-weight: 900; font-size: 12px; }
+    .pt-alert-link { background: #fff1f2; color: #b91c1c; border-color: #fecdd3; }
+    .pt-purchase-alerts { background: #fff7f7; }
+    .pt-purchase-alerts h3 { color: #dc2626; }
+    .pt-purchase-alerts button:not(.pt-alert-link) { display: block; width: 100%; background: transparent; color: #991b1b; text-align: left; padding: 10px 4px; font-weight: 900; border-radius: 5px; }
+    .pt-purchase-alerts i { margin-right: 8px; }
+
+    .pt-purchase-actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .pt-purchase-actions h3 { width: 100%; margin-bottom: 2px; }
+    .pt-purchase-actions button { background: transparent; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; border-radius: 6px; padding: 7px; }
+    .pt-purchase-actions i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 5px; color: #fff; }
+    .pt-purchase-actions .blue { background: #2563eb; }
+    .pt-purchase-actions .green { background: #16a34a; }
+    .pt-purchase-actions .purple { background: #4f46e5; }
+    .pt-purchase-actions .orange { background: #f97316; }
+    .pt-purchase-actions .teal { background: #0d9488; }
+
+    @media (max-width: 1400px) { .pt-purchase-kpis { grid-template-columns: repeat(4, 1fr); } .pt-purchase-grid-top, .pt-purchase-grid-bottom { grid-template-columns: 1fr; } .pt-cycle-steps { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 768px) { .pt-purchase-filters { flex-wrap: wrap; } .pt-purchase-kpis, .pt-cycle-steps { grid-template-columns: 1fr; } .pt-chart-with-list { grid-template-columns: 1fr; } }
+}

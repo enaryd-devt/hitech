@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.FinancialHealth" owl="1">
+
+    <div class="finance-health-container">
+
+        <div t-att-class="state.data.score &gt;= 80 ? 'finance-health-circle excellent' : state.data.score &gt;= 60 ? 'finance-health-circle good' : state.data.score &gt;= 40 ? 'finance-health-circle warning' : 'finance-health-circle danger'">
+
+            <div class="finance-health-score">
+
+                <t t-esc="state.data.score"/>
+
+            </div>
+
+            <div class="finance-health-max">
+
+                /100
+
+            </div>
+
+        </div>
+
+        <div class="finance-health-info">
+
+            <div class="finance-health-title">
+
+                Santé Financière
+
+            </div>
+
+            <div t-att-class="state.data.score &gt;= 80 ? 'finance-health-badge excellent' : state.data.score &gt;= 60 ? 'finance-health-badge good' : state.data.score &gt;= 40 ? 'finance-health-badge warning' : 'finance-health-badge danger'">
+
+                <t t-esc="state.data.level"/>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

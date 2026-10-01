@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="report_followup">
+
+            <t t-call="web.html_container">
+
+                <t t-foreach="ids_to_objects(data['partner_ids'])"
+                   t-as="o">
+
+                    <t t-set="o"
+                       t-value="o.with_context({'lang':o.partner_id.lang})"/>
+
+                    <t t-call="web.external_layout">
+
+                        <div class="page">
+
+                            <!-- STYLE -->
+                            <style>
+
+                                .followup-header {
+                                    margin-bottom: 25px;
+                                }
+
+                                .followup-title {
+                                    font-size: 28px;
+                                    font-weight: bold;
+                                    color: #1F4E78;
+                                    margin-bottom: 10px;
+                                }
+                                .followup-date {
+                                    font-size: 20px;
+                                    font-weight: bold;
+                                    color: #1F4E78;
+                                    margin-bottom: 10px;
+                                    text-align: right;
+                                }
+
+                                .followup-subtitle {
+                                    font-size: 13px;
+                                    color: #666;
+                                }
+
+                                .client-block {
+                                    margin-top: 20px;
+                                    margin-bottom: 25px;
+                                    line-height: 1.7;
+                                }
+
+                                .followup-table {
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    margin-top: 25px;
+                                    font-size: 13px;
+                                }
+
+                                .followup-table thead {
+                                    background-color: #1F4E78;
+                                    color: white;
+                                }
+
+                                .followup-table th {
+                                    padding: 10px;
+                                    border: 1px solid #dcdcdc;
+                                    text-align: center;
+                                }
+
+                                .followup-table td {
+                                    padding: 8px;
+                                    border: 1px solid #e5e5e5;
+                                }
+
+                                .text-right {
+                                    text-align: right;
+                                }
+
+                                .text-center {
+                                    text-align: center;
+                                }
+
+                                .total-box {
+                                    margin-top: 15px;
+                                    padding: 12px;
+                                    background: #f5f7fa;
+                                    border-left: 5px solid #1F4E78;
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    text-align: right;
+                                }
+
+                                .message-box {
+                                    margin-top: 25px;
+                                    margin-bottom: 20px;
+                                    padding: 15px;
+                                    background: #fafafa;
+                                    border: 1px solid #e5e5e5;
+                                    border-radius: 6px;
+                                    line-height: 1.7;
+                                }
+
+                                .signature-section {
+                                    margin-top: 70px;
+                                }
+
+                                .signature-box {
+                                    width: 250px;
+                                    text-align: center;
+                                    float: right;
+                                }
+
+                                .signature-line {
+                                    margin-top: 20px;
+                                    border-top: 1px solid #000;
+                                    padding-top: 5px;
+                                    font-size: 12px;
+                                }
+
+                                .footer-note {
+                                    margin-top: 60px;
+                                    text-align: center;
+                                    font-size: 11px;
+                                    color: #888;
+                                }
+
+                            </style>
+
+                            <!-- HEADER -->
+                            <div class="followup-header">
+                                
+                                <div class="followup-date">
+                                        Date de relance
+                                        <span t-esc="data['date']"/>
+                                </div>
+
+                                <div class="followup-title">
+                                    SUIVI DES PAIEMENTS CLIENTS
+                                </div>
+
+                                <div class="followup-subtitle">
+                                    Document de relance et suivi des factures impayées
+                                </div>
+
+                            </div>
+
+                            <!-- CLIENT INFOS -->
+                            <div class="client-block">
+
+                                <strong>Client :</strong>
+                                <span t-field="o.invoice_partner_id"/>
+                                <br/>
+
+                                <t t-if="o.partner_id.vat">
+                                    <strong>N° Contribuable :</strong>
+                                    <span t-field="o.partner_id.vat"/>
+                                    <br/>
+                                </t>
+
+                                <strong>Téléphone :</strong>
+                                <span t-field="o.partner_id.phone"/>
+                                <br/>
+
+
+
+                            </div>
+
+                            <!-- MESSAGE -->
+                            <div class="message-box" style="width:100%; font-size:13px; line-height:1.8;">
+
+                                <div style="width:100%;">
+
+                                    <p style="margin-bottom:12px;">
+                                        <strong>Monsieur/Madame,</strong>
+                                    </p>
+
+                                    <p style="text-align:justify; margin-bottom:12px;">
+                                        Sauf erreur de notre part, il semble que le montant suivant reste impayé.
+                                        Nous vous prions de bien vouloir prendre les dispositions nécessaires pour effectuer ce règlement
+                                        dans les <strong>8 prochains jours</strong>.
+                                    </p>
+
+                                    <p style="text-align:justify; margin-bottom:12px;">
+                                        Si votre paiement a déjà été effectué après l’envoi de ce courrier, veuillez ne pas tenir compte de ce message.
+                                    </p>
+
+                                    <p style="text-align:justify; margin-bottom:18px;">
+                                        Nous restons à votre disposition pour toute information complémentaire auprès de notre service comptable.
+                                    </p>
+
+                                    <p style="margin-top:20px;">
+                                        Cordialement,<br/>
+                                        <strong>Service Comptabilité</strong>
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <!-- TABLE DES FACTURES -->
+                            <t t-set="partner_invoices"
+                            t-value="o.partner_id.invoice_ids.filtered(
+                                    lambda inv:
+                                        inv.state == 'posted'
+                                        and inv.move_type in ['out_invoice']
+                                        and inv.payment_state in ['not_paid', 'partial']
+                                )"/>
+
+                            <table class="followup-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Date Facture</th>
+                                        <th>Numéro</th>
+                                        <th>Extrait du contenu de la facture</th>
+                                        <th>Échéance</th>
+                                        <th class="text-right">Montant Total</th>
+                                        <th class="text-right">Montant Dû</th>
+                                        <th class="text-center">Statut</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    <tr t-foreach="partner_invoices"
+                                        t-as="inv">
+
+                                        <!-- DATE -->
+                                        <td class="text-center">
+                                            <span t-field="inv.invoice_date"/>
+                                        </td>
+
+                                        <!-- NUMERO -->
+                                        <td class="text-center">
+                                            <span t-field="inv.name"/>
+                                        </td>
+
+                                        <!-- DESCRIPTION -->
+                                        <td style="max-width:250px;">
+
+                                            <t t-if="inv.invoice_line_ids">
+
+                                                    <span t-esc="
+                                                        (inv.invoice_line_ids[0].name[:120] + '...')
+                                                        if len(inv.invoice_line_ids[0].name) > 120
+                                                        else inv.invoice_line_ids[0].name
+                                                    "/>
+                                            </t>
+
+                                        </td>
+
+                                        <!-- ECHEANCE -->
+                                        <td class="text-center">
+                                            <span t-field="inv.invoice_date_due"/>
+                                        </td>
+
+                                        <!-- TOTAL -->
+                                        <td class="text-right">
+                                            <strong>
+                                                <span t-field="inv.amount_total"/>
+                                            </strong>
+                                        </td>
+
+                                        <!-- RESTE A PAYER -->
+                                        <td class="text-right">
+
+                                            <span style="color:#c0392b; font-weight:bold;"
+                                                t-field="inv.amount_residual"/>
+
+                                        </td>
+
+                                        <!-- STATUT -->
+                                        <td class="text-center">
+
+                                            <t t-if="inv.payment_state == 'not_paid'">
+
+                                                <span style="
+                                                    background:#e74c3c;
+                                                    color:white;
+                                                    padding:4px 8px;
+                                                    border-radius:4px;
+                                                    font-size:11px;
+                                                ">
+                                                    Non payé
+                                                </span>
+
+                                            </t>
+
+                                            <t t-if="inv.payment_state == 'partial'">
+
+                                                <span style="
+                                                    background:#f39c12;
+                                                    color:white;
+                                                    padding:4px 8px;
+                                                    border-radius:4px;
+                                                    font-size:11px;
+                                                ">
+                                                    Partiel
+                                                </span>
+
+                                            </t>
+
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                            <!-- TOTAL GENERAL -->
+                            <div class="total-box">
+
+                                Total restant dû :
+                                <strong>
+
+                                    <span t-esc="'{:,.0f}'.format(sum(partner_invoices.mapped('amount_residual'))).replace(',', ' ')"/>
+
+                                    <span>
+                                        FCFA
+                                    </span>
+
+                                </strong>
+
+                            </div>
+
+                            <!-- SIGNATURE -->
+                            <div class="signature-section">
+
+                                <div class="signature-box">
+
+
+                                    <div class="signature-line">
+                                        Service Comptable
+                                    </div>
+
+                                </div>
+
+                                <div style="clear: both;"></div>
+
+                            </div>
+
+                            <!-- FOOTER -->
+                            <div class="footer-note">
+
+                                Merci de régulariser votre situation dans les meilleurs délais.<br/>
+                         
+
+                            </div>
+
+                        </div>
+
+                    </t>
+
+                </t>
+
+            </t>
+
+        </template>
+
+    </data>
+</odoo>

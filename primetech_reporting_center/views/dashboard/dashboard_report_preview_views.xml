@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dashboard_report_preview_wizard" model="ir.ui.view">
+        <field name="name">pt.dashboard.report.preview.wizard.form</field>
+        <field name="model">pt.dashboard.report.preview.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Aperçu du rapport" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_print_pdf" type="object" string="Imprimer" icon="fa-print" class="btn-primary"/>
+                    <button name="action_back" type="object" string="Retour" icon="fa-arrow-left" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <field name="name" readonly="1"/>
+                    <field name="html_content" widget="html" readonly="1" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

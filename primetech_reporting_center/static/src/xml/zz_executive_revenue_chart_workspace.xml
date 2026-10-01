@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(concat(' ', normalize-space(@class), ' '), ' pt-revenue-kpi ')]" position="replace">
+            <div class="pt-revenue-kpi">
+                <header>
+                    <div>
+                        <h3>Ventes globales et répartition par catégorie</h3>
+                        <small><t t-esc="state.revenue_chart.subtitle"/></small>
+                    </div>
+                    <div class="pt-eb-card-period">
+                        <label class="pt-eb-filter-control">
+                            <select class="pt-eb-filter-select" aria-label="Période des ventes globales" t-att-value="state.kpiFilters.revenue_period" t-on-change="(ev) => this.onKpiFilterChange('revenue_period', ev)">
+                                <option value="today">Aujourd'hui</option>
+                                <option value="week">Cette semaine</option>
+                                <option value="month">Ce mois</option>
+                                <option value="year">Cette année</option>
+                                <option value="custom">Période</option>
+                            </select>
+                        </label>
+                        <div t-if="state.kpiFilters.revenue_period === 'custom'" class="pt-eb-card-custom-dates">
+                            <label>Du<input type="date" aria-label="Date de début" t-att-value="kpiCustomRange('revenue_period').dateFrom" t-att-max="kpiCustomRange('revenue_period').dateTo || undefined" t-on-change="(ev) => this.onKpiCustomDateChange('revenue_period', 'dateFrom', ev)"/></label>
+                            <label>Au<input type="date" aria-label="Date de fin" t-att-value="kpiCustomRange('revenue_period').dateTo" t-att-min="kpiCustomRange('revenue_period').dateFrom || undefined" t-on-change="(ev) => this.onKpiCustomDateChange('revenue_period', 'dateTo', ev)"/></label>
+                        </div>
+                    </div>
+                </header>
+
+                <nav class="pt-revenue-view-switcher" aria-label="Affichage du KPI chiffre d'affaires">
+                    <button t-att-class="state.revenueChartView === 'overview' ? 'is-active' : ''" type="button" t-on-click="closeRevenueChartWorkspace" t-att-aria-pressed="state.revenueChartView === 'overview'">
+                        <i class="fa fa-list-alt"/>Synthèse
+                    </button>
+                    <button t-att-class="state.revenueChartView === 'chart' ? 'is-active' : ''" type="button" t-on-click="openRevenueChartWorkspace" t-att-aria-pressed="state.revenueChartView === 'chart'">
+                        <i class="fa fa-line-chart"/>Graphe
+                    </button>
+                </nav>
+
+                <div t-att-class="'pt-revenue-view-viewport ' + (state.revenueChartView === 'chart' ? 'is-chart' : 'is-overview')">
+                    <section class="pt-revenue-view pt-revenue-chart-page" t-att-aria-hidden="state.revenueChartView !== 'chart'" aria-label="Vue graphique des ventes globales">
+                        <div class="pt-revenue-chart-page-header">
+                            <small>Analyse graphique — choisissez les séries à comparer</small>
+                        </div>
+
+                        <div class="pt-revenue-chart-options" role="group" aria-label="Éléments affichés dans le graphe">
+                            <label t-att-class="state.revenueChartOptions.income ? 'is-active income' : 'income'"><input type="checkbox" t-att-checked="state.revenueChartOptions.income" t-on-change="(ev) => this.toggleRevenueChartOption('income', ev)"/><i class="fa fa-bar-chart"/>Ventes</label>
+                            <label t-att-class="state.revenueChartOptions.expense ? 'is-active expense' : 'expense'"><input type="checkbox" t-att-checked="state.revenueChartOptions.expense" t-on-change="(ev) => this.toggleRevenueChartOption('expense', ev)"/><i class="fa fa-line-chart"/>Points de vente</label>
+                            <label t-att-class="state.revenueChartOptions.grid ? 'is-active neutral' : 'neutral'"><input type="checkbox" t-att-checked="state.revenueChartOptions.grid" t-on-change="(ev) => this.toggleRevenueChartOption('grid', ev)"/><i class="fa fa-th"/>Grille de lecture</label>
+                        </div>
+
+                        <section class="pt-revenue-chart pt-revenue-cashflow-chart" aria-label="Graphe des ventes et points de vente">
+                            <div class="pt-revenue-legend">
+                                <span t-if="state.revenueChartOptions.income" class="income">Ventes</span>
+                                <span t-if="state.revenueChartOptions.expense" class="expense">Points de vente</span>
+                            </div>
+                            <div class="pt-revenue-y"><t t-foreach="revenueScaleLabels()" t-as="tick" t-key="tick.key"><span><t t-esc="tick.label"/></span></t></div>
+                            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <g t-if="state.revenueChartOptions.grid" class="pt-revenue-grid">
+                                    <t t-foreach="revenueGridLines()" t-as="line" t-key="line.key">
+                                        <line x1="0" x2="100" t-att-y1="line.y" t-att-y2="line.y"/>
+                                    </t>
+                                    <t t-foreach="revenueGridVerticalLines()" t-as="line" t-key="line.key">
+                                        <line y1="8" y2="88" t-att-x1="line.x" t-att-x2="line.x"/>
+                                    </t>
+                                </g>
+                                <t t-if="state.revenueChartOptions.income">
+                                    <t t-foreach="revenueIncomeBars()" t-as="bar" t-key="bar.key">
+                                        <rect class="pt-revenue-bar income" t-att-x="bar.x" t-att-y="bar.y" t-att-width="bar.width" t-att-height="bar.height" rx=".8" tabindex="0" role="img" t-att-aria-label="bar.label + ': Ventes ' + format(bar.value, 'FCFA')">
+                                            <title><t t-esc="bar.label"/> - Ventes : <t t-esc="format(bar.value, 'FCFA')"/></title>
+                                        </rect>
+                                    </t>
+                                </t>
+                                <path t-if="state.revenueChartOptions.expense" class="pt-revenue-line expense" t-att-d="revenueSeriesPath('expense')"/>
+                                <t t-if="state.revenueChartOptions.expense">
+                                    <t t-foreach="revenueSeriesDots('expense')" t-as="dot" t-key="dot.key">
+                                        <circle class="expense" t-att-cx="dot.x" t-att-cy="dot.y" r="1.8" tabindex="0" role="img" t-att-aria-label="dot.label + ': Points de vente ' + format(dot.value, 'FCFA')">
+                                            <title><t t-esc="dot.label"/> - Points de vente : <t t-esc="format(dot.value, 'FCFA')"/></title>
+                                        </circle>
+                                    </t>
+                                </t>
+                            </svg>
+                            <div class="pt-revenue-x"><t t-foreach="state.revenue_chart.items" t-as="point" t-key="point.key"><span><t t-esc="point.label"/></span></t></div>
+                            <p t-if="!state.revenueChartOptions.income &amp;&amp; !state.revenueChartOptions.expense" class="pt-revenue-chart-empty">Sélectionnez au moins une série pour afficher le graphe.</p>
+                        </section>
+
+                    </section>
+                    <section class="pt-revenue-view pt-revenue-overview-page" t-att-aria-hidden="state.revenueChartView === 'chart'">
+                        <section class="pt-revenue-highlight">
+                        <span>Ventes globales</span>
+                        <strong><t t-esc="format(revenueSummary().total, 'FCFA')"/></strong>
+                        <b t-att-class="revenueSummary().trend &gt;= 0 ? 'positive' : 'negative'"><i t-att-class="revenueSummary().trend &gt;= 0 ? 'fa fa-arrow-up' : 'fa fa-arrow-down'"/> <t t-esc="formatPercent(Math.abs(revenueSummary().trend))"/></b>
+                        <small>vs période précédente</small>
+                        </section>
+                        <section class="pt-revenue-overview-metrics">
+                        <span><i class="fa fa-arrow-down income"/>Ventes<strong><t t-esc="format(revenueCashflowTotals().income, 'FCFA')"/></strong></span>
+                        <span><i class="fa fa-arrow-up expense"/>Points de vente<strong><t t-esc="format(revenueCashflowTotals().expense, 'FCFA')"/></strong></span>
+                        <span t-att-class="revenueCashflowTotals().income + revenueCashflowTotals().expense &gt;= 0 ? 'positive' : 'negative'"><i class="fa fa-exchange"/>Total global<strong><t t-esc="format(revenueCashflowTotals().income + revenueCashflowTotals().expense, 'FCFA')"/></strong></span>
+                        </section>
+                        <section class="pt-revenue-overview-analysis" aria-label="Analyse des flux de trésorerie">
+                            <div><i class="fa fa-line-chart"/><span>Pic de ventes<strong><t t-esc="format(revenueCashflowAnalysis().peak, 'FCFA')"/></strong><small>Meilleure période</small></span></div>
+                            <div><i class="fa fa-calculator"/><span>Moyenne des ventes<strong><t t-esc="format(revenueCashflowAnalysis().average, 'FCFA')"/></strong><small>Par période affichée</small></span></div>
+                            <div><i class="fa fa-shield"/><span>Part des ventes PDV<strong><t t-esc="formatPercent(revenueCashflowAnalysis().coverage)"/></strong><small>PDV / total global</small></span></div>
+                            <div t-att-class="revenueCashflowAnalysis().net &gt;= 0 ? 'positive' : 'negative'"><i class="fa fa-balance-scale"/><span>Total des ventes<strong><t t-esc="format(revenueCashflowAnalysis().net, 'FCFA')"/></strong><small>Vente et point de vente</small></span></div>
+                        </section>
+                    </section>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

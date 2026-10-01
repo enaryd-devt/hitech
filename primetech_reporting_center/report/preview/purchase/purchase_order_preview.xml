@@ -1,0 +1,232 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- =======================================================
+         PREVIEW COMMANDES D'ACHAT
+    ======================================================== -->
+  <template id="purchase_order_preview_template">
+    <div class="container-fluid">
+      <!-- ==========================================
+                 HEADER
+            =========================================== -->
+      <div class="mb-4">
+        <h2>
+                    Rapport des Commandes d'Achat
+                </h2>
+        <div class="text-muted">
+                    Analyse détaillée des commandes fournisseurs
+                </div>
+      </div>
+      <!-- ==========================================
+                 KPI
+            =========================================== -->
+      <div class="row mb-4">
+        <div class="col-3">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['order_count']"/>
+            </h4>
+            <small>Commandes</small>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['total_untaxed']"/>
+            </h4>
+            <small>Montant HT</small>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['total_tax']"/>
+            </h4>
+            <small>Taxes</small>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['total_amount']"/>
+            </h4>
+            <small>Montant TTC</small>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div class="col-3">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['supplier_count']"/>
+            </h4>
+            <small>Fournisseurs</small>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['product_count']"/>
+            </h4>
+            <small>Produits</small>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['confirmed_count']"/>
+            </h4>
+            <small>Confirmées</small>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['draft_count']"/>
+            </h4>
+            <small>Brouillons</small>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="border rounded p-3 text-center">
+            <h4>
+              <t t-out="data['kpi']['cancelled_count']"/>
+            </h4>
+            <small>Annulées</small>
+          </div>
+        </div>
+      </div>
+      <!-- ==========================================
+                 ANALYSE FOURNISSEURS
+            =========================================== -->
+      <h4 class="mt-4">
+                Analyse par Fournisseur
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Fournisseur</th>
+            <th class="text-end">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="data['supplier_analysis'].items()" t-as="supplier">
+            <tr>
+              <td>
+                <t t-out="supplier[0]"/>
+              </td>
+              <td class="text-end">
+                <t t-out="supplier[1]"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ==========================================
+                 ANALYSE ACHETEURS
+            =========================================== -->
+      <h4 class="mt-4">
+                Analyse par Acheteur
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Acheteur</th>
+            <th class="text-end">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="data['buyer_analysis'].items()" t-as="buyer">
+            <tr>
+              <td>
+                <t t-out="buyer[0]"/>
+              </td>
+              <td class="text-end">
+                <t t-out="buyer[1]"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ==========================================
+                 ETATS
+            =========================================== -->
+      <h4 class="mt-4">
+                Répartition par Statut
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Statut</th>
+            <th class="text-end">Nombre</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="data['state_analysis'].items()" t-as="state">
+            <tr>
+              <td>
+                <t t-out="state[0]"/>
+              </td>
+              <td class="text-end">
+                <t t-out="state[1]"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ==========================================
+                 DETAILS
+            =========================================== -->
+      <h4 class="mt-4">
+                Détails des Commandes
+            </h4>
+      <table class="table table-sm table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Date</th>
+            <th>Fournisseur</th>
+            <th>Acheteur</th>
+            <th>Société</th>
+            <th class="text-end">HT</th>
+            <th class="text-end">Taxes</th>
+            <th class="text-end">TTC</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="data['details']" t-as="line">
+            <tr>
+              <td>
+                <t t-out="line['name']"/>
+              </td>
+              <td>
+                <t t-out="line['date']"/>
+              </td>
+              <td>
+                <t t-out="line['supplier']"/>
+              </td>
+              <td>
+                <t t-out="line['buyer']"/>
+              </td>
+              <td>
+                <t t-out="line['company']"/>
+              </td>
+              <td class="text-end">
+                <t t-out="line['untaxed']"/>
+              </td>
+              <td class="text-end">
+                <t t-out="line['tax']"/>
+              </td>
+              <td class="text-end">
+                <t t-out="line['total']"/>
+              </td>
+              <td>
+                <t t-out="line['state']"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</odoo>

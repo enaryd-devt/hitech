@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+        <t t-name="primetech_reporting_center.CashflowForecast" owl="1">
+
+            <div class="pt-cashflow-card">
+
+                <div class="pt-cashflow-row">
+
+                    <span>
+                        Encaissements prévus
+                    </span>
+
+                    <strong class="positive">
+
+                        <t t-esc="formatCurrency( state.data.incoming )"/>
+
+                    </strong>
+
+                </div>
+
+                <div class="pt-cashflow-row">
+
+                    <span>
+                        Décaissements prévus
+                    </span>
+
+                    <strong class="negative">
+
+                        <t t-esc="formatCurrency( state.data.outgoing )"/>
+
+                    </strong>
+
+                </div>
+
+                <div class="pt-cashflow-row total">
+
+                    <span>
+                        Solde Projeté
+                    </span>
+
+                    <strong>
+
+                        <t t-esc="formatCurrency( state.data.projected )"/>
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </t>
+    </templates>

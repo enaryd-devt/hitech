@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_sales_customer_analysis_report_wizard_form" model="ir.ui.view">
+    <field name="name">sales.customer.analysis.report.wizard.form</field>
+    <field name="model">primetech.sales.customer.analysis.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Analyse Clients">
+        <sheet>
+          <div class="oe_title">
+            <h1>
+                            Analyse Clients
+                        </h1>
+            <div class="text-muted">
+                            Analyse détaillée des ventes par client,
+                            fréquence d'achat et contribution au chiffre d'affaires.
+                        </div>
+          </div>
+          <div class="alert alert-warning mt16" role="alert"><i class="fa fa-users me-2"/>
+
+                        Sélectionnez une période, un commercial ou un client
+                        afin d'obtenir une analyse détaillée de votre portefeuille client.
+
+                    </div>
+          <group col="2">
+            <group string="Période d'Analyse">
+              <field name="date_from"/>
+              <field name="date_to"/>
+            </group>
+            <group string="Organisation">
+              <field name="company_id"/>
+              <field name="user_id" options="{'no_create': True}"/>
+            </group>
+          </group>
+          <separator string="Filtre Client"/>
+          <group>
+            <field name="partner_id" options="{'no_create': True}"/>
+          </group>
+          <separator string="Indicateurs Analysés"/>
+          <div class="text-muted">
+
+                        Ce rapport permet d'analyser :
+
+                        <ul style="margin-top:8px;"><li>Le chiffre d'affaires par client</li><li>Le nombre de commandes effectuées</li><li>Le panier moyen</li><li>La fréquence d'achat</li><li>Les meilleurs clients de la période</li></ul>
+
+                    </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/>
+          <button string="Fermer" special="cancel" icon="fa-times" class="btn btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

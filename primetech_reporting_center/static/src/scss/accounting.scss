@@ -1,0 +1,681 @@
+.pt-accounting-dashboard {
+
+    background: #f8fafc;
+
+    min-height: 100vh;
+
+    padding: 20px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.pt-page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+}
+
+.pt-page-header h1 {
+
+    font-size: 34px;
+
+    font-weight: 700;
+
+    color: var(--pt-text);
+
+}
+
+.pt-page-header p {
+
+color: var(--pt-text-muted);
+
+}
+
+/* ==========================================
+   KPI
+========================================== */
+
+.pt-finance-kpis {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                230px,
+                1fr
+            )
+        );
+
+    gap: 18px;
+
+}
+
+.pt-finance-card {
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 18px;
+
+    position: relative;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 4px 14px
+        rgba(
+            0,
+            0,
+            0,
+            .05
+        );
+
+    transition: .25s;
+
+}
+
+.pt-finance-card::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+
+    top: 0;
+
+    width: 5px;
+
+    height: 100%;
+
+    background: #1d5f9e;
+
+}
+
+.pt-finance-card:hover {
+
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 10px 24px
+        rgba(
+            0,
+            0,
+            0,
+            .08
+        );
+
+}
+
+.pt-label {
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    color: #64748b;
+
+    letter-spacing: .5px;
+
+}
+
+.pt-value {
+
+    margin-top: 8px;
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+    color: #0f172a;
+
+}
+
+/* ==========================================
+   LAYOUT
+========================================== */
+
+.pt-full-width-section {
+
+    width: 100%;
+
+}
+
+.pt-compact-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap: 20px;
+
+}
+
+.pt-section-card {
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 18px;
+
+    min-height: auto;
+
+    box-shadow:
+        0 4px 14px
+        rgba(
+            0,
+            0,
+            0,
+            .05
+        );
+
+    transition: .25s;
+
+}
+
+.pt-section-card:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 10px 24px
+        rgba(
+            0,
+            0,
+            0,
+            .08
+        );
+
+}
+
+.pt-section-title {
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    color: #0f3d66;
+
+    margin-bottom: 16px;
+
+    padding-bottom: 10px;
+
+    border-bottom:
+        1px solid #eef2f7;
+
+}
+
+/* ==========================================
+   FINANCIAL HEALTH
+========================================== */
+
+.pt-financial-health {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+}
+
+.pt-health-score {
+
+    width: 110px;
+
+    height: 110px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    background:
+        radial-gradient(
+            circle,
+            #ffffff,
+            #eef5fb
+        );
+
+    border: 6px solid #1d5f9e;
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    color: #0f3d66;
+
+}
+
+.pt-health-score span {
+
+    font-size: 12px;
+
+    opacity: .6;
+
+}
+
+.pt-health-level {
+
+    margin-top: 12px;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    color: #1d5f9e;
+
+}
+
+/* ==========================================
+   RECEIVABLES
+========================================== */
+
+.pt-receivables-dashboard {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+
+}
+
+.pt-receivable-main-card {
+
+    padding: 18px;
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #1d5f9e,
+            #0f3d66
+        );
+
+    color: white;
+
+}
+
+.pt-card-label {
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    opacity: .8;
+
+}
+
+.pt-card-value {
+
+    margin-top: 8px;
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+}
+
+.pt-receivable-stats-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+
+}
+
+.pt-mini-card {
+
+    background: white;
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    box-shadow:
+        0 3px 10px
+        rgba(
+            0,
+            0,
+            0,
+            .05
+        );
+
+}
+
+.pt-mini-label {
+
+    font-size: 12px;
+
+    color: #64748b;
+
+}
+
+.pt-mini-value {
+
+    margin-top: 5px;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+}
+
+.pt-top-debtors-card {
+
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 16px;
+
+}
+
+.pt-debtor-item {
+
+    margin-top: 14px;
+
+}
+
+.pt-debtor-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-bottom: 6px;
+
+}
+
+.pt-debtor-name {
+
+    font-weight: 600;
+
+}
+
+.pt-debtor-amount {
+
+    color: #0f3d66;
+
+    font-weight: 700;
+
+}
+
+.pt-debtor-bar {
+
+    height: 6px;
+
+    border-radius: 999px;
+
+    background: #e5e7eb;
+
+    overflow: hidden;
+
+}
+
+.pt-debtor-progress {
+
+    height: 100%;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #1d5f9e,
+            #60a5fa
+        );
+
+}
+
+/* ==========================================
+   CASHFLOW
+========================================== */
+
+.pt-cashflow-card {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+.pt-cashflow-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+}
+
+.pt-cashflow-row.total {
+
+    background:
+        linear-gradient(
+            135deg,
+            #0f3d66,
+            #1d5f9e
+        );
+
+    color: white;
+
+}
+
+.positive {
+
+    color: #16a34a;
+
+}
+
+.negative {
+
+    color: #dc2626;
+
+}
+
+/* ==========================================
+   FINANCIAL POSITION
+========================================== */
+
+.pt-financial-position {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+.pt-position-grid {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+.pt-position-card {
+
+    background: white;
+
+    border-radius: 14px;
+
+    padding: 12px 16px;
+
+    box-shadow:
+        0 3px 10px
+        rgba(
+            0,
+            0,
+            0,
+            .05
+        );
+
+}
+
+.pt-position-label {
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    color: #64748b;
+
+}
+
+.pt-position-value {
+
+    margin-top: 4px;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    color: #0f3d66;
+
+}
+
+.pt-ratio-section {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+.pt-ratio-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+}
+
+.pt-position-status {
+
+    display: flex;
+
+    justify-content: center;
+
+}
+
+.pt-status-badge {
+
+    padding: 10px 20px;
+
+    border-radius: 999px;
+
+    font-weight: 700;
+
+}
+
+.pt-position-status.excellent .pt-status-badge {
+
+    background: #dcfce7;
+
+    color: #166534;
+
+}
+
+.pt-position-status.good .pt-status-badge {
+
+    background: #dbeafe;
+
+    color: #1d4ed8;
+
+}
+
+.pt-position-status.warning .pt-status-badge {
+
+    background: #fef3c7;
+
+    color: #b45309;
+
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 1200px) {
+
+    .pt-compact-grid {
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .pt-compact-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}

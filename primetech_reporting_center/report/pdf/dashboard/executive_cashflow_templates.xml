@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="executive_cashflow_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="company" t-value="o"/>
+                <t t-set="analysis" t-value="report_data['analysis']"/>
+                <t t-set="operating" t-value="report_data['operating_result']"/>
+                <t t-set="currency_name" t-value="report_data['company'].currency_id.name or 'FCFA'"/>
+                <div class="page pt-cashflow-pdf">
+                    <style>
+                        .pt-cashflow-pdf { color: #24324a; font-family: Arial, sans-serif; font-size: 9px; }
+                        .pt-cashflow-pdf .report-title { margin-bottom: 16px; padding: 15px 18px; border-radius: 8px; background: #172554; color: #fff; }
+                        .pt-cashflow-pdf .report-title h1 { margin: 0; color: #fff; font-size: 21px; letter-spacing: .4px; }
+                        .pt-cashflow-pdf .report-print-date { margin: 5px 0 0; color: #dbeafe; font-size: 10px; }
+                        .pt-cashflow-pdf .metrics { width: 100%; margin: 14px 0 18px; border-collapse: separate; border-spacing: 7px 0; }
+                        .pt-cashflow-pdf .metrics td { width: 25%; padding: 12px; border: 1px solid #dbe4f0; border-radius: 6px; background: #fff; vertical-align: top; }
+                        .pt-cashflow-pdf .metric-label { display: block; color: #64748b; font-size: 8px; font-weight: bold; text-transform: uppercase; }
+                        .pt-cashflow-pdf .metric-value { display: block; margin-top: 7px; font-size: 16px; font-weight: bold; }
+                        .pt-cashflow-pdf .metric-positive { color: #047857; }
+                        .pt-cashflow-pdf .metric-negative { color: #be123c; }
+                        .pt-cashflow-pdf .metric-neutral { color: #3730a3; }
+                        .pt-cashflow-pdf .section-title { margin: 18px 0 8px; padding: 7px 10px; border-left: 4px solid #2563eb; background: #eff6ff; color: #1e3a5f; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+                        .pt-cashflow-pdf .section-note { margin: -2px 0 8px; color: #64748b; font-size: 8px; }
+                        .pt-cashflow-pdf table.data-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+                        .pt-cashflow-pdf .data-table th { padding: 7px 6px; background: #1e3a5f; color: #fff; font-size: 8px; text-align: left; }
+                        .pt-cashflow-pdf .data-table td { padding: 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+                        .pt-cashflow-pdf .data-table tbody tr:nth-child(even) { background: #f8fafc; }
+                        .pt-cashflow-pdf .number { text-align: right; white-space: nowrap; }
+                        .pt-cashflow-pdf .muted { color: #64748b; }
+                        .pt-cashflow-pdf .receipt { color: #047857; }
+                        .pt-cashflow-pdf .disbursement { color: #be123c; }
+                        .pt-cashflow-pdf .result-panel { width: 100%; border-collapse: separate; border-spacing: 7px 0; }
+                        .pt-cashflow-pdf .result-panel td { width: 33.33%; padding: 10px; border: 1px solid #dbe4f0; border-radius: 6px; background: #fff; }
+                        .pt-cashflow-pdf .result-panel span { display: block; color: #64748b; font-size: 8px; font-weight: bold; text-transform: uppercase; }
+                        .pt-cashflow-pdf .result-panel strong { display: block; margin-top: 5px; font-size: 13px; }
+                        .pt-cashflow-pdf .summary-box { margin-top: 14px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; }
+                        .pt-cashflow-pdf .summary-box p { margin: 3px 0; }
+                        .pt-cashflow-pdf .report-title, .pt-cashflow-pdf .metrics, .pt-cashflow-pdf .result-panel, .pt-cashflow-pdf .summary-box, .pt-cashflow-pdf .signatures { page-break-inside: avoid; }
+                        .pt-cashflow-pdf .signatures { width: 100%; margin-top: 34px; border-collapse: collapse; text-align: center; }
+                        .pt-cashflow-pdf .signatures td { width: 33.33%; padding-top: 26px; }
+                        .pt-cashflow-pdf thead { display: table-header-group; }
+                        .pt-cashflow-pdf tr { page-break-inside: avoid; }
+                    </style>
+
+                    <section class="report-title">
+                        <h1>Rapport de suivi de trésorerie</h1>
+                        <p class="report-print-date">Imprimé le <t t-esc="report_data['generated_at']"/></p>
+                    </section>
+
+                    <table class="metrics">
+                        <tr>
+                            <td><span class="metric-label">Encaissements</span><strong class="metric-value metric-positive"><t t-esc="'{:,.0f}'.format(analysis['receipts'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                            <td><span class="metric-label">Décaissements</span><strong class="metric-value metric-negative"><t t-esc="'{:,.0f}'.format(analysis['disbursements'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                            <td><span class="metric-label">Flux net de trésorerie</span><strong t-att-class="'metric-value ' + ('metric-positive' if analysis['net_cashflow'] &gt;= 0 else 'metric-negative')"><t t-esc="'{:,.0f}'.format(analysis['net_cashflow'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                            <td><span class="metric-label">Taux de couverture</span><strong class="metric-value metric-neutral"><t t-esc="'{:,.1f}'.format(analysis['coverage_rate'] or 0).replace(',', ' ')"/> %</strong></td>
+                        </tr>
+                    </table>
+
+                    <h2 class="section-title">Résultat d'exploitation</h2>
+                    <table class="result-panel">
+                        <tr>
+                            <td><span>Produits d'exploitation</span><strong class="receipt"><t t-esc="'{:,.0f}'.format(operating['income'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                            <td><span>Charges d'exploitation</span><strong class="disbursement"><t t-esc="'{:,.0f}'.format(operating['expenses'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                            <td><span>Résultat d'exploitation</span><strong t-att-class="'receipt' if operating['result'] &gt;= 0 else 'disbursement'"><t t-esc="'{:,.0f}'.format(operating['result'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong></td>
+                        </tr>
+                    </table>
+
+                    <h2 class="section-title">Analyse des comptes d'encaissement</h2>
+                    <p class="section-note">Tous les comptes réellement utilisés pour les encaissements de la période.</p>
+                    <table class="data-table">
+                        <thead><tr><th>Code</th><th>Compte</th><th class="number">Écritures</th><th class="number">Montant</th><th class="number">Part</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="report_data['receipt_accounts']" t-as="row">
+                                <tr><td><t t-esc="row['code']"/></td><td><t t-esc="row['name']"/></td><td class="number"><t t-esc="row['line_count']"/></td><td class="number receipt"><t t-esc="'{:,.0f}'.format(row['amount'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></td><td class="number"><t t-esc="'{:,.1f}'.format(row['percent'] or 0).replace(',', ' ')"/> %</td></tr>
+                            </t>
+                            <tr t-if="not report_data['receipt_accounts']"><td colspan="5" class="muted">Aucun encaissement comptabilisé sur la période.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h2 class="section-title">Analyse des comptes de décaissement</h2>
+                    <p class="section-note">Tous les comptes réellement utilisés pour les décaissements de la période.</p>
+                    <table class="data-table">
+                        <thead><tr><th>Code</th><th>Compte</th><th class="number">Écritures</th><th class="number">Montant</th><th class="number">Part</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="report_data['disbursement_accounts']" t-as="row">
+                                <tr><td><t t-esc="row['code']"/></td><td><t t-esc="row['name']"/></td><td class="number"><t t-esc="row['line_count']"/></td><td class="number disbursement"><t t-esc="'{:,.0f}'.format(row['amount'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></td><td class="number"><t t-esc="'{:,.1f}'.format(row['percent'] or 0).replace(',', ' ')"/> %</td></tr>
+                            </t>
+                            <tr t-if="not report_data['disbursement_accounts']"><td colspan="5" class="muted">Aucun décaissement comptabilisé sur la période.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h2 class="section-title">Analyse des comptes de charges</h2>
+                    <p class="section-note">Charges comptabilisées sur la période, ventilées par compte comptable.</p>
+                    <table class="data-table">
+                        <thead><tr><th>Code</th><th>Compte de charge</th><th class="number">Écritures</th><th class="number">Montant</th><th class="number">Part</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="report_data['expense_accounts']" t-as="row">
+                                <tr><td><t t-esc="row['code']"/></td><td><t t-esc="row['name']"/></td><td class="number"><t t-esc="row['line_count']"/></td><td class="number disbursement"><t t-esc="'{:,.0f}'.format(row['amount'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></td><td class="number"><t t-esc="'{:,.1f}'.format(row['percent'] or 0).replace(',', ' ')"/> %</td></tr>
+                            </t>
+                            <tr t-if="not report_data['expense_accounts']"><td colspan="5" class="muted">Aucune charge comptabilisée sur la période.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <section class="summary-box">
+                        <p><strong>Lecture managériale :</strong> le flux net est de <strong t-att-class="'receipt' if analysis['net_cashflow'] &gt;= 0 else 'disbursement'"><t t-esc="'{:,.0f}'.format(analysis['net_cashflow'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong>.</p>
+                        <p>Les charges comptabilisées atteignent <strong class="disbursement"><t t-esc="'{:,.0f}'.format(analysis['total_expenses'] or 0).replace(',', ' ')"/> <t t-esc="currency_name"/></strong> sur <strong><t t-esc="report_data['cashflow_move_count']"/> écriture(s) de trésorerie</strong>.</p>
+                    </section>
+
+                    <table class="signatures"><tr><td><strong>Comptable</strong><br/><br/>______________________</td><td><strong>Chef comptable</strong><br/><br/>______________________</td><td><strong>Direction financière</strong><br/><br/>______________________</td></tr></table>
+                </div>
+            </t>
+            </t>
+        </t>
+    </template>
+</odoo>

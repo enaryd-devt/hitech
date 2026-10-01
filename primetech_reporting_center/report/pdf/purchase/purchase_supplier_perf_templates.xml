@@ -1,0 +1,255 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_supplier_perf_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ===================================== -->
+          <!-- EN-TETE -->
+          <!-- ===================================== -->
+          <div class="text-center mb-4">
+            <h2>
+                            Rapport Performance Fournisseurs
+                        </h2>
+            <p><strong>Période :</strong><span t-out="filters.get( 'date_from' )"/>
+
+                            -
+
+                            <span t-out="filters.get( 'date_to' )"/>
+
+                        </p>
+          </div>
+          <!-- ===================================== -->
+          <!-- KPI -->
+          <!-- ===================================== -->
+          <h3>
+                        Indicateurs Clés
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr>
+                <td>
+                                    Fournisseurs
+                                </td>
+                <td>
+                  <t t-out="report_data .get( 'kpi', {} ) .get( 'supplier_count', 0 )"/>
+                </td>
+                <td>
+                                    Commandes
+                                </td>
+                <td>
+                  <t t-out="report_data .get( 'kpi', {} ) .get( 'order_count', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Montant Achats
+                                </td>
+                <td>
+                  <t t-out="report_data .get( 'kpi', {} ) .get( 'total_amount', 0 )"/>
+                </td>
+                <td>
+                                    Réceptions
+                                </td>
+                <td>
+                  <t t-out="report_data .get( 'kpi', {} ) .get( 'receipt_count', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Taux Réception %
+                                </td>
+                <td>
+                  <t t-out="round( report_data .get( 'kpi', {} ) .get( 'receipt_rate', 0 ), 2 )"/>
+                </td>
+                <td>
+                                    Délai Moyen
+                                </td>
+                <td>
+                  <t t-out="round( report_data .get( 'kpi', {} ) .get( 'avg_delay', 0 ), 2 )"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- ANALYSE FOURNISSEURS -->
+          <!-- ===================================== -->
+          <h3>
+                        Analyse Fournisseurs
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Commandes</th>
+                <th>Montant</th>
+                <th>Réceptions</th>
+                <th>Qté Reçue</th>
+                <th>Taux %</th>
+                <th>Délai</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'supplier_analysis', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_count']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount_total']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['receipt_count']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['qty_received']"/>
+                  </td>
+                  <td>
+                    <t t-out="round( line['receipt_rate'], 2 )"/>
+                  </td>
+                  <td>
+                    <t t-out="round( line['avg_delay'], 2 )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- TOP MONTANT -->
+          <!-- ===================================== -->
+          <h3>
+                        Top 10 Fournisseurs
+                        par Montant
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'top_amount', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount_total']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- TOP TAUX -->
+          <!-- ===================================== -->
+          <h3>
+                        Top 10 Fournisseurs
+                        par Taux de Réception
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Taux %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'top_receipt', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="round( line['receipt_rate'], 2 )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- DETAILS -->
+          <!-- ===================================== -->
+          <h3>
+                        Détails
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Commande</th>
+                <th>Date Commande</th>
+                <th>Date Réception</th>
+                <th>Montant</th>
+                <th>Qté Reçue</th>
+                <th>Délai</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'details', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['receipt_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['qty_received']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['delay']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SIGNATURES -->
+          <!-- ===================================== -->
+          <br/>
+          <br/>
+          <br/>
+          <table style="width:100%;">
+            <tr>
+              <td style="width:33%; text-align:center;">
+                                Préparé par
+
+                                <br/><br/><br/>
+
+                                __________________
+                            </td>
+              <td style="width:33%; text-align:center;">
+                                Vérifié par
+
+                                <br/><br/><br/>
+
+                                __________________
+                            </td>
+              <td style="width:33%; text-align:center;">
+                                Approuvé par
+
+                                <br/><br/><br/>
+
+                                __________________
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

@@ -1,0 +1,259 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="balance_sheet_template">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div style="font-family:Arial; font-size:11px; padding:15px;">
+          <!-- ========================= -->
+          <!-- ENTETE -->
+          <!-- ========================= -->
+          <div style="text-align:center; margin-bottom:20px;">
+            <h2 style="margin:0; padding:0;">
+                            BILAN OHADA
+                        </h2>
+            <div style="margin-top:8px;">
+                            Situation au
+                            <strong><t t-esc="date_to"/></strong>
+                        </div>
+            <div>
+                            Généré le
+                            <t t-esc="generated_at"/>
+                        </div>
+          </div>
+          <!-- ========================= -->
+          <!-- ACTIF -->
+          <!-- ========================= -->
+          <t t-if="display_mode in ('actif','both')">
+            <div style="background:#D9D9D9; padding:8px; text-align:center; font-weight:bold; font-size:14px; margin-bottom:10px;">
+                            ACTIF
+                        </div>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <thead>
+                <tr style="background:#EFEFEF;">
+                  <th rowspan="2" style="border:1px solid #999;">
+                                        REF
+                                    </th>
+                  <th rowspan="2" style="border:1px solid #999;">
+                                        ACTIF
+                                    </th>
+                  <th rowspan="2" style="border:1px solid #999;">
+                                        NOTE
+                                    </th>
+                  <th colspan="3" style="border:1px solid #999;">
+                                        EXERCICE AU
+                                        <t t-esc="date_to"/>
+                                    </th>
+                </tr>
+                <tr style="background:#EFEFEF;">
+                  <th style="border:1px solid #999;">
+                                        BRUT
+                                    </th>
+                  <th style="border:1px solid #999;">
+                                        AMORT.
+                                    </th>
+                  <th style="border:1px solid #999;">
+                                        NET
+                                    </th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="data['actif']" t-as="line">
+                  <!-- SECTION -->
+                  <t t-if="line['line_type'] == 'section'">
+                    <tr style="background:#E6E6E6; font-weight:bold;">
+                      <td style="border:1px solid #999;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td colspan="6" style="border:1px solid #999;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                    </tr>
+                  </t>
+                  <!-- LIGNE -->
+                  <t t-if="line['line_type'] == 'line'">
+                    <tr>
+                      <td style="border:1px solid #CCC;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td style="border:1px solid #CCC;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:1px solid #CCC;">
+                        <t t-esc="line.get('note','')"/>
+                      </td>
+                      <td style="border:1px solid #CCC; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['brut'])"/>
+                      </td>
+                      <td style="border:1px solid #CCC; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['amort'])"/>
+                      </td>
+                      <td style="border:1px solid #CCC; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['net'])"/>
+                      </td>
+                    </tr>
+                  </t>
+                  <!-- TOTAL -->
+                  <t t-if="line['line_type'] == 'total'">
+                    <tr style="background:#F5F5F5; font-weight:bold;">
+                      <td style="border:1px solid #999;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td style="border:1px solid #999;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:1px solid #999;"/>
+                      <td style="border:1px solid #999; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['brut'])"/>
+                      </td>
+                      <td style="border:1px solid #999;"/>
+                      <td style="border:1px solid #999; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['net'])"/>
+                      </td>
+                      <td style="border:1px solid #999;"/>
+                    </tr>
+                  </t>
+                  <!-- GRAND TOTAL -->
+                  <t t-if="line['line_type'] == 'grand_total'">
+                    <tr style="background:#D9D9D9; font-weight:bold;">
+                      <td style="border:1px solid #666;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td style="border:1px solid #666;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:1px solid #666;"/>
+                      <td style="border:1px solid #666; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['brut'])"/>
+                      </td>
+                      <td style="border:1px solid #666;"/>
+                      <td style="border:1px solid #666; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['net'])"/>
+                      </td>
+                      <td style="border:1px solid #666;"/>
+                    </tr>
+                  </t>
+                </t>
+              </tbody>
+            </table>
+          </t>
+          <!-- ====================================== -->
+          <!-- PASSIF -->
+          <!-- ====================================== -->
+          <t t-if="display_mode in ('passif','both')">
+            <div style="background:#D9D9D9; padding:8px; text-align:center; font-weight:bold; font-size:14px; margin-top:20px; margin-bottom:10px;">
+        PASSIF
+    </div>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <thead>
+                <tr style="background:#EFEFEF;">
+                  <th rowspan="2" style="border:1px solid #999;">
+                    REF
+                </th>
+                  <th rowspan="2" style="border:1px solid #999;">
+                    PASSIF
+                </th>
+                  <th rowspan="2" style="border:1px solid #999;">
+                    NOTE
+                </th>
+                  <th colspan="3" style="border:1px solid #999;">
+                    EXERCICE AU
+                    <t t-esc="date_to"/>
+                </th>
+                </tr>
+                <tr style="background:#EFEFEF;">
+                  <th style="border:1px solid #999;">
+                    BRUT
+                </th>
+                  <th style="border:1px solid #999;">
+                    AMORT.
+                </th>
+                  <th style="border:1px solid #999;">
+                    NET
+                </th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="data['passif']" t-as="line">
+                  <!-- SECTION -->
+                  <t t-if="line['line_type'] == 'section'">
+                    <tr style="background:#E6E6E6; font-weight:bold;">
+                      <td style="border:1px solid #999;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td colspan="6" style="border:1px solid #999;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                    </tr>
+                  </t>
+                  <!-- LIGNE -->
+                  <t t-if="line['line_type'] == 'line'">
+                    <tr>
+                      <td style="border:1px solid #CCC;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td style="border:1px solid #CCC;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:1px solid #CCC;">
+                        <t t-esc="line.get('note','')"/>
+                      </td>
+                      <td style="border:1px solid #CCC; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['brut'])"/>
+                      </td>
+                      <td style="border:1px solid #CCC; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['amort'])"/>
+                      </td>
+                      <td style="border:1px solid #CCC; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['net'])"/>
+                      </td>
+                    </tr>
+                  </t>
+                  <!-- TOTAL -->
+                  <t t-if="line['line_type'] == 'total'">
+                    <tr style="background:#F5F5F5; font-weight:bold;">
+                      <td style="border:1px solid #999;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td style="border:1px solid #999;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:1px solid #999;"/>
+                      <td style="border:1px solid #999; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['brut'])"/>
+                      </td>
+                      <td style="border:1px solid #999;"/>
+                      <td style="border:1px solid #999; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['net'])"/>
+                      </td>
+                      <td style="border:1px solid #999;"/>
+                    </tr>
+                  </t>
+                  <!-- GRAND TOTAL -->
+                  <t t-if="line['line_type'] == 'grand_total'">
+                    <tr style="background:#D9D9D9; font-weight:bold;">
+                      <td style="border:1px solid #666;">
+                        <t t-esc="line['ref']"/>
+                      </td>
+                      <td style="border:1px solid #666;">
+                        <t t-esc="line['label']"/>
+                      </td>
+                      <td style="border:1px solid #666;"/>
+                      <td style="border:1px solid #666; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['brut'])"/>
+                      </td>
+                      <td style="border:1px solid #666;"/>
+                      <td style="border:1px solid #666; text-align:right;">
+                        <t t-esc="'{:,.0f}'.format(line['net'])"/>
+                      </td>
+                      <td style="border:1px solid #666;"/>
+                    </tr>
+                  </t>
+                </t>
+              </tbody>
+            </table>
+          </t>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

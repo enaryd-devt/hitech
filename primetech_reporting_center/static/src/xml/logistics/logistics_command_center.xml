@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+<t t-name="primetech_reporting_center.LogisticsCommandCenter">
+    <div class="pt-logistics-command-center">
+        <t t-if="state.loading"><div class="pt-logistics-loader"><i class="fa fa-spinner fa-spin fa-3x"/><h4>Chargement du Centre de Commandement Logistique...</h4><p>Consolidation des demandes, transferts, stocks et indicateurs.</p></div></t>
+        <t t-if="!state.loading">
+            <section class="pt-logistics-hero"><div><span>Supply Chain Manager</span><h1>Centre de Commandement Logistique</h1><p>Pilotage multisite : magasins, réserves, réapprovisionnement, transferts, livraisons et alertes de stock.</p></div><div class="pt-logistics-actions"><button t-on-click="() => this.loadData()"><i class="fa fa-refresh"/> Actualiser</button><button t-on-click="() => this.openTransfers()"><i class="fa fa-exchange"/> Tous les transferts</button></div></section>
+
+            <section class="pt-logistics-kpis">
+                <button t-on-click="() => this.openTransfers([['state', 'in', ['confirmed', 'assigned']]])"><span>À préparer</span><strong><t t-esc="state.kpis.to_prepare"/></strong><small>Délai moy. <t t-esc="state.kpis.avg_prep_delay_hours"/> h</small></button>
+                <button t-on-click="() => this.openTransfers([['state', '=', 'done'], ['date_done', '&gt;=', state.limit_date]])"><span>Taux de service</span><strong><t t-esc="state.kpis.service_rate"/>%</strong><small><t t-esc="state.kpis.completed_last_30_days"/> servis sur 30j</small></button>
+                <button t-on-click="() => this.openTransfers([['scheduled_date', '&lt;', state.today], ['state', 'not in', ['done', 'cancel']]])"><span>Retards logistiques</span><strong><t t-esc="state.kpis.late_transfers"/></strong><small><t t-esc="state.kpis.late_rate"/>% des bons clôturés</small></button>
+                <button t-on-click="() => this.openProducts([['id', 'in', state.alert_product_ids.stockouts]])"><span>Ruptures</span><strong><t t-esc="state.alerts.stockouts"/></strong><small>Produits indisponibles</small></button>
+                <button t-on-click="() => this.openProducts([['id', 'in', state.alert_product_ids.below_min]])"><span>Sous minimum</span><strong><t t-esc="state.alerts.below_min"/></strong><small>Seuil fixe gestion</small></button>
+                <button t-on-click="() => this.openProducts([['id', 'in', state.alert_product_ids.overstock]])"><span>Surstock</span><strong><t t-esc="state.alerts.overstock"/></strong><small>Capacité immobilisée</small></button>
+            </section>
+
+            <section class="pt-logistics-grid-main">
+                <article class="pt-logistics-card wide"><header><h3>Cycle opérationnel</h3><button t-on-click="() => this.openTransfers()">Voir les bons</button></header><div class="pt-status-lane"><button t-foreach="state.procurement_requests" t-as="request" t-key="request.label" t-on-click="() => this.openTransfers(request.domain)"><span><t t-esc="request.label"/></span><strong><t t-esc="request.count"/></strong></button></div></article>
+                <article class="pt-logistics-card"><header><h3>Statut des transferts</h3></header><div class="pt-chart-box"><canvas id="logisticsStatusChart"/></div></article>
+                <article class="pt-logistics-card"><header><h3>Flotte &amp; ressources</h3></header><div class="pt-fleet-grid"><button><i class="fa fa-truck"/><strong><t t-esc="state.fleet.vehicles"/></strong><span>Véhicules</span></button><button><i class="fa fa-id-badge"/><strong><t t-esc="state.fleet.drivers"/></strong><span>Chauffeurs</span></button></div><div class="pt-mini-list"><button t-foreach="state.carrier_workload" t-as="carrier" t-key="carrier.name" t-on-click="() => this.openTransfers(carrier.domain)"><span><t t-esc="carrier.name"/></span><strong><t t-esc="carrier.count"/></strong></button></div></article>
+            </section>
+
+            <section class="pt-logistics-grid-bottom">
+                <article class="pt-logistics-card wide"><header><h3>Charge de travail par magasin</h3><button t-on-click="() => this.openWarehouses()">Entrepôts</button></header><div class="pt-chart-box large"><canvas id="logisticsWarehouseChart"/></div><table><thead><tr><th>Magasin / entrepôt</th><th>En cours</th><th>En attente</th><th>Terminées</th><th>Ruptures</th></tr></thead><tbody><tr t-foreach="state.warehouse_load" t-as="wh" t-key="wh.id" t-on-click="() => this.openTransfers(wh.domain)"><td><t t-esc="wh.name"/></td><td><t t-esc="wh.in_progress"/></td><td><t t-esc="wh.waiting"/></td><td><t t-esc="wh.completed"/></td><td class="danger"><t t-esc="wh.stockouts"/></td></tr></tbody></table></article>
+                <article class="pt-logistics-card"><header><h3>Transferts urgents</h3><button t-on-click="() => this.openTransfers([['scheduled_date', '&lt;=', state.today], ['state', 'not in', ['done', 'cancel']]])">Voir tout</button></header><div class="pt-mini-list urgent"><button t-foreach="state.urgent_transfers" t-as="transfer" t-key="transfer.id" t-on-click="() => this.openTransfers([['id', '=', transfer.id]])"><span><t t-esc="transfer.name"/><small><t t-esc="transfer.origin"/></small></span><strong><t t-esc="transfer.deadline"/></strong></button></div></article>
+                <article class="pt-logistics-card"><header><h3>Produits à réapprovisionner</h3><button t-on-click="() => this.openProducts([['id', 'in', state.alert_product_ids.below_min]])">Produits</button></header><div class="pt-mini-list"><button t-foreach="state.top_products_to_replenish" t-as="product" t-key="product.id" t-on-click="() => this.openProducts([['id', '=', product.id]])"><span><t t-esc="product.name"/><small>Stock : <t t-esc="product.qty"/></small></span><strong><t t-esc="product.suggested_qty"/></strong></button></div></article>
+            </section>
+        </t>
+    </div>
+</t>
+</templates>

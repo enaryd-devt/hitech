@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[@data-scroll-key='partner-kpis']/article[1]//div[contains(@class, 'pt-eb-partner-tools')]" position="inside">
+            <div class="pt-dashboard-report-menu">
+                <button class="pt-dashboard-report-menu-trigger" type="button" t-att-aria-expanded="state.customerReceivableMenuOpen" t-att-title="cashflowLabel('reportActions')" t-on-click="() => this.togglePartnerBalanceMenu('customers')">
+                    <i class="fa fa-ellipsis-v"/>
+                </button>
+                <div t-if="state.customerReceivableMenuOpen" class="pt-dashboard-report-menu-items">
+                    <button type="button" t-on-click="() => this.previewPartnerBalanceReport('customers')"><i class="fa fa-eye"/><t t-esc="cashflowLabel('previewReport')"/></button>
+                    <button type="button" t-on-click="() => this.printPartnerBalanceReport('customers')"><i class="fa fa-print"/><t t-esc="cashflowLabel('printReport')"/></button>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//section[@data-scroll-key='partner-kpis']/article[2]//div[contains(@class, 'pt-eb-partner-tools')]" position="inside">
+            <div class="pt-dashboard-report-menu">
+                <button class="pt-dashboard-report-menu-trigger" type="button" t-att-aria-expanded="state.supplierReceivableMenuOpen" t-att-title="cashflowLabel('reportActions')" t-on-click="() => this.togglePartnerBalanceMenu('suppliers')">
+                    <i class="fa fa-ellipsis-v"/>
+                </button>
+                <div t-if="state.supplierReceivableMenuOpen" class="pt-dashboard-report-menu-items">
+                    <button type="button" t-on-click="() => this.previewPartnerBalanceReport('suppliers')"><i class="fa fa-eye"/><t t-esc="cashflowLabel('previewReport')"/></button>
+                    <button type="button" t-on-click="() => this.printPartnerBalanceReport('suppliers')"><i class="fa fa-print"/><t t-esc="cashflowLabel('printReport')"/></button>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//section[@data-scroll-key='partner-kpis']/article[1]/table" position="replace">
+            <div class="pt-eb-partner-table-scroll">
+                <table class="pt-eb-partner-table">
+                    <thead><tr><th>Client</th><th>Débit</th><th>Crédit</th><th>Solde</th><th>État</th></tr></thead>
+                    <tbody>
+                        <tr t-if="state.partnerSearchLoading.customers"><td colspan="5" class="pt-eb-partner-loading"><i class="fa fa-spinner fa-spin"/><span>Recherche en cours…</span></td></tr>
+                        <t t-else="">
+                            <t t-foreach="state.partner_balance_kpis.customers.rows" t-as="row" t-key="row.partner_id">
+                                <tr t-on-click="() => this.openAction(row.action)">
+                                    <td><t t-esc="row.partner"/></td>
+                                    <td><t t-esc="format(row.debit, 'FCFA')"/></td>
+                                    <td><t t-esc="format(row.credit, 'FCFA')"/></td>
+                                    <td><strong><t t-esc="format(row.balance, 'FCFA')"/></strong></td>
+                                    <td><span t-att-class="'pt-eb-status-pill ' + (row.status_class || '')"><t t-esc="row.status"/></span></td>
+                                </tr>
+                            </t>
+                            <tr t-if="!(state.partner_balance_kpis.customers.rows || []).length"><td colspan="5" class="pt-eb-partner-empty">Aucun client trouvé</td></tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
+        <xpath expr="//section[@data-scroll-key='partner-kpis']/article[2]/table" position="replace">
+            <div class="pt-eb-partner-table-scroll">
+                <table class="pt-eb-partner-table">
+                    <thead><tr><th>Fournisseur</th><th>Débit</th><th>Crédit</th><th>Solde</th><th>État</th></tr></thead>
+                    <tbody>
+                        <tr t-if="state.partnerSearchLoading.suppliers"><td colspan="5" class="pt-eb-partner-loading"><i class="fa fa-spinner fa-spin"/><span>Recherche en cours…</span></td></tr>
+                        <t t-else="">
+                            <t t-foreach="state.partner_balance_kpis.suppliers.rows" t-as="row" t-key="row.partner_id">
+                                <tr t-on-click="() => this.openAction(row.action)">
+                                    <td><t t-esc="row.partner"/></td>
+                                    <td><t t-esc="format(row.debit, 'FCFA')"/></td>
+                                    <td><t t-esc="format(row.credit, 'FCFA')"/></td>
+                                    <td><strong><t t-esc="format(row.balance, 'FCFA')"/></strong></td>
+                                    <td><span t-att-class="'pt-eb-status-pill ' + (row.status_class || '')"><t t-esc="row.status"/></span></td>
+                                </tr>
+                            </t>
+                            <tr t-if="!(state.partner_balance_kpis.suppliers.rows || []).length"><td colspan="5" class="pt-eb-partner-empty">Aucun fournisseur trouvé</td></tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
+    </t>
+</templates>

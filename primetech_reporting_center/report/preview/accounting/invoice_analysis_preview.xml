@@ -1,0 +1,321 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="invoice_analysis_preview">
+    <div class="container-fluid">
+      <h2 style="text-align:center; margin-bottom:20px;">
+
+                ANALYSE DE FACTURATION
+
+            </h2>
+      <!-- ===================================== -->
+      <!-- FILTRES -->
+      <!-- ===================================== -->
+      <table class="table table-sm table-bordered">
+        <tr>
+          <td>
+            <strong>Date début</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.date_from"/>
+          </td>
+          <td>
+            <strong>Date fin</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.date_to"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <strong>Société</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.company_id.name"/>
+          </td>
+          <td>
+            <strong>Commercial</strong>
+          </td>
+          <td>
+            <t t-esc="wizard.user_id.name if wizard.user_id else 'Tous'"/>
+          </td>
+        </tr>
+      </table>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <h4>
+                Résumé Exécutif
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Factures</th>
+            <th>Clients</th>
+            <th>HT</th>
+            <th>TVA</th>
+            <th>TTC</th>
+            <th>Payé</th>
+            <th>Solde</th>
+            <th>Taux Encaissement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <t t-esc="report_data['summary']['invoice_count']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['customer_count']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['total_ht']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['total_tax']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['total_ttc']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['paid_amount']"/>
+            </td>
+            <td>
+              <t t-esc="report_data['summary']['residual_amount']"/>
+            </td>
+            <td><t t-esc="report_data['summary']['payment_rate']"/> %
+
+                        </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- ETAT PAIEMENT -->
+      <!-- ===================================== -->
+      <h4>
+                Répartition des Paiements
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Etat</th>
+            <th>Nombre</th>
+            <th>Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['payment_summary'].items()" t-as="line">
+            <td>
+              <t t-esc="line[0]"/>
+            </td>
+            <td>
+              <t t-esc="line[1]['count']"/>
+            </td>
+            <td>
+              <t t-esc="line[1]['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOP CLIENTS -->
+      <!-- ===================================== -->
+      <h4>
+                Top Clients
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Factures</th>
+            <th>CA TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['customer_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['count']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOP PRODUITS -->
+      <!-- ===================================== -->
+      <h4>
+                Top Produits
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['product_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['product']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOP COMMERCIAUX -->
+      <!-- ===================================== -->
+      <h4>
+                Top Commerciaux
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Commercial</th>
+            <th>Factures</th>
+            <th>CA TTC</th>
+            <th>Encaissements</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['salesperson_ranking']" t-as="line">
+            <td>
+              <t t-esc="line['salesperson']"/>
+            </td>
+            <td>
+              <t t-esc="line['count']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount']"/>
+            </td>
+            <td>
+              <t t-esc="line['paid']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- TVA -->
+      <!-- ===================================== -->
+      <h4>
+                Analyse TVA
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Taux</th>
+            <th>Base</th>
+            <th>TVA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['tax_summary'].items()" t-as="tax">
+            <td>
+              <t t-esc="tax[0]"/>
+            </td>
+            <td>
+              <t t-esc="tax[1]['base']"/>
+            </td>
+            <td>
+              <t t-esc="tax[1]['tax']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- ALERTES -->
+      <!-- ===================================== -->
+      <h4>
+                Factures Echues
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Facture</th>
+            <th>Client</th>
+            <th>Echéance</th>
+            <th>Solde</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['alerts']['overdue']" t-as="line">
+            <td>
+              <t t-esc="line['invoice']"/>
+            </td>
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['due_date']"/>
+            </td>
+            <td>
+              <t t-esc="line['residual']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- DETAIL FACTURES -->
+      <!-- ===================================== -->
+      <h4>
+                Détail des Factures
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Facture</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th>Etat Paiement</th>
+            <th>HT</th>
+            <th>TVA</th>
+            <th>TTC</th>
+            <th>Solde</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="report_data['invoice_lines']" t-as="line">
+            <td>
+              <t t-esc="line['invoice']"/>
+            </td>
+            <td>
+              <t t-esc="line['date']"/>
+            </td>
+            <td>
+              <t t-esc="line['customer']"/>
+            </td>
+            <td>
+              <t t-esc="line['salesperson']"/>
+            </td>
+            <td>
+              <t t-esc="line['payment_state']"/>
+            </td>
+            <td>
+              <t t-esc="line['ht']"/>
+            </td>
+            <td>
+              <t t-esc="line['tax']"/>
+            </td>
+            <td>
+              <t t-esc="line['ttc']"/>
+            </td>
+            <td>
+              <t t-esc="line['residual']"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</odoo>

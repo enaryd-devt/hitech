@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_reporting_placeholder" model="ir.actions.client">
+    <field name="name">Reporting Placeholder</field>
+    <field name="tag">primetech_reporting_placeholder</field>
+  </record>
+</odoo>

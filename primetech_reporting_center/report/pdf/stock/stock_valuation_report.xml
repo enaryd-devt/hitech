@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_stock_valuation_pdf" model="ir.actions.report">
+    <field name="name">Valorisation du Stock</field>
+    <field name="model">pt.stock.valuation.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.stock_valuation_pdf_template</field>
+    <field name="report_file">primetech_reporting_center.stock_valuation_pdf_template</field>
+    <field name="binding_model_id" ref="model_pt_stock_valuation_wizard"/>
+    <field name="binding_type">report</field>
+    <field name="print_report_name">"'Valorisation du Stock'"</field>
+  </record>
+</odoo>

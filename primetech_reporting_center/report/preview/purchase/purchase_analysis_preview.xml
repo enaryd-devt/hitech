@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_analysis_preview">
+    <div class="o_form_view">
+      <div class="container-fluid">
+        <!-- ===================================== -->
+        <!-- HEADER -->
+        <!-- ===================================== -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <h1>
+                            Analyse des Achats
+                        </h1>
+            <p class="text-muted">
+                            Rapport analytique des achats
+                        </p>
+          </div>
+        </div>
+        <!-- ===================================== -->
+        <!-- KPI -->
+        <!-- ===================================== -->
+        <div class="row mb-4">
+          <div class="col-lg-3">
+            <div class="card">
+              <div class="card-body">
+                <h6>
+                                    Nombre Achats
+                                </h6>
+                <h2>
+                  <t t-esc="data['purchase_count']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <div class="card">
+              <div class="card-body">
+                <h6>
+                                    Fournisseurs
+                                </h6>
+                <h2>
+                  <t t-esc="data['supplier_count']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <div class="card">
+              <div class="card-body">
+                <h6>
+                                    Produits
+                                </h6>
+                <h2>
+                  <t t-esc="data['product_count']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <div class="card">
+              <div class="card-body">
+                <h6>
+                                    Panier Moyen
+                                </h6>
+                <h2>
+                  <t t-esc="data['average_order']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- ===================================== -->
+        <!-- FINANCE -->
+        <!-- ===================================== -->
+        <div class="row mb-4">
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-body">
+                <h6>Total HT</h6>
+                <h2>
+                  <t t-esc="data['total_ht']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-body">
+                <h6>Total Taxes</h6>
+                <h2>
+                  <t t-esc="data['total_tax']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-body">
+                <h6>Total TTC</h6>
+                <h2>
+                  <t t-esc="data['total_ttc']"/>
+                </h2>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- ===================================== -->
+        <!-- TOP FOURNISSEURS -->
+        <!-- ===================================== -->
+        <div class="card mb-4">
+          <div class="card-header">
+                        Top Fournisseurs
+                    </div>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Achats</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr t-foreach="data['top_suppliers']" t-as="supplier" t-key="supplier['name']">
+                <td>
+                  <t t-esc="supplier['name']"/>
+                </td>
+                <td>
+                  <t t-esc="supplier['count']"/>
+                </td>
+                <td>
+                  <t t-esc="supplier['amount']"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- ===================================== -->
+        <!-- TOP PRODUITS -->
+        <!-- ===================================== -->
+        <div class="card mb-4">
+          <div class="card-header">
+                        Top Produits
+                    </div>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr t-foreach="data['top_products']" t-as="product" t-key="product['name']">
+                <td>
+                  <t t-esc="product['name']"/>
+                </td>
+                <td>
+                  <t t-esc="product['qty']"/>
+                </td>
+                <td>
+                  <t t-esc="product['amount']"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- ===================================== -->
+        <!-- DETAILS -->
+        <!-- ===================================== -->
+        <div class="card">
+          <div class="card-header">
+                        Détail des Achats
+                    </div>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Commande</th>
+                <th>Fournisseur</th>
+                <th>Produit</th>
+                <th>Qté</th>
+                <th>PU</th>
+                <th>Total</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr t-foreach="data['purchase_lines']" t-as="line" t-key="line['order'] + line['product']">
+                <td>
+                  <t t-esc="line['date']"/>
+                </td>
+                <td>
+                  <t t-esc="line['order']"/>
+                </td>
+                <td>
+                  <t t-esc="line['supplier']"/>
+                </td>
+                <td>
+                  <t t-esc="line['product']"/>
+                </td>
+                <td>
+                  <t t-esc="line['qty']"/>
+                </td>
+                <td>
+                  <t t-esc="line['price_unit']"/>
+                </td>
+                <td>
+                  <t t-esc="line['total']"/>
+                </td>
+                <td>
+                  <t t-esc="line['state']"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+</odoo>

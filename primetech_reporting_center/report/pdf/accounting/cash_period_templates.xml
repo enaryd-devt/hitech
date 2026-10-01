@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="cash_period_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ===================================== -->
+          <!-- ENTETE -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #000; padding:12px; margin-bottom:15px;">
+            <h2 style="text-align:center; margin:0;">
+                            RAPPORT PÉRIODIQUE DE TRÉSORERIE
+                        </h2>
+            <table style="width:100%; margin-top:10px; border-collapse:collapse;">
+              <tr>
+                <td style="width:50%; text-align:left;"><strong>Période :</strong><span t-out="filters.get( 'date_from' )"/>
+
+                                    -
+
+                                    <span t-out="filters.get( 'date_to' )"/>
+
+                                </td>
+                <td style="width:50%; text-align:right;">
+                  <strong>Journaux :</strong>
+                  <span t-out="journal_names"/>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- ===================================== -->
+          <!-- KPI -->
+          <!-- ===================================== -->
+          <table style="width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:20px;">
+            <tr>
+              <td style="border:1px solid #000; text-align:center; padding:10px; width:20%;">
+                <div style="font-size:11px; font-weight:bold;">
+                                    Solde Initial
+                                </div>
+                <div style="font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden;">
+                  <t t-out="'{:,.2f}'.format( data['kpi']['opening_balance'] )"/>
+                </div>
+              </td>
+              <td style="border:1px solid #000; text-align:center; padding:10px; width:20%; color:#16A34A;">
+                <div style="font-size:11px; font-weight:bold;">
+                                    Encaissements
+                                </div>
+                <div style="font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden;">
+                  <t t-out="'{:,.2f}'.format( data['kpi']['incoming'] )"/>
+                </div>
+              </td>
+              <td style="border:1px solid #000; text-align:center; padding:10px; width:20%; color:#DC2626;">
+                <div style="font-size:11px; font-weight:bold;">
+                                    Décaissements
+                                </div>
+                <div style="font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden;">
+                  <t t-out="'{:,.2f}'.format( data['kpi']['outgoing'] )"/>
+                </div>
+              </td>
+              <td style="border:1px solid #000; text-align:center; padding:10px; width:20%;">
+                <div style="font-size:11px; font-weight:bold;">
+                                    Solde Net
+                                </div>
+                <div style="font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden;">
+                  <t t-out="'{:,.2f}'.format( data['kpi']['net'] )"/>
+                </div>
+              </td>
+              <td style="border:1px solid #000; text-align:center; padding:10px; width:20%;">
+                <div style="font-size:11px; font-weight:bold;">
+                                    Solde Final
+                                </div>
+                <div style="font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden;">
+                  <t t-out="'{:,.2f}'.format( data['kpi']['closing_balance'] )"/>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <!-- ===================================== -->
+          <!-- DETAIL DES MOUVEMENTS -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #000; background:#F5F5F5; padding:8px; margin-bottom:10px; font-weight:bold;">
+                        DÉTAIL DES MOUVEMENTS
+                    </div>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <thead>
+              <tr>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Date
+                                </th>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Journal
+                                </th>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Référence
+                                </th>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Partenaire
+                                </th>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Type
+                                </th>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Nature
+                                </th>
+                <th style="border:1px solid #000;padding:6px;">
+                                    Montant
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['movements']" t-as="line">
+                <tr>
+                  <td style="border:1px solid #000;padding:4px;">
+                    <t t-out="line['date']"/>
+                  </td>
+                  <td style="border:1px solid #000;padding:4px;">
+                    <t t-out="line['journal']"/>
+                  </td>
+                  <td style="border:1px solid #000;padding:4px;">
+                    <t t-out="line['reference']"/>
+                  </td>
+                  <td style="border:1px solid #000;padding:4px;">
+                    <t t-out="line['partner']"/>
+                  </td>
+                  <td style="border:1px solid #000;padding:4px;">
+                    <span t-if="line['type']=='Encaissement'" style="color:#16A34A; font-weight:bold;">
+                                            Encaissement
+                                        </span>
+                    <span t-if="line['type']=='Décaissement'" style="color:#DC2626; font-weight:bold;">
+                                            Décaissement
+                                        </span>
+                  </td>
+                  <td style="border:1px solid #000;padding:4px;">
+                    <t t-out="line['nature']"/>
+                  </td>
+                  <td t-attf-style="border:1px solid #000; padding:4px; text-align:right; color:#{'#16A34A' if line['type']=='Encaissement' else '#DC2626'}; font-weight:bold;">
+                    <t t-out="'{:,.2f}'.format( line['amount'] )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SYNTHESE PAR JOURNAL -->
+          <!-- ===================================== -->
+          <div style="border:1px solid #000; background:#F5F5F5; padding:8px; margin-bottom:10px; font-weight:bold;">
+                        SYNTHÈSE PAR JOURNAL
+                    </div>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:25px;">
+            <thead>
+              <tr>
+                <th style="border:1px solid #000; padding:6px;">
+                                    Journal
+                                </th>
+                <th style="border:1px solid #000; padding:6px;">
+                                    Solde Initial
+                                </th>
+                <th style="border:1px solid #000; padding:6px;">
+                                    Encaissements
+                                </th>
+                <th style="border:1px solid #000; padding:6px;">
+                                    Décaissements
+                                </th>
+                <th style="border:1px solid #000; padding:6px;">
+                                    Solde Net
+                                </th>
+                <th style="border:1px solid #000; padding:6px;">
+                                    Solde Final
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data['journal_summary']" t-as="line">
+                <tr>
+                  <td style="border:1px solid #000; padding:4px;">
+                    <t t-out="line['journal']"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px; text-align:right;">
+                    <t t-out="'{:,.2f}'.format( line['opening'] )"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px; text-align:right; color:#16A34A; font-weight:bold;">
+                    <t t-out="'{:,.2f}'.format( line['incoming'] )"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px; text-align:right; color:#DC2626; font-weight:bold;">
+                    <t t-out="'{:,.2f}'.format( line['outgoing'] )"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px; text-align:right; font-weight:bold;">
+                    <t t-out="'{:,.2f}'.format( line['net'] )"/>
+                  </td>
+                  <td style="border:1px solid #000; padding:4px; text-align:right; font-weight:bold;">
+                    <t t-out="'{:,.2f}'.format( line['closing'] )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SIGNATURES -->
+          <!-- ===================================== -->
+          <table style="width:100%; margin-top:50px; text-align:center;">
+            <tr>
+              <td style="width:33%;">
+                <strong>
+                                    Comptable
+                                </strong>
+              </td>
+              <td style="width:33%;">
+                <strong>
+                                    Chef Comptable
+                                </strong>
+              </td>
+              <td style="width:33%;">
+                <strong>
+                                    Direction Financière
+                                </strong>
+              </td>
+            </tr>
+            <tr>
+              <td style="height:80px;"/>
+              <td/>
+              <td/>
+            </tr>
+            <tr>
+              <td>
+
+                                ______________________
+
+                            </td>
+              <td>
+
+                                ______________________
+
+                            </td>
+              <td>
+
+                                ______________________
+
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

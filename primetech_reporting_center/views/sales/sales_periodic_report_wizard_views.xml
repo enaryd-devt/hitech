@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_sales_periodic_report_wizard_form" model="ir.ui.view">
+    <field name="name">sales.periodic.report.wizard.form</field>
+    <field name="model">primetech.sales.periodic.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Rapport Périodique des Ventes">
+        <sheet>
+          <div class="oe_title">
+            <h1>
+                            Rapport Périodique des Ventes
+                        </h1>
+            <div class="text-muted">
+                            Analyse détaillée des ventes par période,
+                            client, commercial et statut.
+                        </div>
+          </div>
+          <div class="alert alert-primary mt16" role="alert"><i class="fa fa-line-chart me-2"/>
+
+                        Sélectionnez vos critères puis générez
+                        le rapport des ventes pour la période souhaitée.
+
+                    </div>
+          <group col="2">
+            <group string="Période d'Analyse">
+              <field name="date_from"/>
+              <field name="date_to"/>
+            </group>
+            <group string="Société">
+              <field name="company_id"/>
+            </group>
+          </group>
+          <separator string="Filtres Commerciaux"/>
+          <group col="2">
+            <group>
+              <field name="user_id" options="{'no_create': True}"/>
+            </group>
+            <group>
+              <field name="partner_id" options="{'no_create': True}"/>
+            </group>
+          </group>
+          <separator string="État des Documents"/>
+          <group>
+            <field name="state_filter" widget="radio"/>
+          </group>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/>
+          <button string="Fermer" special="cancel" icon="fa-times" class="btn btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

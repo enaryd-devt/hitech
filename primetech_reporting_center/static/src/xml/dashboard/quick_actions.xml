@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.QuickActions" owl="1">
+
+        <div class="pt-card">
+
+            <div class="pt-card-header">
+                Actions Rapides
+            </div>
+
+            <div class="pt-actions-grid">
+
+                <button class="btn btn-primary">
+                    Nouveau Rapport
+                </button>
+
+                <button class="btn btn-secondary">
+                    Export PDF
+                </button>
+
+                <button class="btn btn-secondary">
+                    Export Excel
+                </button>
+
+                <button class="btn btn-secondary">
+                    Historique
+                </button>
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>

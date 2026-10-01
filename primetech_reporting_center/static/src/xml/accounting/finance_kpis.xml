@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.FinanceKpis" owl="1">
+
+    <div class="row g-4">
+
+        <!-- ===================================== -->
+        <!-- CHIFFRE D'AFFAIRES -->
+        <!-- ===================================== -->
+
+        <div class="col-xl-3 col-lg-6">
+
+            <div class="dashboard-card kpi-card kpi-green">
+
+                <div class="card-body">
+
+                    <div class="kpi-icon">
+
+                        <i class="fa fa-chart-line"/>
+
+                    </div>
+
+                    <div class="kpi-content">
+
+                        <div class="kpi-title">
+
+                            Chiffre d'Affaires
+
+                        </div>
+
+                        <div class="kpi-value">
+
+                            <t t-esc="formatCurrency( state.data.revenue?.value )"/>
+
+                        </div>
+
+                        <t t-set="variation" t-value="state.data.revenue?.variation || 0"/>
+
+                        <div t-attf-class="finance-trend #{variation &gt; 0 ? 'positive' : variation &lt; 0 ? 'negative' : 'neutral'}">
+
+                            <i t-if="variation &gt; 0" class="fa fa-arrow-up"/>
+
+                            <i t-if="variation &lt; 0" class="fa fa-arrow-down"/>
+
+                            <i t-if="variation == 0" class="fa fa-minus"/>
+
+                            <span>
+
+                                <t t-esc="Math.abs(variation)"/>
+
+                                %
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- CREANCES -->
+        <!-- ===================================== -->
+
+        <div class="col-xl-3 col-lg-6">
+
+            <div class="dashboard-card kpi-card kpi-blue">
+
+                <div class="card-body">
+
+                    <div class="kpi-icon">
+
+                        <i class="fa fa-file-invoice-dollar"/>
+
+                    </div>
+
+                    <div class="kpi-content">
+
+                        <div class="kpi-title">
+
+                            Créances Clients
+
+                        </div>
+
+                        <div class="kpi-value">
+
+                            <t t-esc="formatCurrency( state.data.receivables )"/>
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            Encours clients
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- DETTES -->
+        <!-- ===================================== -->
+
+        <div class="col-xl-3 col-lg-6">
+
+            <div class="dashboard-card kpi-card kpi-gold">
+
+                <div class="card-body">
+
+                    <div class="kpi-icon">
+
+                        <i class="fa fa-file-contract"/>
+
+                    </div>
+
+                    <div class="kpi-content">
+
+                        <div class="kpi-title">
+
+                            Dettes Fournisseurs
+
+                        </div>
+
+                        <div class="kpi-value">
+
+                            <t t-esc="formatCurrency( state.data.payables )"/>
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            Engagements à payer
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- TRESORERIE -->
+        <!-- ===================================== -->
+
+        <div class="col-xl-3 col-lg-6">
+
+            <div class="dashboard-card kpi-card kpi-cyan">
+
+                <div class="card-body">
+
+                    <div class="kpi-icon">
+
+                        <i class="fa fa-wallet"/>
+
+                    </div>
+
+                    <div class="kpi-content">
+
+                        <div class="kpi-title">
+
+                            Trésorerie
+
+                        </div>
+
+                        <div class="kpi-value">
+
+                            <t t-esc="formatCurrency( state.data.cash )"/>
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            Disponible en banque
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

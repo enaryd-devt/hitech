@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_balance_sheet_wizard" model="ir.actions.act_window">
+    <field name="name">Bilan OHADA</field>
+    <field name="res_model">primetech.balance.sheet.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="view_id" ref="view_balance_sheet_wizard"/>
+    <field name="target">new</field>
+  </record>
+</odoo>

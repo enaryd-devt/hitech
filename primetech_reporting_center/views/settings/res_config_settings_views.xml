@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="res_config_settings_view_form_primetech_reporting" model="ir.ui.view">
+    <field name="name">res.config.settings.view.form.primetech.reporting</field>
+    <field name="model">res.config.settings</field>
+    <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//form" position="inside">
+        <app data-string="PrimeTech Reporting" string="PrimeTech Reporting" name="primetech_reporting_center">
+          <block title="Alertes stock" name="primetech_reporting_stock_thresholds">
+            <setting string="Seuil d'alerte des produits" help="Quantité à partir de laquelle un produit est considéré sous le minimum dans les dashboards PrimeTech.">
+              <field name="primetech_stock_min_alert_threshold"/>
+            </setting>
+            <setting string="Seuil maximal de surstock" help="Quantité à partir de laquelle un produit est considéré en surstock dans les dashboards PrimeTech.">
+              <field name="primetech_stock_overstock_threshold"/>
+            </setting>
+          </block>
+          <block title="Thème global" name="primetech_reporting_theme">
+            <setting string="Couleur principale" help="Couleur principale appliquée aux tableaux de bord et graphiques PrimeTech.">
+              <field name="primetech_theme_primary_color" placeholder="#0F6CBD"/>
+            </setting>
+            <setting string="Style des KPI" help="Style visuel global des cartes KPI du module.">
+              <field name="primetech_theme_kpi_style"/>
+            </setting>
+            <setting string="Format des graphiques" help="Format préféré pour les graphiques du module lorsque le composant le permet.">
+              <field name="primetech_theme_chart_format"/>
+            </setting>
+          </block>
+        </app>
+      </xpath>
+    </field>
+  </record>
+</odoo>

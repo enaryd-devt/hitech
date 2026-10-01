@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_stock_valuation_wizard" model="ir.actions.act_window">
+    <field name="name">Valorisation du Stock</field>
+    <field name="res_model">pt.stock.valuation.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

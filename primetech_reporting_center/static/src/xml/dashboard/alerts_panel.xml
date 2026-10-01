@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<t t-name="primetech_reporting_center.AlertsPanel" owl="1">
+  <div class="pt-alerts-container">
+    <t t-foreach="state.alerts" t-as="alert" t-key="alert.title">
+      <div class="pt-alert-card">
+        <div t-att-class="alert.type === 'low_stock' ? 'pt-alert-header pt-alert-header-danger clickable' : 'pt-alert-header clickable'" t-on-click="() =&gt; this.toggleAlert(alert.title)">
+          <div class="pt-alert-title">
+            <span>
+              <t t-esc="alert.title"/>
+            </span>
+            <span class="pt-alert-count">
+              <t t-esc="alert.count"/>
+            </span>
+          </div>
+          <i t-att-class="state.expanded === alert.title ? 'fa fa-chevron-up' : 'fa fa-chevron-down'"/>
+        </div>
+        <div t-if="state.expanded === alert.title" class="pt-alert-content">
+          <!-- STOCK FAIBLE -->
+          <t t-if="alert.type === 'low_stock'">
+            <div class="pt-alert-table-header">
+              <span>Nom</span>
+              <span>Prix Vente</span>
+              <span>Qté Stock</span>
+            </div>
+            <t t-foreach="alert.items" t-as="item" t-key="item.id">
+              <div t-att-class="this.getStockClass(item)" t-on-click="() =&gt; this.openProduct(item.id)">
+                <span class="pt-product-name">
+                  <t t-esc="item.name"/>
+                </span>
+                <span class="pt-product-price">
+                  <t t-esc="this.formatCurrency(item.sale_price)"/>
+                </span>
+                <span class="pt-product-qty">
+                  <t t-esc="item.qty"/>
+                </span>
+              </div>
+            </t>
+          </t>
+          <!-- AUTRES ALERTES -->
+          <t t-else="">
+            <t t-foreach="alert.items" t-as="item" t-key="item.id">
+              <div t-att-class="this.getInvoiceClass(item)" t-on-click="() =&gt; this.openInvoice(item.id)">
+                <div class="pt-alert-item-left">
+                  <div class="pt-invoice-number">
+                    <t t-esc="item.name"/>
+                  </div>
+                  <div class="pt-alert-customer">
+                    <i class="fa fa-user me-1"/>
+                    <t t-esc="item.customer"/>
+                  </div>
+                </div>
+                <div class="pt-alert-item-right">
+                  <strong>
+                    <t t-esc="this.formatCurrency( item.amount || 0 )"/>
+                  </strong>
+                  <span class="pt-delay-badge">
+
+                                    Échue il y a
+                                    <t t-esc="item.delay"/>
+                                    j
+
+                                </span>
+                </div>
+              </div>
+            </t>
+          </t>
+        </div>
+      </div>
+    </t>
+  </div>
+</t>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_accounting_dashboard" model="ir.actions.client">
+    <field name="name">Comptabilité</field>
+    <field name="tag">primetech_accounting_dashboard</field>
+  </record>
+</odoo>

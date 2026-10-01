@@ -1,0 +1,268 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.KPICards" owl="1">
+
+    <div class="pt-kpi-grid">
+
+        <!-- ===================================== -->
+        <!-- CA -->
+        <!-- ===================================== -->
+
+        <div class="pt-kpi-card revenue pt-clickable" t-on-click="openRevenue">
+
+            <div class="pt-kpi-icon">
+
+                <i class="fa fa-line-chart"/>
+
+            </div>
+
+            <div class="pt-kpi-content">
+
+                <div class="pt-kpi-title">
+                    Chiffre d'Affaires
+                </div>
+
+                <div class="pt-kpi-value" t-att-style="'font-size:' + getFontSize( formatCurrency( state.revenue ) )">
+
+                    <t t-esc="formatCurrency( state.revenue )"/>
+
+                </div>
+
+                <div t-att-class="'pt-trend-pill ' + getTrendClass( state.revenue_trend )">
+
+                    <!-- Hausse -->
+
+                    <i t-if="state.revenue_trend &gt; 0" class="fa fa-arrow-up"/>
+
+                    <!-- Baisse -->
+
+                    <i t-if="state.revenue_trend &lt; 0" class="fa fa-arrow-down"/>
+
+                    <!-- Stable -->
+
+                    <i t-if="state.revenue_trend == 0" class="fa fa-circle"/>
+
+                    <span>
+
+                        <t t-if="state.revenue_trend == 0">
+                            Stable
+                        </t>
+
+                        <t t-if="state.revenue_trend != 0">
+
+                            <t t-esc="formatTrend( state.revenue_trend )"/>
+
+                        </t>
+
+                    </span>
+
+                </div>
+
+                <small class="pt-kpi-subtitle">
+                    vs mois précédent
+                </small>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- ACHATS -->
+        <!-- ===================================== -->
+
+        <div class="pt-kpi-card purchase pt-clickable" t-on-click="openPurchases">
+
+            <div class="pt-kpi-icon">
+
+                <i class="fa fa-shopping-cart"/>
+
+            </div>
+
+            <div class="pt-kpi-content">
+
+                <div class="pt-kpi-title">
+                    Achats du Mois
+                </div>
+
+                <div class="pt-kpi-value" t-att-style="'font-size:' + getFontSize( formatCurrency( state.purchases ) )">
+
+                    <t t-esc="formatCurrency( state.purchases )"/>
+
+                </div>
+
+                <div t-att-class="'pt-trend-pill ' + getTrendClass( state.purchases_trend )">
+
+                    <!-- Hausse -->
+
+                    <i t-if="state.purchases_trend &gt; 0" class="fa fa-arrow-up"/>
+
+                    <!-- Baisse -->
+
+                    <i t-if="state.purchases_trend &lt; 0" class="fa fa-arrow-down"/>
+
+                    <!-- Stable -->
+
+                    <i t-if="state.purchases_trend == 0" class="fa fa-circle"/>
+
+                    <span>
+
+                        <t t-if="state.purchases_trend == 0">
+                            Stable
+                        </t>
+
+                        <t t-if="state.purchases_trend != 0">
+
+                            <t t-esc="formatTrend( state.purchases_trend )"/>
+
+                        </t>
+
+                    </span>
+
+                </div>
+
+                <small class="pt-kpi-subtitle">
+                    vs mois précédent
+                </small>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- CREANCES CLIENTS -->
+        <!-- ===================================== -->
+
+        <div class="pt-kpi-card receivable pt-clickable" t-on-click="openReceivables">
+
+            <div class="pt-kpi-icon">
+
+                <i class="fa fa-money"/>
+
+            </div>
+
+            <div class="pt-kpi-content">
+
+                <div class="pt-kpi-title">
+                    Créances Clients
+                </div>
+
+                <div class="pt-kpi-value" t-att-style="'font-size:' + getFontSize( formatCurrency( state.receivables ) )">
+
+                    <t t-esc="formatCurrency( state.receivables )"/>
+
+                </div>
+
+                <div t-att-class="'pt-trend-pill ' + getTrendClass( state.receivables_trend )">
+
+                    <!-- Hausse -->
+
+                    <i t-if="state.receivables_trend &gt; 0" class="fa fa-arrow-up"/>
+
+                    <!-- Baisse -->
+
+                    <i t-if="state.receivables_trend &lt; 0" class="fa fa-arrow-down"/>
+
+                    <!-- Stable -->
+
+                    <i t-if="state.receivables_trend == 0" class="fa fa-circle"/>
+
+                    <span>
+
+                        <t t-if="state.receivables_trend == 0">
+                            Stable
+                        </t>
+
+                        <t t-if="state.receivables_trend != 0">
+
+                            <t t-esc="formatTrend( state.receivables_trend )"/>
+
+                        </t>
+
+                    </span>
+
+                </div>
+
+                <small class="pt-kpi-subtitle">
+                    vs mois précédent
+                </small>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- COMMANDES A LIVRER -->
+        <!-- ===================================== -->
+
+        <!--<div
+            class="pt-kpi-card delivery pt-clickable"
+            t-on-click="openDeliveries">
+
+            <div class="pt-kpi-icon">
+
+                <i class="bi bi-truck"></i>
+
+            </div>
+
+            <div class="pt-kpi-content">
+
+                <div class="pt-kpi-title">
+                    Commandes à Livrer
+                </div>
+
+               <div
+                    class="pt-kpi-value"
+                    t-att-style="
+                        'font-size:' +
+                        getFontSize(
+                            state.deliveries || 0
+                        )
+                    ">
+
+                    <t t-esc="state.deliveries || 0"/>
+
+                </div>
+
+                <div
+                    t-att-class="
+                        'pt-trend-pill ' +
+                        getTrendClass(
+                            state.deliveries_trend
+                        )
+                    ">
+
+                    <i
+                        t-if="state.deliveries_trend &gt;= 0"
+                        class="bi bi-arrow-up-right"/>
+
+                    <i
+                        t-if="state.deliveries_trend &lt; 0"
+                        class="bi bi-arrow-down-right"/>
+
+                    <span>
+
+                        <t t-esc="
+                            formatTrend(
+                                state.deliveries_trend
+                            )
+                        "/>
+
+                    </span>
+
+                </div>
+
+                <small class="pt-kpi-subtitle">
+                    vs mois précédent
+                </small>
+
+            </div>
+
+        </div> -->
+
+    </div>
+
+</t>
+
+
+</templates>

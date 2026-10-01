@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================================== -->
+  <!-- VUE D'ENSEMBLE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_hr_dashboard" name="Vue d'Ensemble" parent="menu_primetech_reporting_hr" action="primetech_reporting_center.action_hr_overview_dashboard" sequence="10"/>
+  <!-- ===================================================== -->
+  <!-- EFFECTIFS -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_hr_workforce_root" name="Effectifs" parent="menu_primetech_reporting_hr" sequence="20"/>
+  <menuitem id="menu_hr_headcount" name="Effectif" parent="menu_hr_workforce_root" action="primetech_reporting_center.action_hr_headcount_report" sequence="10"/>
+  <menuitem id="menu_hr_performance" name="Performance du Personnel" parent="menu_hr_workforce_root" action="primetech_reporting_center.action_hr_performance_report" sequence="20"/>
+  <!-- ===================================================== -->
+  <!-- PRÉSENCE & TEMPS -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_hr_attendance_root" name="Présence et Temps" parent="menu_primetech_reporting_hr" sequence="30"/>
+  <menuitem id="menu_hr_attendance" name="Présences" parent="menu_hr_attendance_root" action="primetech_reporting_center.action_hr_attendance_report" sequence="10"/>
+  <menuitem id="menu_hr_leave" name="Congés" parent="menu_hr_attendance_root" action="primetech_reporting_center.action_hr_leave_report" sequence="20"/>
+  <menuitem id="menu_hr_late_absence" name="Retards et Absences" parent="menu_hr_attendance_root" action="primetech_reporting_center.action_hr_late_absence_report" sequence="30"/>
+  <!-- ===================================================== -->
+  <!-- PAIE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_hr_payroll_root" name="Paie" parent="menu_primetech_reporting_hr" sequence="40"/>
+  <menuitem id="menu_hr_payroll_mass" name="Masse Salariale" parent="menu_hr_payroll_root" action="primetech_reporting_center.action_hr_payroll_mass_report" sequence="10"/>
+  <menuitem id="menu_hr_payslip" name="Bulletins de Paie" parent="menu_hr_payroll_root" action="primetech_reporting_center.action_hr_payslip_report" sequence="20"/>
+</odoo>

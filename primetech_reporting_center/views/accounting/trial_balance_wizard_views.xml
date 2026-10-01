@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_trial_balance_wizard" model="ir.ui.view">
+    <field name="name">primetech.trial.balance.wizard.form</field>
+    <field name="model">primetech.trial.balance.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Balance Générale" create="false" edit="false">
+        <sheet>
+          <!-- ===================================== -->
+          <!-- TITRE -->
+          <!-- ===================================== -->
+          <div class="oe_title">
+            <h1>
+
+                            Balance Générale
+
+                        </h1>
+            <div class="text-muted">
+
+                            Analyse des soldes comptables et contrôle
+                            de l'équilibre des comptes
+
+                        </div>
+          </div>
+          <!-- ===================================== -->
+          <!-- MESSAGE -->
+          <!-- ===================================== -->
+          <div class="alert alert-primary" role="alert"><i class="fa fa-balance-scale me-2"/>
+
+                        Sélectionnez la période et les paramètres
+                        d'analyse pour générer votre balance générale.
+
+                    </div>
+          <!-- ===================================== -->
+          <!-- PARAMETRES -->
+          <!-- ===================================== -->
+          <group>
+            <group string="Période d'Analyse">
+              <field name="date_from" required="1"/>
+              <field name="date_to" required="1"/>
+            </group>
+            <group string="Options de Génération">
+              <field name="level"/>
+              <field name="posted_only"/>
+            </group>
+          </group>
+          <!-- ===================================== -->
+          <!-- INFORMATIONS -->
+          <!-- ===================================== -->
+          <separator string="Informations"/>
+          <div class="text-muted">
+
+                        Le rapport affichera :
+
+                        <ul style="margin-top:8px;"><li>
+                                Les soldes débiteurs et créditeurs
+                            </li><li>
+                                Les regroupements par niveau comptable
+                            </li><li>
+                                Les mouvements de la période
+                            </li><li>
+                                Les comptes détaillés ou synthétiques
+                                selon le niveau choisi
+                            </li></ul>
+
+                    </div>
+        </sheet>
+        <footer>
+          <button name="action_open_report" type="object" string="Prévisualiser" icon="fa-eye" class="btn-primary"/>
+          <button name="action_export_excel" type="object" string="Exporter Excel" icon="fa-file-excel-o" class="btn-success"/>
+          <button string="Fermer" special="cancel" icon="fa-times" class="btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+  <!-- =========================================================== -->
+  <!-- GROUPES TECHNIQUES PAR DOMAINE (contrôlent l'accès aux modèles/rapports) -->
+  <!-- =========================================================== -->
+  <record id="group_reporting_dashboard" model="res.groups">
+    <field name="name">Reporting : Tableau de bord</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+  </record>
+
+  <record id="group_reporting_accounting" model="res.groups">
+    <field name="name">Reporting : Comptabilité (consultation)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+  </record>
+  <record id="group_reporting_accounting_manager" model="res.groups">
+    <field name="name">Reporting : Comptabilité (pilotage)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_accounting'))]"/>
+  </record>
+
+  <record id="group_reporting_sales" model="res.groups">
+    <field name="name">Reporting : Ventes</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+  </record>
+
+  <record id="group_reporting_purchase" model="res.groups">
+    <field name="name">Reporting : Achats (consultation)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+  </record>
+  <record id="group_reporting_purchase_manager" model="res.groups">
+    <field name="name">Reporting : Achats (pilotage)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_purchase'))]"/>
+  </record>
+
+  <record id="group_reporting_stock" model="res.groups">
+    <field name="name">Reporting : Stock (consultation)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+  </record>
+  <record id="group_reporting_stock_manager" model="res.groups">
+    <field name="name">Reporting : Stock (pilotage / Supply Chain)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_stock'))]"/>
+  </record>
+  <record id="group_reporting_stock_shop" model="res.groups">
+    <field name="name">Reporting : Stock (échelle boutique)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_stock'))]"/>
+  </record>
+
+  <record id="group_reporting_hr" model="res.groups">
+    <field name="name">Reporting : Ressources Humaines</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+  </record>
+
+  <record id="group_reporting_validation" model="res.groups">
+    <field name="name">Reporting : Validations (compatibilité - obsolète)</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="comment">Groupe conservé uniquement pour éviter les erreurs de mise à jour des bases qui référencent encore l'ancien menu Validations. Le centre de validation a été supprimé.</field>
+  </record>
+
+
+  <record id="group_reporting_manager" model="res.groups">
+    <field name="name">Reporting : Accès complet</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_dashboard')),
+        (4, ref('group_reporting_accounting')),
+        (4, ref('group_reporting_sales')),
+        (4, ref('group_reporting_purchase')),
+        (4, ref('group_reporting_stock')),
+        (4, ref('group_reporting_hr'))
+    ]"/>
+  </record>
+
+  <!-- =========================================================== -->
+  <!-- PROFILS MÉTIER (TOME 11 - Informatique)                     -->
+  <!-- Chaque profil combine les groupes techniques ci-dessus.     -->
+  <!-- =========================================================== -->
+
+  <!-- 1. Directeur Général -->
+  <record id="group_role_dg" model="res.groups">
+    <field name="name">Profil : Directeur Général</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_manager'))]"/>
+    <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+  </record>
+
+  <!-- 2. Assistant de Direction -->
+  <record id="group_role_assistant_direction" model="res.groups">
+    <field name="name">Profil : Assistant de Direction</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_dashboard'))]"/>
+  </record>
+
+  <!-- 3. Responsable Administratif et Financier -->
+  <record id="group_role_raf" model="res.groups">
+    <field name="name">Profil : Responsable Administratif et Financier</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_accounting_manager'))
+    ]"/>
+  </record>
+
+  <!-- 4. Comptable -->
+  <record id="group_role_comptable" model="res.groups">
+    <field name="name">Profil : Comptable</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_accounting'))]"/>
+  </record>
+
+  <!-- 5. Contrôleur de Gestion -->
+  <record id="group_role_controleur_gestion" model="res.groups">
+    <field name="name">Profil : Contrôleur de Gestion</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_dashboard')),
+        (4, ref('group_reporting_accounting')),
+        (4, ref('group_reporting_sales')),
+        (4, ref('group_reporting_purchase')),
+        (4, ref('group_reporting_stock'))
+    ]"/>
+  </record>
+
+  <!-- 6. Directeur d'Exploitation -->
+  <record id="group_role_directeur_exploitation" model="res.groups">
+    <field name="name">Profil : Directeur d'Exploitation</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_dashboard')),
+        (4, ref('group_reporting_stock_manager')),
+        (4, ref('group_reporting_sales')),
+        (4, ref('group_reporting_purchase'))
+    ]"/>
+  </record>
+
+  <!-- 7. Directeur de Boutique -->
+  <record id="group_role_directeur_boutique" model="res.groups">
+    <field name="name">Profil : Directeur de Boutique</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_stock_shop'))
+    ]"/>
+  </record>
+
+  <!-- 8. Chef de Rayon -->
+  <record id="group_role_chef_rayon" model="res.groups">
+    <field name="name">Profil : Chef de Rayon</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_stock_shop'))]"/>
+  </record>
+
+  <!-- 9. Caissière -->
+  <record id="group_role_caissiere" model="res.groups">
+    <field name="name">Profil : Caissière</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_stock'))]"/>
+    <field name="comment">Accès volontairement simple : consultation des disponibilités et historiques utiles à la facturation. Les opérations de caisse restent portées par le module Point of Sale.</field>
+  </record>
+
+  <!-- 10. Supply Chain Manager -->
+  <record id="group_role_supply_chain_manager" model="res.groups">
+    <field name="name">Profil : Supply Chain Manager</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_dashboard')),
+        (4, ref('group_reporting_stock_manager')),
+        (4, ref('group_reporting_purchase'))
+    ]"/>
+  </record>
+
+  <!-- 11. Responsable Achats -->
+  <record id="group_role_responsable_achats" model="res.groups">
+    <field name="name">Profil : Responsable Achats</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('group_reporting_purchase_manager'))
+    ]"/>
+  </record>
+
+  <!-- 12. Responsable Magasinier -->
+  <record id="group_role_magasinier" model="res.groups">
+    <field name="name">Profil : Responsable Magasinier</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[(4, ref('group_reporting_stock'))]"/>
+  </record>
+
+  <!-- 13. Responsable Informatique -->
+  <record id="group_role_responsable_informatique" model="res.groups">
+    <field name="name">Profil : Responsable Informatique</field>
+    <field name="category_id" ref="module_category_reporting_center"/>
+    <field name="implied_ids" eval="[
+        (4, ref('base.group_system')),
+        (4, ref('group_reporting_manager'))
+    ]"/>
+    <field name="comment">Administration : gestion des utilisateurs, droits, sauvegardes, paramétrage et journal système.</field>
+  </record>
+
+</odoo>

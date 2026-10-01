@@ -1,0 +1,229 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_expense_analysis_preview">
+    <div class="container-fluid">
+      <!-- ===================================== -->
+      <!-- TITRE -->
+      <!-- ===================================== -->
+      <div class="mb-4">
+        <h2>
+
+                    Analyse des Dépenses
+
+                </h2>
+        <div class="text-muted">
+
+                    Du
+
+                    <strong><t t-esc="filters.get('date_from')"/></strong>
+
+                    au
+
+                    <strong><t t-esc="filters.get('date_to')"/></strong>
+
+                </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <h6>Total HT</h6>
+              <h3>
+                <t t-esc="round(data['total_ht'], 2)"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <h6>Total TTC</h6>
+              <h3>
+                <t t-esc="round(data['total_ttc'], 2)"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <h6>Catégories</h6>
+              <h3>
+                <t t-esc="data['category_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <h6>Fournisseurs</h6>
+              <h3>
+                <t t-esc="data['supplier_count']"/>
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- INFORMATIONS -->
+      <!-- ===================================== -->
+      <div class="row mb-4">
+        <div class="col-6">
+          <div class="alert alert-info">
+            <strong>
+                            Catégorie principale :
+                        </strong>
+            <t t-esc="data['highest_category']"/>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="alert alert-success">
+            <strong>
+                            Fournisseur principal :
+                        </strong>
+            <t t-esc="data['highest_supplier']"/>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- DEPENSES PAR CATEGORIE -->
+      <!-- ===================================== -->
+      <h4>
+
+                Dépenses par Catégorie
+
+            </h4>
+      <table class="table table-sm table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Catégorie</th>
+            <th>Nb Produits</th>
+            <th>Montant HT</th>
+            <th>% Budget</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="data['categories']" t-as="cat">
+            <td>
+              <t t-esc="cat['category']"/>
+            </td>
+            <td>
+              <t t-esc="cat['product_count']"/>
+            </td>
+            <td>
+              <t t-esc="round(cat['amount'],2)"/>
+            </td>
+            <td><t t-esc="round(cat['percent'],2)"/> %
+                        </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- DEPENSES PAR FOURNISSEUR -->
+      <!-- ===================================== -->
+      <h4 class="mt-4">
+
+                Dépenses par Fournisseur
+
+            </h4>
+      <table class="table table-sm table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Fournisseur</th>
+            <th>Nb Cmdes</th>
+            <th>HT</th>
+            <th>TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="data['suppliers']" t-as="supplier">
+            <td>
+              <t t-esc="supplier['supplier']"/>
+            </td>
+            <td>
+              <t t-esc="supplier['purchase_count']"/>
+            </td>
+            <td>
+              <t t-esc="round(supplier['amount_ht'],2)"/>
+            </td>
+            <td>
+              <t t-esc="round(supplier['amount_ttc'],2)"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- EVOLUTION -->
+      <!-- ===================================== -->
+      <h4 class="mt-4">
+
+                Evolution Mensuelle
+
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Période</th>
+            <th>Montant TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="data['monthly']" t-as="month">
+            <td>
+              <t t-esc="month['period']"/>
+            </td>
+            <td>
+              <t t-esc="round(month['amount'],2)"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- DETAILS -->
+      <!-- ===================================== -->
+      <h4 class="mt-4">
+
+                Détail des Dépenses
+
+            </h4>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Fournisseur</th>
+            <th>Catégorie</th>
+            <th>Produit</th>
+            <th>Qté</th>
+            <th>Montant HT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="data['lines']" t-as="line">
+            <td>
+              <t t-esc="line['date']"/>
+            </td>
+            <td>
+              <t t-esc="line['supplier']"/>
+            </td>
+            <td>
+              <t t-esc="line['category']"/>
+            </td>
+            <td>
+              <t t-esc="line['product']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="round(line['amount'],2)"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</odoo>

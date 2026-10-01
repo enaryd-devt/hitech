@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================== -->
+  <!-- ACTION FICHE DE STOCK -->
+  <!-- ===================================== -->
+  <record id="action_stock_card_wizard" model="ir.actions.act_window">
+    <field name="name">Fiche de Stock</field>
+    <field name="res_model">pt.stock.card.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

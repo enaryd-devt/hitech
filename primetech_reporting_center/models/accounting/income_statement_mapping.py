@@ -1,0 +1,51 @@
+"""Structure du compte de résultat du système normal SYSCOHADA révisé.
+
+Les montants sont calculés avec leur signe comptable : les produits sont
+positifs, les charges négatives. Les sous-totaux sont donc de simples sommes
+des références indiquées dans ``formula``.
+"""
+
+INCOME_STATEMENT_STRUCTURE = [
+    {"ref": "TA", "label": "Ventes de marchandises", "marker": "A", "sign": "+", "note": "21", "accounts": ("701",), "type": "line"},
+    {"ref": "RA", "label": "Achats de marchandises", "sign": "-", "note": "22", "accounts": ("601",), "type": "line"},
+    {"ref": "RB", "label": "Variation de stocks de marchandises", "sign": "-/+", "note": "6", "accounts": ("6031",), "type": "line"},
+    {"ref": "XA", "label": "MARGE COMMERCIALE (somme TA à RB)", "formula": ("TA", "RA", "RB"), "type": "subtotal"},
+    {"ref": "TB", "label": "Ventes de produits fabriqués", "marker": "B", "sign": "+", "note": "21", "accounts": ("702", "703", "704"), "type": "line"},
+    {"ref": "TC", "label": "Travaux, services vendus", "marker": "C", "sign": "+", "note": "21", "accounts": ("705", "706"), "type": "line"},
+    {"ref": "TD", "label": "Produits accessoires", "marker": "D", "sign": "+", "note": "21", "accounts": ("707", "708"), "type": "line"},
+    {"ref": "XB", "label": "CHIFFRE D'AFFAIRES (A + B + C + D)", "formula": ("TA", "TB", "TC", "TD"), "type": "subtotal"},
+    {"ref": "TE", "label": "Production stockée (ou déstockage)", "sign": "-/+", "note": "6", "accounts": ("73", "74"), "type": "line"},
+    {"ref": "TF", "label": "Production immobilisée", "sign": "+", "note": "21", "accounts": ("72",), "type": "line"},
+    {"ref": "TG", "label": "Subventions d'exploitation", "sign": "+", "note": "21", "accounts": ("71",), "type": "line"},
+    {"ref": "TH", "label": "Autres produits", "sign": "+", "note": "21", "accounts": ("75",), "type": "line"},
+    {"ref": "TI", "label": "Transferts de charges d'exploitation", "sign": "+", "note": "12", "accounts": ("79",), "exclude_accounts": ("796", "797", "798", "799"), "type": "line"},
+    {"ref": "RC", "label": "Achats de matières premières et fournitures liées", "sign": "-", "note": "22", "accounts": ("602",), "type": "line"},
+    {"ref": "RD", "label": "Variation de stocks de matières premières", "sign": "-/+", "note": "6", "accounts": ("6032",), "type": "line"},
+    {"ref": "RE", "label": "Autres achats", "sign": "-", "note": "22", "accounts": ("604", "605", "606", "607", "608"), "type": "line"},
+    {"ref": "RF", "label": "Variation de stocks d'autres approvisionnements", "sign": "-/+", "note": "6", "accounts": ("6033",), "type": "line"},
+    {"ref": "RG", "label": "Transports", "sign": "-", "note": "23", "accounts": ("61",), "type": "line"},
+    {"ref": "RH", "label": "Services extérieurs", "sign": "-", "note": "24", "accounts": ("62", "63"), "type": "line"},
+    {"ref": "RI", "label": "Impôts et taxes", "sign": "-", "note": "25", "accounts": ("64",), "type": "line"},
+    {"ref": "RJ", "label": "Autres charges", "sign": "-", "note": "26", "accounts": ("65",), "type": "line"},
+    {"ref": "XC", "label": "VALEUR AJOUTÉE", "formula": ("XB", "TE", "TF", "TG", "TH", "TI", "RC", "RD", "RE", "RF", "RG", "RH", "RI", "RJ"), "type": "subtotal"},
+    {"ref": "RK", "label": "Charges de personnel", "sign": "-", "note": "27", "accounts": ("66",), "type": "line"},
+    {"ref": "XD", "label": "EXCÉDENT BRUT D'EXPLOITATION (XC + RK)", "formula": ("XC", "RK"), "type": "subtotal"},
+    {"ref": "TJ", "label": "Reprises d'amortissements, provisions et dépréciations", "sign": "+", "note": "28", "accounts": ("78",), "exclude_accounts": ("786", "787", "788", "789"), "type": "line"},
+    {"ref": "RL", "label": "Dotations aux amortissements, provisions et dépréciations", "sign": "-", "note": "3C & 28", "accounts": ("68",), "exclude_accounts": ("686", "687", "688", "689"), "type": "line"},
+    {"ref": "XE", "label": "RÉSULTAT D'EXPLOITATION (XD + TJ + RL)", "formula": ("XD", "TJ", "RL"), "type": "subtotal"},
+    {"ref": "TK", "label": "Revenus financiers et produits assimilés", "sign": "+", "note": "29", "accounts": ("77",), "type": "line"},
+    {"ref": "TL", "label": "Reprises de provisions et dépréciations financières", "sign": "+", "note": "28", "accounts": ("786", "787", "788", "789"), "type": "line"},
+    {"ref": "TM", "label": "Transferts de charges financières", "sign": "+", "note": "12", "accounts": ("796", "797", "798", "799"), "type": "line"},
+    {"ref": "RM", "label": "Frais financiers et charges assimilées", "sign": "-", "note": "29", "accounts": ("67",), "type": "line"},
+    {"ref": "RN", "label": "Dotations aux provisions et dépréciations financières", "sign": "-", "note": "3C & 28", "accounts": ("686", "687", "688", "689"), "type": "line"},
+    {"ref": "XF", "label": "RÉSULTAT FINANCIER (somme TK à RN)", "formula": ("TK", "TL", "TM", "RM", "RN"), "type": "subtotal"},
+    {"ref": "XG", "label": "RÉSULTAT DES ACTIVITÉS ORDINAIRES (XE + XF)", "formula": ("XE", "XF"), "type": "subtotal"},
+    {"ref": "TN", "label": "Produits des cessions d'immobilisations", "sign": "+", "note": "3D", "accounts": ("82",), "type": "line"},
+    {"ref": "TO", "label": "Autres produits HAO", "sign": "+", "note": "30", "accounts": ("84", "86"), "type": "line"},
+    {"ref": "RO", "label": "Valeurs comptables des cessions d'immobilisations", "sign": "-", "note": "3D", "accounts": ("81",), "type": "line"},
+    {"ref": "RP", "label": "Autres charges HAO", "sign": "-", "note": "30", "accounts": ("83", "85"), "type": "line"},
+    {"ref": "XH", "label": "RÉSULTAT HORS ACTIVITÉS ORDINAIRES (somme TN à RP)", "formula": ("TN", "TO", "RO", "RP"), "type": "subtotal"},
+    {"ref": "RQ", "label": "Participation des travailleurs", "sign": "-", "note": "30", "accounts": ("87",), "type": "line"},
+    {"ref": "RS", "label": "Impôts sur le résultat", "sign": "-", "note": "37", "accounts": ("69", "89"), "type": "line"},
+    {"ref": "XI", "label": "RÉSULTAT NET (XG + XH + RQ + RS)", "formula": ("XG", "XH", "RQ", "RS"), "type": "grand_total"},
+]

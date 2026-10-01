@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-eb-history-grid')]" position="replace">
+            <section class="pt-eb-bottom pt-eb-history-grid" data-scroll-key="history">
+                <article class="pt-eb-card pt-eb-history-card pt-eb-unified-history">
+                    <header class="pt-eb-history-header">
+                        <div>
+                            <h3><i class="fa fa-history"/><t t-esc="cashflowLabel('historyTitle')"/></h3>
+                            <small><t t-esc="cashflowLabel('historySubtitle')"/></small>
+                        </div>
+                        <button class="pt-eb-more" type="button" t-on-click="() => this.openAction(state.activity_history_action)"><t t-esc="cashflowLabel('viewAll')"/><i class="fa fa-angle-right"/></button>
+                    </header>
+                    <div class="pt-eb-table-scroll pt-eb-history-scroll">
+                        <table class="pt-eb-history-table">
+                            <thead>
+                                <tr>
+                                    <th><t t-esc="cashflowLabel('dateTime')"/></th>
+                                    <th><t t-esc="cashflowLabel('source')"/></th>
+                                    <th><t t-esc="cashflowLabel('user')"/></th>
+                                    <th><t t-esc="cashflowLabel('event')"/></th>
+                                    <th><t t-esc="cashflowLabel('detail')"/></th>
+                                    <th><t t-esc="cashflowLabel('document')"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.history_items || []" t-as="item" t-key="item.key" t-att-class="item.action_ref ? 'is-clickable' : ''" t-on-click="() => this.openAction(item.action_ref)">
+                                    <td class="pt-eb-date"><t t-esc="item.date"/></td>
+                                    <td><span t-att-class="'pt-eb-history-source ' + (item.tone || 'info')"><t t-esc="item.source"/></span></td>
+                                    <td><strong><t t-esc="item.user"/></strong><small><t t-esc="item.role"/></small></td>
+                                    <td><span t-att-class="'pt-eb-event-badge ' + (item.tone || 'info')"><i t-att-class="'fa ' + (item.icon || 'fa-circle')"/><t t-esc="item.action"/></span></td>
+                                    <td class="pt-eb-history-detail"><t t-esc="item.description"/></td>
+                                    <td><strong><t t-esc="item.doc"/></strong></td>
+                                </tr>
+                                <tr t-if="!(state.history_items || []).length"><td colspan="6" class="pt-eb-history-empty"><t t-esc="cashflowLabel('noHistory')"/></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="pt-eb-card performance pt-eb-performance-actions">
+                    <h3><t t-esc="cashflowLabel('performanceTitle')"/></h3>
+                    <small><t t-esc="state.performance_period_label || state.period_label || cashflowLabel('today')"/></small>
+                    <button t-foreach="state.performance" t-as="perf" t-key="perf.label" class="pt-eb-perf" type="button" t-on-click="() => this.openAction(perf.action)" t-att-title="cashflowLabel('viewAnalysis')">
+                        <i class="fa fa-line-chart"/>
+                        <span><t t-esc="perf.label"/></span>
+                        <strong><t t-esc="perf.value"/></strong>
+                        <em><t t-esc="perf.trend"/></em>
+                        <b><i t-att-style="'width:' + (perf.percent || 0) + '%'"/></b>
+                        <i class="fa fa-angle-right pt-eb-perf-link"/>
+                    </button>
+                </article>
+            </section>
+        </xpath>
+    </t>
+</templates>

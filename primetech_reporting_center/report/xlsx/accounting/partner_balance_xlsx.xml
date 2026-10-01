@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_partner_balance_xlsx" model="ir.actions.report">
+    <field name="name">Balance des Tiers XLSX</field>
+    <field name="model">primetech.partner.balance.wizard</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">primetech_reporting_center.partner_balance_xlsx</field>
+    <field name="report_file">primetech_reporting_center.partner_balance_xlsx</field>
+  </record>
+</odoo>

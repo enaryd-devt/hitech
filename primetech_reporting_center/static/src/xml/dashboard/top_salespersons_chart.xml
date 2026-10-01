@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.TopSalespersonsChart" owl="1">
+
+    <div class="pt-card">
+
+
+        <div style="height:350px; padding:15px;">
+
+            <canvas id="ptTopSalespersonsChart"/>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_trial_balance_wizard" model="ir.actions.act_window">
+    <field name="name">Balance Générale</field>
+    <field name="res_model">primetech.trial.balance.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="view_id" ref="primetech_reporting_center.view_trial_balance_wizard"/>
+    <field name="target">new</field>
+  </record>
+</odoo>

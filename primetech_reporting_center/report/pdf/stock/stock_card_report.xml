@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================== -->
+  <!-- REPORT -->
+  <!-- ===================================== -->
+  <record id="action_stock_card_pdf" model="ir.actions.report">
+    <field name="name">Fiche de Stock</field>
+    <field name="model">pt.stock.card.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.stock_card_pdf_template</field>
+    <field name="report_file">primetech_reporting_center.stock_card_pdf_template</field>
+    <field name="binding_model_id" ref="model_pt_stock_card_wizard"/>
+    <field name="binding_type">report</field>
+    <field name="print_report_name"/>
+  </record>
+</odoo>

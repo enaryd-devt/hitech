@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.GlobalFilters" owl="1">
+
+        <div class="pt-filters-card">
+
+            <!--<div class="pt-filters-top">
+
+                <div>
+
+                    <div class="pt-filter-title">
+                        Filtres d'Analyse
+                    </div>
+
+                    <div class="pt-filter-subtitle">
+                        Affinez les données du tableau de bord
+                    </div>
+
+                </div>
+
+                <div class="pt-filter-badge">
+
+                    <i class="fa fa-sliders"/>
+
+                    <span>
+                        Temps réel
+                    </span>
+
+                </div>
+
+            </div> -->
+
+            <div class="pt-filters-grid">
+
+                <!-- PERIODE -->
+
+                <div class="pt-filter-field">
+
+                    <label>
+                        Période
+                    </label>
+
+                    <div class="pt-input-wrapper">
+
+                        <i class="fa fa-calendar"/>
+
+                        <select class="pt-input" t-on-change="onPeriodChange">
+
+                            <option value="today">
+                                Aujourd'hui
+                            </option>
+
+                            <option value="week">
+                                Cette semaine
+                            </option>
+
+                            <option value="month" selected="selected">
+                                Ce mois
+                            </option>
+
+                            <option value="quarter">
+                                Ce trimestre
+                            </option>
+
+                            <option value="year">
+                                Cette année
+                            </option>
+
+                            <option value="custom">
+                                Période personnalisée
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <!-- DATE DEBUT -->
+
+                <div class="pt-filter-field">
+
+                    <label>
+                        Date Début
+                    </label>
+
+                    <div class="pt-input-wrapper">
+
+                        <i class="fa fa-calendar"/>
+
+                        <input type="date" class="pt-input"/>
+
+                    </div>
+
+                </div>
+
+                <!-- DATE FIN -->
+
+                <div class="pt-filter-field">
+
+                    <label>
+                        Date Fin
+                    </label>
+
+                    <div class="pt-input-wrapper">
+
+                        <i class="fa fa-calendar"/>
+
+                        <input type="date" class="pt-input"/>
+
+                    </div>
+
+                </div>
+
+                <!-- SOCIETE -->
+
+                <div class="pt-filter-field">
+
+                    <label>
+                        Société
+                    </label>
+
+                    <div class="pt-input-wrapper">
+
+                        <i class="fa fa-building"/>
+
+                        <select class="pt-input">
+
+                            <option>
+                                Toutes les sociétés
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>

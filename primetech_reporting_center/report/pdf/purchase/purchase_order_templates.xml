@@ -1,0 +1,189 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_order_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ==========================
+                         ENTETE
+                    =========================== -->
+          <div class="text-center mb-4">
+            <h2>
+                            Rapport des Commandes d'Achat
+                        </h2>
+            <p><strong>Période :</strong><span t-out="filters.get( 'date_from' )"/>
+
+                            -
+
+                            <span t-out="filters.get( 'date_to' )"/>
+
+                        </p>
+          </div>
+          <!-- ==========================
+                         KPI
+                    =========================== -->
+          <h3>
+                        Indicateurs Clés
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr>
+                <td>
+                                    Nombre de commandes
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'order_count', 0 )"/>
+                </td>
+                <td>
+                                    Fournisseurs
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'supplier_count', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Produits
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'product_count', 0 )"/>
+                </td>
+                <td>
+                                    Montant moyen
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'avg_amount', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Montant HT
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'total_untaxed', 0 )"/>
+                </td>
+                <td>
+                                    Taxes
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'total_tax', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Montant TTC
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'total_amount', 0 )"/>
+                </td>
+                <td>
+                                    Confirmées
+                                </td>
+                <td>
+                  <t t-out="data.get( 'kpi', {} ).get( 'confirmed_count', 0 )"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- ==========================
+                         DETAILS
+                    =========================== -->
+          <h3>
+                        Détails des Commandes
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>
+                                    Référence
+                                </th>
+                <th>
+                                    Date
+                                </th>
+                <th>
+                                    Fournisseur
+                                </th>
+                <th>
+                                    Acheteur
+                                </th>
+                <th>
+                                    Total
+                                </th>
+                <th>
+                                    État
+                                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="data.get( 'details', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['name']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['buyer']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['total']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['state']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ==========================
+                         SIGNATURES
+                    =========================== -->
+          <br/>
+          <br/>
+          <br/>
+          <table style="width:100%;">
+            <tr>
+              <td style="width:33%; text-align:center;">
+
+                                Préparé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                __________________
+
+                            </td>
+              <td style="width:33%; text-align:center;">
+
+                                Vérifié par
+
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                __________________
+
+                            </td>
+              <td style="width:33%; text-align:center;">
+
+                                Approuvé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                __________________
+
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_income_statement_report" model="ir.actions.report">
+    <field name="name">Compte de Résultat</field>
+    <field name="model">primetech.income.statement.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.income_statement_template</field>
+    <field name="report_file">primetech_reporting_center.income_statement_template</field>
+    <field name="binding_model_id" ref="model_primetech_income_statement_wizard"/>
+  </record>
+</odoo>

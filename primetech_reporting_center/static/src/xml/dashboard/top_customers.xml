@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.TopCustomers" owl="1">
+
+        <div class="pt-card pt-customers-card">
+
+            <div class="pt-card-header pt-card-header-compact">
+
+                <h3>
+                    Meilleurs Clients
+                </h3>
+
+            </div>
+
+            <div class="pt-scroll-card pt-scroll-card-compact">
+
+                <t t-if="state.loading">
+
+                    <div class="pt-loader-container">
+
+                        <div class="pt-loader"/>
+
+                    </div>
+
+                </t>
+
+                <t t-else="">
+
+                    <table class="pt-risk-table pt-table-compact">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Client</th>
+
+                                <th class="text-end">
+                                    C.A
+                                </th>
+
+                                <th class="text-center">
+                                    Nb
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr t-foreach="state.customers" t-as="customer" t-key="customer.id" class="pt-clickable-row" t-on-click="() =&gt; this.openCustomer( customer.id )">
+
+                                <td>
+
+                                    <t t-esc="customer.name"/>
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <strong>
+
+                                        <t t-esc="formatCurrency( customer.amount )"/>
+
+                                    </strong>
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <span class="pt-badge">
+
+                                        <t t-esc="customer.count"/>
+
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                            <tr t-if="!state.customers.length">
+
+                                <td colspan="3" class="text-center">
+
+                                    Aucun client trouvé
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </t>
+
+            </div>
+
+        </div>
+
+    </t>
+
+
+</templates>

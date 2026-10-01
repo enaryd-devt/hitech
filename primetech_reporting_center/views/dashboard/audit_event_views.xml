@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_primetech_audit_event_list" model="ir.ui.view">
+        <field name="name">primetech.audit.event.list</field>
+        <field name="model">primetech.audit.event</field>
+        <field name="arch" type="xml">
+            <list string="Historique des activités et journal d'audit" create="0" edit="0" delete="0" default_order="event_date desc">
+                <field name="event_date"/>
+                <field name="user_id"/>
+                <field name="user_role" optional="show"/>
+                <field name="event_type" decoration-info="event_type == 'print'" decoration-warning="event_type == 'write'" decoration-danger="event_type == 'unlink'" decoration-success="event_type == 'create'" widget="badge"/>
+                <field name="action_label"/>
+                <field name="document_name"/>
+                <field name="model_label"/>
+                <field name="model_name" optional="hide"/>
+                <field name="res_id" optional="hide"/>
+                <field name="details" optional="show"/>
+                <field name="ip_address" optional="show"/>
+                <field name="device_info" optional="show"/>
+                <button name="open_document" type="object" icon="fa-external-link" title="Ouvrir le document" invisible="not res_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_primetech_audit_event_form" model="ir.ui.view">
+        <field name="name">primetech.audit.event.form</field>
+        <field name="model">primetech.audit.event</field>
+        <field name="arch" type="xml">
+            <form string="Détail de l'événement" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group string="Événement">
+                            <field name="event_date"/>
+                            <field name="event_type" widget="badge"/>
+                            <field name="action_label"/>
+                            <field name="user_id"/>
+                            <field name="user_role"/>
+                        </group>
+                        <group string="Document concerné">
+                            <field name="model_label"/>
+                            <field name="model_name"/>
+                            <field name="document_name"/>
+                            <field name="res_id"/>
+                            <button name="open_document" type="object" string="Ouvrir le document" icon="fa-external-link" class="btn-primary" invisible="not res_id"/>
+                        </group>
+                    </group>
+                    <group string="Détails complets">
+                        <field name="details" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Traçabilité technique">
+                        <field name="ip_address"/>
+                        <field name="device_info"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_primetech_audit_event_search" model="ir.ui.view">
+        <field name="name">primetech.audit.event.search</field>
+        <field name="model">primetech.audit.event</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher dans l'historique">
+                <field name="action_label"/>
+                <field name="document_name"/>
+                <field name="user_id"/>
+                <field name="ip_address"/>
+                <field name="model_label"/>
+                <filter name="create" string="Créations" domain="[('event_type', '=', 'create')]"/>
+                <filter name="write" string="Modifications" domain="[('event_type', '=', 'write')]"/>
+                <filter name="unlink" string="Suppressions" domain="[('event_type', '=', 'unlink')]"/>
+                <filter name="print" string="Impressions" domain="[('event_type', '=', 'print')]"/>
+                <filter name="event" string="Actions et événements" domain="[('event_type', '=', 'event')]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter name="group_user" string="Utilisateur" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'event_type'}"/>
+                    <filter name="group_model" string="Objet" context="{'group_by': 'model_label'}"/>
+                    <filter name="group_document" string="Document" context="{'group_by': 'document_name'}"/>
+                    <filter name="group_day" string="Jour" context="{'group_by': 'event_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_primetech_audit_event_history" model="ir.actions.act_window">
+        <field name="name">Historique complet : actions, événements et audit</field>
+        <field name="res_model">primetech.audit.event</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_primetech_audit_event_search"/>
+        <field name="context">{'search_default_group_day': 0, 'primetech_history_full': True}</field>
+    </record>
+</odoo>

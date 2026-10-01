@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_stock_movement_pdf" model="ir.actions.report">
+    <field name="name">Mouvements de Stoc</field>
+    <field name="model">pt.stock.movement.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.stock_movement_pdf</field>
+    <field name="report_file">primetech_reporting_center.stock_movement_pdf</field>
+    <field name="binding_model_id" ref="model_pt_stock_movement_wizard"/>
+  </record>
+</odoo>

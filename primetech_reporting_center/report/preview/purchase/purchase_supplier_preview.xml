@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_supplier_preview">
+    <div style="font-family:Arial,Helvetica,sans-serif; padding:20px;">
+      <!-- ===================================== -->
+      <!-- HEADER -->
+      <!-- ===================================== -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e5e7eb; padding-bottom:15px; margin-bottom:20px;">
+        <div>
+          <h2 style="margin:0; color:#111827;">
+                        Achats par Fournisseur
+                    </h2>
+          <div style="color:#6b7280; margin-top:5px;">
+                        Analyse détaillée des achats
+                        par fournisseur et produit
+                    </div>
+        </div>
+        <div style="text-align:right; font-size:12px;">
+          <div>
+            <strong>
+                            Date début :
+                        </strong>
+            <t t-esc="filters.get('date_from')"/>
+          </div>
+          <div>
+            <strong>
+                            Date fin :
+                        </strong>
+            <t t-esc="filters.get('date_to')"/>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <table style="width:100%; border-collapse:separate; border-spacing:10px; margin-bottom:25px;">
+        <tr>
+          <td style="background:#EEF2FF; padding:15px; text-align:center; border-radius:8px;">
+            <div style="font-size:12px; color:#6b7280;">
+                            Fournisseurs
+                        </div>
+            <div style="font-size:22px; font-weight:bold;">
+              <t t-esc="data['supplier_count']"/>
+            </div>
+          </td>
+          <td style="background:#ECFDF5; padding:15px; text-align:center; border-radius:8px;">
+            <div style="font-size:12px; color:#6b7280;">
+                            Produits
+                        </div>
+            <div style="font-size:22px; font-weight:bold;">
+              <t t-esc="data['product_count']"/>
+            </div>
+          </td>
+          <td style="background:#FEF3C7; padding:15px; text-align:center; border-radius:8px;">
+            <div style="font-size:12px; color:#6b7280;">
+                            Commandes
+                        </div>
+            <div style="font-size:22px; font-weight:bold;">
+              <t t-esc="data['purchase_count']"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <!-- ===================================== -->
+      <!-- TOTAUX -->
+      <!-- ===================================== -->
+      <table class="table table-sm" style="width:100%; margin-bottom:25px;">
+        <tr>
+          <td>
+            <strong>Total HT</strong>
+          </td>
+          <td>
+            <t t-esc="data['total_ht']"/>
+          </td>
+          <td>
+            <strong>Total TVA</strong>
+          </td>
+          <td>
+            <t t-esc="data['total_tax']"/>
+          </td>
+          <td>
+            <strong>Total TTC</strong>
+          </td>
+          <td>
+            <t t-esc="data['total_ttc']"/>
+          </td>
+        </tr>
+      </table>
+      <!-- ===================================== -->
+      <!-- DETAIL -->
+      <!-- ===================================== -->
+      <h3>
+                Détail des Achats par Fournisseur
+            </h3>
+      <table class="table table-sm table-bordered" style="width:100%; font-size:12px;">
+        <thead>
+          <tr>
+            <th>
+                            Fournisseur
+                        </th>
+            <th>
+                            Produit
+                        </th>
+            <th>
+                            Nb Cmdes
+                        </th>
+            <th>
+                            Qté
+                        </th>
+            <th>
+                            HT
+                        </th>
+            <th>
+                            TVA
+                        </th>
+            <th>
+                            TTC
+                        </th>
+            <th>
+                            Dernier Achat
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="data['lines']" t-as="line">
+            <td>
+              <t t-esc="line['supplier']"/>
+            </td>
+            <td>
+              <t t-esc="line['product']"/>
+            </td>
+            <td>
+              <t t-esc="line['purchase_count']"/>
+            </td>
+            <td>
+              <t t-esc="line['qty']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount_ht']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount_tax']"/>
+            </td>
+            <td>
+              <t t-esc="line['amount_ttc']"/>
+            </td>
+            <td>
+              <t t-esc="line['last_order']"/>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:bold; background:#f3f4f6;">
+            <td colspan="4">
+
+                            TOTAL GENERAL
+
+                        </td>
+            <td>
+              <t t-esc="data['total_ht']"/>
+            </td>
+            <td>
+              <t t-esc="data['total_tax']"/>
+            </td>
+            <td>
+              <t t-esc="data['total_ttc']"/>
+            </td>
+            <td/>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </template>
+</odoo>

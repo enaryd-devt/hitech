@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <record
+        id="action_trial_balance_pdf"
+        model="ir.actions.report">
+
+        <field name="name">
+            Balance Générale
+        </field>
+
+        <field name="model">primetech.report.preview.wizard</field>
+
+        <field name="report_type">qweb-pdf</field>
+
+        <field name="report_name">primetech_reporting_center.trial_balance_pdf</field>
+
+        <field name="report_file">primetech_reporting_center.trial_balance_pdf</field>
+
+    </record>
+
+    <template
+        id="trial_balance_pdf">
+
+        <t t-call="web.html_container">
+
+            <t t-call="web.external_layout">
+
+                <div class="page">
+
+                    <h2>
+
+                        Balance Générale
+
+                    </h2>
+
+                    <t t-raw="doc.html_content"/>
+
+                </div>
+
+            </t>
+
+        </t>
+
+    </template>
+
+</odoo>

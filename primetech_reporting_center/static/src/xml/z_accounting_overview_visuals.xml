@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.AccountingDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-accounting-grid-top')]/article[3]/div[contains(@class, 'pt-accounting-chart')]" position="attributes">
+            <attribute name="class" add="pt-accounting-treasury-chart" separator=" "/>
+        </xpath>
+
+        <xpath expr="//section[contains(@class, 'pt-accounting-grid-top')]/article[4]/div[contains(@class, 'pt-accounting-chart-list')]" position="replace">
+            <div class="pt-accounting-chart-list pt-accounting-availability-layout">
+                <div class="pt-accounting-donut pt-accounting-fixed-diagram"><canvas id="accountingCashChart"/></div>
+                <ul class="pt-accounting-availability-legend"><li t-foreach="state.data.cash_accounts || []" t-as="account" t-key="account.id" t-on-click="() => this.openAccounts([['id', '=', account.id]])"><b/><span><t t-esc="account.name"/></span><strong><t t-esc="money(account.amount)"/> (<t t-esc="pct(account.percent)"/>)</strong></li></ul>
+            </div>
+        </xpath>
+
+        <xpath expr="//section[contains(@class, 'pt-accounting-grid-bottom')]/article[1]/div[contains(@class, 'pt-accounting-chart-list')]" position="replace">
+            <div class="pt-accounting-chart-list pt-accounting-aging-layout">
+                <div class="pt-accounting-donut"><canvas id="accountingAgeChart"/></div>
+                <ul class="pt-accounting-aging-legend"><li t-foreach="state.data.receivable_aging || []" t-as="age" t-key="age.label" t-on-click="() => this.openInvoices(age.domain)"><b/><span><t t-esc="age.label"/></span><strong><t t-esc="money(age.amount)"/> (<t t-esc="pct(age.percent)"/>)</strong></li></ul>
+            </div>
+        </xpath>
+    </t>
+</templates>

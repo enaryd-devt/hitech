@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+    <t t-name="primetech_reporting_center.Dashboard" owl="1">
+
+        <div class="pt-reporting-dashboard">
+
+            <!-- CONTENU PLEINE LARGEUR -->
+
+            <div class="pt-dashboard-layout">
+
+                <div class="pt-dashboard-content">
+
+                    <ExecutiveBoard filters="state.filters" refreshKey="state.refreshKey"/>
+                </div>
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>

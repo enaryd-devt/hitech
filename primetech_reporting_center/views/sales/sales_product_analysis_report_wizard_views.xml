@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_sales_product_analysis_report_wizard_form" model="ir.ui.view">
+    <field name="name">sales.product.analysis.report.wizard.form</field>
+    <field name="model">primetech.sales.product.analysis.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Analyse des Produits">
+        <sheet>
+          <div class="oe_title">
+            <h1>
+                            Analyse des Produits
+                        </h1>
+            <div class="text-muted">
+                            Analyse détaillée des ventes par produit,
+                            vendeur et période.
+                        </div>
+          </div>
+          <div class="alert alert-info mt16" role="alert"><i class="fa fa-info-circle me-2"/>
+
+                        Sélectionnez vos critères d'analyse puis
+                        générez un aperçu ou exportez le rapport Excel.
+
+                    </div>
+          <group col="2">
+            <group string="Période">
+              <field name="date_from"/>
+              <field name="date_to"/>
+            </group>
+            <group string="Organisation">
+              <field name="company_id"/>
+              <field name="user_id"/>
+            </group>
+          </group>
+          <separator string="Filtres Produits"/>
+          <group>
+            <field name="product_id" options="{'no_create': True}"/>
+          </group>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/>
+          <button name="action_export_xlsx" type="object" string="Exporter Excel" icon="fa-file-excel-o" class="btn btn-success"/>
+          <button string="Fermer" special="cancel" icon="fa-times" class="btn btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

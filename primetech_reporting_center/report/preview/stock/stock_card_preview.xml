@@ -1,0 +1,247 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_card_preview_template">
+    <div style="font-family:Arial,sans-serif; padding:20px; background:#ffffff;">
+      <!-- ===================================== -->
+      <!-- ENTETE -->
+      <!-- ===================================== -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #111827; padding-bottom:10px;">
+        <div>
+          <h2 style="margin:0; color:#111827;">
+                            Fiche de Stock
+                        </h2>
+          <div style="color:#6B7280; margin-top:5px;">
+
+                            Société :
+
+                            <strong><t t-esc="wizard.company_id.name"/></strong>
+
+                        </div>
+        </div>
+        <div style="text-align:right;">
+          <div>
+
+                            Généré le :
+
+                        </div>
+          <strong>
+            <t t-esc="generated_at"/>
+          </strong>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- KPI -->
+      <!-- ===================================== -->
+      <div style="display:flex; gap:12px; margin-bottom:20px;">
+        <div class="pt-kpi-card">
+          <div class="pt-kpi-title">
+
+                            Articles
+
+                        </div>
+          <div class="pt-kpi-value">
+            <t t-esc="data['kpi']['products_count']"/>
+          </div>
+        </div>
+        <div class="pt-kpi-card">
+          <div class="pt-kpi-title">
+
+                            Quantité
+
+                        </div>
+          <div class="pt-kpi-value">
+            <t t-out="'{:,.2f}'.format( data['kpi']['total_qty'] )"/>
+          </div>
+        </div>
+        <div class="pt-kpi-card">
+          <div class="pt-kpi-title">
+
+                            Valeur Stock
+
+                        </div>
+          <div class="pt-kpi-value">
+            <t t-out="'{:,.2f}'.format( data['kpi']['stock_value'] )"/>
+          </div>
+        </div>
+        <div class="pt-kpi-card">
+          <div class="pt-kpi-title">
+
+                            Coût Moyen
+
+                        </div>
+          <div class="pt-kpi-value">
+            <t t-out="'{:,.2f}'.format( data['kpi']['average_cost'] )"/>
+          </div>
+        </div>
+        <div class="pt-kpi-card">
+          <div class="pt-kpi-title">
+
+                            Prix Moyen
+
+                        </div>
+          <div class="pt-kpi-value">
+            <t t-out="'{:,.2f}'.format( data['kpi']['average_sale'] )"/>
+          </div>
+        </div>
+      </div>
+      <!-- ===================================== -->
+      <!-- TABLEAU -->
+      <!-- ===================================== -->
+      <table class="pt-stock-table">
+        <thead>
+          <tr>
+            <th>
+                                Article
+                            </th>
+            <th>
+                                Référence
+                            </th>
+            <th>
+                                Lots
+                            </th>
+            <th>
+                                Qté
+                            </th>
+            <th>
+                                Coût
+                            </th>
+            <th>
+                                Prix Vente
+                            </th>
+            <th>
+                                Valeur
+                            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-set="last_supplier" t-value="False"/>
+          <t t-foreach="data['lines']" t-as="line">
+            <t t-if="wizard.group_by_supplier and line['supplier_name'] != last_supplier">
+              <tr><td colspan="7" style="background:#e8f1ff; font-weight:700; padding:8px;">Fournisseur : <t t-esc="line['supplier_name']"/></td></tr>
+              <t t-set="last_supplier" t-value="line['supplier_name']"/>
+            </t>
+            <tr>
+              <!-- ARTICLE -->
+              <td>
+                <t t-esc="line['product_name']"/>
+              </td>
+              <!-- REFERENCE -->
+              <td>
+                <t t-esc="line['default_code']"/>
+              </td>
+              <!-- LOTS -->
+              <td style="min-width:220px;">
+                <t t-if="line['lots']">
+                  <t t-foreach="line['lots']" t-as="lot">
+                    <span class="pt-lot-badge"><t t-esc="lot['lot_name']"/>
+
+                        :
+
+                        <strong><t t-out="'{:,.2f}'.format( lot['quantity'] )"/></strong>
+
+                    </span>
+                  </t>
+                </t>
+                <t t-if="not line['lots']">
+
+                -
+
+            </t>
+              </td>
+              <!-- QUANTITE -->
+              <td class="text-end">
+                <t t-out="'{:,.2f}'.format( line['quantity'] )"/>
+              </td>
+              <!-- COUT -->
+              <td class="text-end">
+                <t t-out="'{:,.2f}'.format( line['cost_price'] )"/>
+              </td>
+              <!-- PRIX VENTE -->
+              <td class="text-end">
+                <t t-out="'{:,.2f}'.format( line['sale_price'] )"/>
+              </td>
+              <!-- VALEUR -->
+              <td class="text-end" style="font-weight:bold;">
+                <t t-out="'{:,.2f}'.format( line['stock_value'] )"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ===================================== -->
+      <!-- OBSERVATIONS -->
+      <!-- ===================================== -->
+      <t t-if="wizard.observations">
+        <div style="margin-top:20px; border:1px solid #E5E7EB; padding:12px; border-radius:8px;">
+          <strong>
+                Observations
+            </strong>
+          <div style="margin-top:8px;">
+            <t t-esc="wizard.observations"/>
+          </div>
+        </div>
+      </t>
+      <!-- ===================================== -->
+      <!-- STYLE -->
+      <!-- ===================================== -->
+      <style>
+
+    .pt-kpi-card{
+        flex:1;
+        background:#FFFFFF;
+        border:1px solid #E5E7EB;
+        border-radius:14px;
+        padding:12px;
+        text-align:center;
+    }
+
+    .pt-kpi-title{
+        font-size:12px;
+        color:#6B7280;
+        margin-bottom:6px;
+    }
+
+    .pt-kpi-value{
+        font-size:20px;
+        font-weight:700;
+        color:#111827;
+    }
+
+    .pt-stock-table{
+        width:100%;
+        border-collapse:collapse;
+    }
+
+    .pt-stock-table th{
+        background:#F3F4F6;
+        border:1px solid #D1D5DB;
+        padding:8px;
+        font-size:12px;
+    }
+
+    .pt-stock-table td{
+        border:1px solid #D1D5DB;
+        padding:8px;
+        vertical-align:top;
+        font-size:12px;
+    }
+
+    .pt-lot-badge{
+        display:inline-block;
+        margin:2px;
+        padding:4px 8px;
+        border-radius:14px;
+        background:#EFF6FF;
+        color:#1D4ED8;
+        font-size:11px;
+        font-weight:600;
+    }
+
+    .text-end{
+        text-align:right;
+    }
+
+    </style>
+    </div>
+  </template>
+</odoo>

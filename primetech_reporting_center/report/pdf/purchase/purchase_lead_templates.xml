@@ -1,0 +1,243 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="purchase_lead_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ===================================== -->
+          <!-- ENTETE -->
+          <!-- ===================================== -->
+          <div class="text-center mb-4">
+            <h2>
+                            Rapport Délais d'Approvisionnement
+                        </h2>
+            <p><strong>Période :</strong><span t-out="filters.get( 'date_from' )"/>
+
+                            -
+
+                            <span t-out="filters.get( 'date_to' )"/>
+
+                        </p>
+          </div>
+          <!-- ===================================== -->
+          <!-- KPI -->
+          <!-- ===================================== -->
+          <h3>
+                        Indicateurs Clés
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr>
+                <td>
+                                    Commandes
+                                </td>
+                <td>
+                  <t t-out="report_data.get( 'kpi', {} ).get( 'order_count', 0 )"/>
+                </td>
+                <td>
+                                    Réceptions
+                                </td>
+                <td>
+                  <t t-out="report_data.get( 'kpi', {} ).get( 'receipt_count', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Délai Moyen
+                                </td>
+                <td>
+                  <t t-out="round( report_data.get( 'kpi', {} ).get( 'avg_delay', 0 ), 2 )"/>
+                </td>
+                <td>
+                                    Délai Mini
+                                </td>
+                <td>
+                  <t t-out="report_data.get( 'kpi', {} ).get( 'min_delay', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Délai Maxi
+                                </td>
+                <td>
+                  <t t-out="report_data.get( 'kpi', {} ).get( 'max_delay', 0 )"/>
+                </td>
+                <td>
+                                    Hors Délai
+                                </td>
+                <td>
+                  <t t-out="report_data.get( 'kpi', {} ).get( 'late_orders', 0 )"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- ANALYSE FOURNISSEURS -->
+          <!-- ===================================== -->
+          <h3>
+                        Analyse Fournisseurs
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Commandes</th>
+                <th>Délai Moyen</th>
+                <th>Délai Mini</th>
+                <th>Délai Maxi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'supplier_analysis', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_count']"/>
+                  </td>
+                  <td>
+                    <t t-out="round( line['avg_delay'], 2 )"/>
+                  </td>
+                  <td>
+                    <t t-out="line['min_delay']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['max_delay']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- TOP RAPIDES -->
+          <!-- ===================================== -->
+          <h3>
+                        Top 10 Fournisseurs
+                        les Plus Rapides
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Délai Moyen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'top_fast', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="round( line['avg_delay'], 2 )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- TOP LENTS -->
+          <!-- ===================================== -->
+          <h3>
+                        Top 10 Fournisseurs
+                        les Plus Lents
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Délai Moyen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'top_slow', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="round( line['avg_delay'], 2 )"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- DETAILS -->
+          <!-- ===================================== -->
+          <h3>
+                        Détails
+                    </h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Commande</th>
+                <th>Fournisseur</th>
+                <th>Date Commande</th>
+                <th>Date Réception</th>
+                <th>Délai</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data.get( 'details', [] )" t-as="line">
+                <tr>
+                  <td>
+                    <t t-out="line['order']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['supplier']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['order_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['receipt_date']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['delay']"/>
+                  </td>
+                  <td>
+                    <t t-out="line['amount']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+          <!-- ===================================== -->
+          <!-- SIGNATURES -->
+          <!-- ===================================== -->
+          <br/>
+          <br/>
+          <br/>
+          <table style="width:100%;">
+            <tr>
+              <td style="width:33%; text-align:center;">
+                                Préparé par
+
+                                <br/><br/><br/>
+
+                                __________________
+                            </td>
+              <td style="width:33%; text-align:center;">
+                                Vérifié par
+
+                                <br/><br/><br/>
+
+                                __________________
+                            </td>
+              <td style="width:33%; text-align:center;">
+                                Approuvé par
+
+                                <br/><br/><br/>
+
+                                __________________
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

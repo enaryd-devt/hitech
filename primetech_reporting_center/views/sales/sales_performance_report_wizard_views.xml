@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_sales_performance_report_wizard_form" model="ir.ui.view">
+    <field name="name">sales.performance.report.wizard.form</field>
+    <field name="model">primetech.sales.performance.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Performance Commerciale">
+        <sheet>
+          <div class="oe_title">
+            <h1>
+                            Performance Commerciale
+                        </h1>
+            <div class="text-muted">
+                            Analyse des performances des commerciaux,
+                            du chiffre d'affaires généré et de leur contribution
+                            aux ventes.
+                        </div>
+          </div>
+          <div class="alert alert-success mt16" role="alert"><i class="fa fa-trophy me-2"/>
+
+                        Sélectionnez une période et un commercial afin
+                        d'obtenir un rapport détaillé de performance.
+
+                    </div>
+          <group col="2">
+            <group string="Période d'Analyse">
+              <field name="date_from"/>
+              <field name="date_to"/>
+            </group>
+            <group string="Critères">
+              <field name="company_id"/>
+              <field name="user_id" options="{'no_create': True}"/>
+            </group>
+          </group>
+          <separator string="Objectif du Rapport"/>
+          <div class="text-muted">
+
+                        Ce rapport permet d'analyser :
+
+                        <ul style="margin-top:8px;"><li>Le chiffre d'affaires réalisé</li><li>Le nombre de ventes effectuées</li><li>Le panier moyen</li><li>La contribution du commercial aux ventes globales</li></ul>
+
+                    </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/>
+          <button string="Fermer" special="cancel" icon="fa-times" class="btn btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

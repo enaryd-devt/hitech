@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_customer_analysis_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <h2 style="text-align:center; margin-bottom:20px;">
+
+                        ANALYSE CLIENTS
+
+                    </h2>
+          <table style="width:100%; margin-bottom:20px;">
+            <tr>
+              <td><strong>
+                                    Période :
+                                </strong><t t-esc="wizard.date_from"/>
+
+                                au
+
+                                <t t-esc="wizard.date_to"/>
+
+                            </td>
+              <td style="text-align:right;">
+                <strong>
+                                    Imprimé le :
+                                </strong>
+                <t t-esc="generated_at.strftime('%d/%m/%Y %H:%M:%S')"/>
+              </td>
+            </tr>
+          </table>
+          <h3>Résumé Général</h3>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <td>
+                                Nombre Clients
+                            </td>
+              <td>
+                <t t-esc="report_data['summary']['customer_count']"/>
+              </td>
+              <td>
+                                Nombre Factures
+                            </td>
+              <td>
+                <t t-esc="report_data['summary']['invoice_count']"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                                CA HT
+                            </td>
+              <td>
+                <t t-esc="report_data['summary']['turnover_ht']"/>
+              </td>
+              <td>
+                                CA TTC
+                            </td>
+              <td>
+                <t t-esc="report_data['summary']['turnover_ttc']"/>
+              </td>
+            </tr>
+          </table>
+          <h3>Classement Clients</h3>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Factures</th>
+                <th>Qté</th>
+                <th>CA HT</th>
+                <th>CA TTC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="report_data['customer_lines']" t-as="line">
+                <tr>
+                  <td>
+                    <t t-esc="line['customer']"/>
+                  </td>
+                  <td>
+                    <t t-esc="line['invoice_count']"/>
+                  </td>
+                  <td>
+                    <t t-esc="line['qty']"/>
+                  </td>
+                  <td>
+                    <t t-esc="line['ht']"/>
+                  </td>
+                  <td>
+                    <t t-esc="line['ttc']"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

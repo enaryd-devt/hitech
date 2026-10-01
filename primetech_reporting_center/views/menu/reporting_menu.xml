@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- MENU RACINE -->
+  <menuitem id="menu_primetech_reporting_root" name="Reporting" web_icon="primetech_reporting_center,static/description/icon.png" groups="primetech_reporting_center.group_reporting_dashboard,primetech_reporting_center.group_reporting_accounting,primetech_reporting_center.group_reporting_sales,primetech_reporting_center.group_reporting_purchase,primetech_reporting_center.group_reporting_stock,primetech_reporting_center.group_reporting_hr,primetech_reporting_center.group_reporting_manager" sequence="10"/>
+  <!-- DASHBOARD -->
+  <menuitem id="menu_primetech_reporting_dashboard" name="Tableau de bord exécutif" parent="menu_primetech_reporting_root" action="action_primetech_reporting_dashboard" groups="primetech_reporting_center.group_reporting_dashboard,primetech_reporting_center.group_reporting_manager" sequence="1"/>
+  <!-- COMPTABILITE -->
+  <menuitem id="menu_primetech_reporting_accounting" name="Comptabilité" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_accounting,primetech_reporting_center.group_reporting_manager" sequence="10"/>
+  <!-- VENTE -->
+  <menuitem id="menu_primetech_reporting_sales" name="Ventes" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_sales,primetech_reporting_center.group_reporting_manager" sequence="20"/>
+  <!-- ACHAT -->
+  <menuitem id="menu_primetech_reporting_purchase" name="Achats" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_purchase,primetech_reporting_center.group_reporting_manager" sequence="30"/>
+  <!-- STOCK -->
+  <menuitem id="menu_primetech_reporting_stock" name="Stocks &amp; Supply Chain" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_stock,primetech_reporting_center.group_reporting_manager" sequence="40"/>
+  <!-- RH -->
+  <menuitem id="menu_primetech_reporting_hr" name="Ressources Humaines" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_hr,primetech_reporting_center.group_reporting_manager" sequence="50"/>
+  <!-- IMPRESSION -->
+  <menuitem id="menu_primetech_reporting_printing" name="Rapports &amp; Impression" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_manager" sequence="60"/>
+  <!-- CONFIGURATION -->
+  <menuitem id="menu_primetech_reporting_configuration" name="Configuration" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_manager" sequence="70"/>
+</odoo>

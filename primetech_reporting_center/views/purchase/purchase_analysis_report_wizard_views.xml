@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+<record id="view_purchase_analysis_report_wizard" model="ir.ui.view"><field name="name">purchase.analysis.report.wizard.form</field><field name="model">primetech.purchase.analysis.report.wizard</field><field name="arch" type="xml"><form string="Analyse des Achats" create="false" edit="false"><sheet><!-- ===================================== --><!-- HEADER --><!-- ===================================== --><div class="d-flex align-items-center mb-4"><div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:64px; height:64px; background:#EEF2FF; color:#4F46E5; font-size:26px;"><i class="fa fa-shopping-cart"/></div><div><h1 class="mb-1 fw-bold">
+                            Analyse des Achats
+                        </h1><div class="text-muted">
+                            Analyse détaillée des commandes d'achat,
+                            fournisseurs, produits et dépenses.
+                        </div></div></div><!-- ===================================== --><!-- FILTRES --><!-- ===================================== --><group string="Critères d'Analyse"><group><field name="date_from" string="Date Début"/><field name="date_to" string="Date Fin"/><field name="company_id"/></group><group><field name="supplier_ids" widget="many2many_tags" options="{'no_create': True}"/><field name="state"/></group></group></sheet><!-- ===================================== --><!-- FOOTER --><!-- ===================================== --><footer><button name="action_preview" type="object" string="Aperçu" icon="fa-eye" class="btn btn-primary"/><button name="action_print_pdf" type="object" string="Exporter PDF" icon="fa-file-pdf-o" class="btn btn-secondary"/><button name="action_export_xlsx" type="object" string="Exporter Excel" icon="fa-file-excel-o" class="btn btn-success"/><button name="action_retour" string="Fermer" special="cancel" icon="fa-times" class="btn btn-light"/></footer></form></field></record>
+
+
+</odoo>

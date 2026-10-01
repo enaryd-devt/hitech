@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.RiskCenter" owl="1">
+
+<div class="pt-risk-grid">
+
+    <!-- CREANCES CLIENTS -->
+
+    <div class="pt-risk-card invoices">
+
+        <div class="pt-risk-header">
+
+            <div>
+
+                <div class="pt-risk-title">
+                    Créances Clients
+                </div>
+
+                <div class="pt-risk-subtitle">
+                    Factures non réglées
+                </div>
+
+            </div>
+
+            <div class="pt-risk-icon danger">
+                💰
+            </div>
+
+        </div>
+
+        <div class="pt-scroll-card">
+            <t t-if="state.loading">
+
+            <div class="pt-skeleton-list">
+
+                <div class="pt-skeleton-row"/>
+                <div class="pt-skeleton-row"/>
+                <div class="pt-skeleton-row"/>
+                <div class="pt-skeleton-row"/>
+                <div class="pt-skeleton-row"/>
+
+            </div>
+
+        </t>
+
+        <t t-else="">
+
+           <div class="pt-risk-body">
+
+                <t t-foreach="state.invoices" t-as="customer" t-key="customer.id">
+
+                    <div class="pt-risk-row clickable" t-on-click="() =&gt; this.openCustomerInvoices( customer.id )">
+
+                        <div class="pt-risk-left">
+
+                            <div class="pt-risk-name">
+
+                                <t t-esc="customer.customer"/>
+
+                            </div>
+
+                            <div class="pt-risk-ref">
+
+                                <i class="fa fa-file-text-o me-1"/>
+
+                                <t t-esc="customer.invoice_count"/>
+
+                                factures impayées
+
+                            </div>
+
+                        </div>
+
+                        <div class="pt-risk-right">
+
+                            <div class="pt-risk-value">
+
+                                <t t-esc="this.formatCurrency( customer.residual )"/>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </t>
+
+            </div>
+
+        </t>
+
+
+
+        </div>
+
+    </div>
+
+    <!-- PRODUITS RESERVES -->
+
+    <div class="pt-risk-card products">
+
+        <div class="pt-risk-header">
+
+            <div>
+
+                <div class="pt-risk-title">
+                    Produits Réservés
+                </div>
+
+                <div class="pt-risk-subtitle">
+                    Bons de livraison en attente
+                </div>
+
+            </div>
+
+            <div class="pt-risk-icon warning">
+                📦
+            </div>
+
+        </div>
+
+        <div class="pt-scroll-card">
+
+            <t t-if="state.loading">
+
+                <div class="pt-skeleton-list">
+
+                    <div class="pt-skeleton-row"/>
+                    <div class="pt-skeleton-row"/>
+                    <div class="pt-skeleton-row"/>
+                    <div class="pt-skeleton-row"/>
+                    <div class="pt-skeleton-row"/>
+
+                </div>
+
+            </t>
+
+            <t t-else="">
+
+                 <div class="pt-risk-body">
+
+                <t t-foreach="state.products" t-as="product" t-key="product.id">
+
+                    <div class="pt-risk-row clickable" t-on-click="() =&gt; this.openDeliveryOrders(product)">
+
+                        <div class="pt-risk-left">
+
+                            <div class="pt-risk-name">
+
+                                <t t-esc="product.name"/>
+
+                            </div>
+
+                            <div class="pt-risk-ref">
+
+                                <t t-esc="product.customer"/>
+
+                            </div>
+
+                            <div class="pt-risk-ref">
+
+                                <t t-esc="product.delivery_count"/>
+
+                                BL en attente
+
+                            </div>
+
+                        </div>
+
+                        <div class="pt-risk-right">
+
+                            <span class="pt-badge">
+
+                                <t t-esc="product.qty"/>
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </t>
+
+            </div>
+
+            </t>
+
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</t>
+
+</templates>

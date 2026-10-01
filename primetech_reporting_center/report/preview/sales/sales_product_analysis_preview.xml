@@ -1,0 +1,260 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_product_analysis_preview">
+    <div style="padding:20px; background:white; color:black; font-family:Arial;">
+      <!-- ================================= -->
+      <!-- ENTETE -->
+      <!-- ================================= -->
+      <h2 style="text-align:center; margin-bottom:10px;">
+
+                ANALYSE PRODUITS
+
+            </h2>
+      <table style="width:100%; margin-bottom:20px;">
+        <tr>
+          <td><strong>
+                            Période :
+                        </strong><t t-esc="wizard.date_from"/>
+
+                        au
+
+                        <t t-esc="wizard.date_to"/>
+
+                    </td>
+          <td style="text-align:right;">
+            <strong>
+                            Imprimé le :
+                        </strong>
+            <t t-esc="generated_at and generated_at.strftime('%d/%m/%Y %H:%M:%S') or ''"/>
+          </td>
+        </tr>
+      </table>
+      <!-- ================================= -->
+      <!-- RESUME -->
+      <!-- ================================= -->
+      <h3>
+                Résumé Général
+            </h3>
+      <table class="table table-sm table-bordered">
+        <tr>
+          <td>
+                        Nombre Produits
+                    </td>
+          <td>
+            <t t-esc="report_data['summary']['product_count']"/>
+          </td>
+          <td>
+                        Nombre Factures
+                    </td>
+          <td>
+            <t t-esc="report_data['summary']['invoice_count']"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                        Quantité Vendue
+                    </td>
+          <td>
+            <t t-esc="report_data['summary']['qty_sold']"/>
+          </td>
+          <td>
+                        CA HT
+                    </td>
+          <td>
+            <t t-esc="report_data['summary']['turnover_ht']"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                        CA TTC
+                    </td>
+          <td>
+            <t t-esc="report_data['summary']['turnover_ttc']"/>
+          </td>
+          <td/>
+          <td/>
+        </tr>
+      </table>
+      <!-- ================================= -->
+      <!-- CLASSEMENT PRODUITS -->
+      <!-- ================================= -->
+      <h3>
+                Classement Produits
+            </h3>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>
+                            Produit
+                        </th>
+            <th>
+                            Factures
+                        </th>
+            <th>
+                            Quantité
+                        </th>
+            <th>
+                            CA HT
+                        </th>
+            <th>
+                            CA TTC
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="report_data['product_lines']" t-as="line">
+            <tr>
+              <td>
+                <t t-esc="line['product']"/>
+              </td>
+              <td>
+                <t t-esc="line['invoice_count']"/>
+              </td>
+              <td>
+                <t t-esc="line['qty']"/>
+              </td>
+              <td>
+                <t t-esc="line['ht']"/>
+              </td>
+              <td>
+                <t t-esc="line['ttc']"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ================================= -->
+      <!-- TOP 10 PRODUITS -->
+      <!-- ================================= -->
+      <h3>
+                Top 10 Produits
+            </h3>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>
+                            Produit
+                        </th>
+            <th>
+                            Quantité
+                        </th>
+            <th>
+                            CA HT
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="report_data['top_products']" t-as="line">
+            <tr>
+              <td>
+                <t t-esc="line['product']"/>
+              </td>
+              <td>
+                <t t-esc="line['qty']"/>
+              </td>
+              <td>
+                <t t-esc="line['ht']"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ================================= -->
+      <!-- DETAIL DES VENTES -->
+      <!-- ================================= -->
+      <h3>
+                Détail des Ventes
+            </h3>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>
+                            Facture
+                        </th>
+            <th>
+                            Date
+                        </th>
+            <th>
+                            Client
+                        </th>
+            <th>
+                            Produit
+                        </th>
+            <th>
+                            Qté
+                        </th>
+            <th>
+                            PU
+                        </th>
+            <th>
+                            HT
+                        </th>
+            <th>
+                            TTC
+                        </th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="report_data['detail_lines']" t-as="line">
+            <tr>
+              <td>
+                <t t-esc="line['invoice']"/>
+              </td>
+              <td>
+                <t t-esc="line['date']"/>
+              </td>
+              <td>
+                <t t-esc="line['customer']"/>
+              </td>
+              <td>
+                <t t-esc="line['product']"/>
+              </td>
+              <td>
+                <t t-esc="line['qty']"/>
+              </td>
+              <td>
+                <t t-esc="line['unit_price']"/>
+              </td>
+              <td>
+                <t t-esc="line['ht']"/>
+              </td>
+              <td>
+                <t t-esc="line['ttc']"/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <!-- ================================= -->
+      <!-- SIGNATURES -->
+      <!-- ================================= -->
+      <div style="margin-top:50px;">
+        <table style="width:100%;">
+          <tr>
+            <td style="text-align:center; width:33%;"><strong>
+                                Préparé par
+                            </strong><br/><br/><br/><br/>
+
+                            ____________________
+
+                        </td>
+            <td style="text-align:center; width:33%;"><strong>
+                                Vérifié par
+                            </strong><br/><br/><br/><br/>
+
+                            ____________________
+
+                        </td>
+            <td style="text-align:center; width:33%;"><strong>
+                                Approuvé par
+                            </strong><br/><br/><br/><br/>
+
+                            ____________________
+
+                        </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </template>
+</odoo>

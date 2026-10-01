@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================== -->
+  <!-- ACTION -->
+  <!-- ===================================== -->
+  <record id="action_stock_movement_wizard" model="ir.actions.act_window">
+    <field name="name">Mouvements de Stock</field>
+    <field name="res_model">pt.stock.movement.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

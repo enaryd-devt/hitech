@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="primetech_reporting_center.ExecutiveBoard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(concat(' ', normalize-space(@class), ' '), ' pt-category-kpi ')]" position="replace">
+            <div class="pt-category-kpi">
+                <header>
+                    <div>
+                        <h3>Catégories de ventes</h3>
+                        <small>Ventes facturées + PDV</small>
+                    </div>
+                </header>
+
+                <nav class="pt-category-view-switcher" aria-label="Affichage du KPI répartition par catégorie">
+                    <button t-att-class="state.categoryChartView === 'overview' ? 'is-active' : ''" type="button" t-on-click="closeCategoryChartWorkspace" t-att-aria-pressed="state.categoryChartView === 'overview'"><i class="fa fa-list-alt"/>Synthèse</button>
+                    <button t-att-class="state.categoryChartView === 'chart' ? 'is-active' : ''" type="button" t-on-click="openCategoryChartWorkspace" t-att-aria-pressed="state.categoryChartView === 'chart'"><i class="fa fa-pie-chart"/>Diagramme</button>
+                </nav>
+
+                <div t-att-class="'pt-category-view-viewport ' + (state.categoryChartView === 'chart' ? 'is-chart' : 'is-overview')">
+                    <section class="pt-category-view pt-category-chart-page" t-att-aria-hidden="state.categoryChartView !== 'chart'" aria-label="Diagramme de répartition par catégorie">
+                        <div class="pt-category-chart-options" role="group" aria-label="Type de diagramme">
+                            <button t-att-class="state.categoryChartType === 'pie' ? 'is-active' : ''" type="button" t-on-click="() => this.setCategoryChartType('pie')" t-att-aria-pressed="state.categoryChartType === 'pie'"><i class="fa fa-pie-chart"/>Circulaire</button>
+                            <button t-att-class="state.categoryChartType === 'bar' ? 'is-active' : ''" type="button" t-on-click="() => this.setCategoryChartType('bar')" t-att-aria-pressed="state.categoryChartType === 'bar'"><i class="fa fa-bar-chart"/>Bandes</button>
+                            <button t-att-class="state.categoryChartType === 'line' ? 'is-active' : ''" type="button" t-on-click="() => this.setCategoryChartType('line')" t-att-aria-pressed="state.categoryChartType === 'line'"><i class="fa fa-line-chart"/>Courbe</button>
+                        </div>
+
+                        <t t-if="state.categoryChartType === 'pie'">
+                            <section class="pt-category-chart-pie-layout">
+                                <div class="pt-category-chart-pie" t-att-style="categoryDonutStyle()" role="img" t-att-aria-label="'Répartition par catégorie, total ' + format(state.categories.total, 'FCFA')">
+                                    <span><strong><t t-esc="format(state.categories.total, 'FCFA')"/></strong><small>Total ventes</small></span>
+                                </div>
+                                <div class="pt-category-chart-legend" aria-label="Légende du diagramme">
+                                    <button t-foreach="categoryChartItems()" t-as="item" t-key="item.key" type="button" t-att-disabled="!item.action" t-on-click="() => this.openAction(item.action)">
+                                        <i t-att-style="'background:' + categoryColor(item.index)"/>
+                                        <span><t t-esc="item.name"/></span>
+                                        <strong><t t-esc="formatPercent(item.percent)"/></strong>
+                                    </button>
+                                </div>
+                            </section>
+                        </t>
+                        <t t-else="">
+                            <section class="pt-category-chart-plot" t-att-class="'pt-category-chart-plot is-' + state.categoryChartType">
+                                <div class="pt-category-chart-y"><t t-foreach="categoryScaleLabels()" t-as="tick" t-key="tick.key"><span><t t-esc="tick.label"/></span></t></div>
+                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Valeurs par catégorie">
+                                    <g class="pt-category-chart-grid">
+                                        <t t-foreach="categoryChartGridLines()" t-as="line" t-key="line.key"><line x1="0" x2="100" t-att-y1="line.y" t-att-y2="line.y"/></t>
+                                        <t t-foreach="categoryChartGridVerticalLines()" t-as="line" t-key="line.key"><line y1="8" y2="88" t-att-x1="line.x" t-att-x2="line.x"/></t>
+                                    </g>
+                                    <t t-if="state.categoryChartType === 'bar'">
+                                        <t t-foreach="categoryChartBars()" t-as="bar" t-key="bar.key">
+                                            <rect class="pt-category-chart-bar" t-att-style="'fill:' + categoryColor(bar.index)" t-att-x="bar.x" t-att-y="bar.y" t-att-width="bar.width" t-att-height="bar.height" rx=".8" tabindex="0" role="img" t-att-aria-label="bar.name + ': ' + format(bar.value, 'FCFA')">
+                                                <title><t t-esc="bar.name"/> : <t t-esc="format(bar.value, 'FCFA')"/> (<t t-esc="formatPercent(bar.percent)"/>)</title>
+                                            </rect>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <path class="pt-category-chart-line" t-att-d="categoryChartLinePath()"/>
+                                        <t t-foreach="categoryChartPoints()" t-as="point" t-key="point.key">
+                                            <circle class="pt-category-chart-dot" t-att-style="'fill:' + categoryColor(point.index)" t-att-cx="point.x" t-att-cy="point.y" r="1.9" tabindex="0" role="img" t-att-aria-label="point.name + ': ' + format(point.value, 'FCFA')">
+                                                <title><t t-esc="point.name"/> : <t t-esc="format(point.value, 'FCFA')"/> (<t t-esc="formatPercent(point.percent)"/>)</title>
+                                            </circle>
+                                        </t>
+                                    </t>
+                                </svg>
+                                <div class="pt-category-chart-x"><span t-foreach="categoryChartItems()" t-as="item" t-key="item.key" t-att-title="item.name"><t t-esc="item.name"/></span></div>
+                            </section>
+                        </t>
+                        <p t-if="!categoryChartItems().length" class="pt-category-chart-empty">Aucune vente catégorisée pour cette période.</p>
+                    </section>
+
+                    <section class="pt-category-view pt-category-overview-page" t-att-aria-hidden="state.categoryChartView === 'chart'">
+                        <section class="pt-category-total"><span>Total</span><strong><t t-esc="format(state.categories.total, 'FCFA')"/></strong></section>
+                        <section class="pt-category-rows pt-eb-card-list-scroll pt-eb-categories-scroll">
+                            <t t-foreach="state.categories.items || []" t-as="cat" t-key="cat.name"><button type="button" t-on-click="() => this.openAction(cat.action)"><span class="pt-category-name"><i/><t t-esc="cat.name"/></span><b><t t-esc="Math.round(cat.percent)"/>%</b><em><i t-att-style="'width:' + cat.percent + '%'"/></em><small><t t-esc="format(cat.value, 'FCFA')"/></small></button></t>
+                        </section>
+                        <footer>Mis à jour : <t t-esc="timeLabel()"/></footer>
+                    </section>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

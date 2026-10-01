@@ -1,0 +1,298 @@
+:root {
+    --primetech-blue: #0637ad;
+    --primetech-ink: #08256f;
+    --primetech-orange: #ff7000;
+    --primetech-pale: #f4f8ff;
+    --primetech-border: #dce8ff;
+}
+
+.pos {
+    background: linear-gradient(135deg, #f7fbff 0%, #edf5ff 100%);
+    color: var(--primetech-ink);
+
+    .pos-topheader {
+        min-height: 80px;
+        padding: .55rem 2rem !important;
+        border: 0 !important;
+        box-shadow: 0 3px 16px rgba(8, 52, 143, .08);
+        gap: 0;
+    }
+
+    .pos-leftheader { display: none !important; }
+
+    .pos-leftheader .order-tabs { display: none !important; }
+
+    .primetech-pos-brand {
+        display: flex;
+        align-items: center;
+        flex: 0 0 185px;
+        width: 185px;
+        height: 52px;
+
+        img { max-width: 100%; max-height: 58px; object-fit: contain; object-position: left center; }
+    }
+
+    .pos-rightheader {
+        flex: 1 1 auto;
+        order: 0;
+        max-width: none;
+    }
+
+    .status-buttons { width: 100%; gap: .9rem !important; }
+    .status-buttons > .primetech-pos-brand {
+        order: 0;
+        flex: 0 0 185px;
+        margin-right: .7rem;
+    }
+    .status-buttons > .p-0 {
+        order: 1;
+        flex: 1 1 445px;
+        max-width: 445px;
+        margin-right: auto;
+    }
+    .status-buttons > .p-0 .input-group { width: 100%; }
+    .status-buttons > :not(.primetech-pos-brand):not(.p-0) { order: 2; }
+    .primetech-live-clock { display: flex; align-items: center; gap: .5rem; min-height: 40px; padding: 0 .75rem; border-left: 1px solid #dce7fa; color: #0b3b9c; font-size: .9rem; font-weight: 800; }
+    .primetech-live-clock i { font-size: 1.05rem; color: #1155dc; }
+    .primetech-theme-toggle { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 1px solid #d7e4fa; border-radius: 11px; background: #f7faff; color: #0d47b9; font-size: 1.05rem; transition: transform .18s ease, background .18s ease, color .18s ease; }
+    .primetech-theme-toggle:hover { transform: translateY(-2px); background: #eaf2ff; }
+
+    .pos-centerheader { display: none !important; }
+
+    .status-buttons .form-control,
+    .status-buttons input {
+        border: 1px solid #bdd1ff !important;
+        border-radius: 28px !important;
+        min-height: 40px;
+        background: #f4f7fc !important;
+        color: #46639a !important;
+        font-size: .75rem !important;
+        box-shadow: none;
+    }
+    .status-buttons .input-container { padding: 0 .65rem !important; }
+    .status-buttons .input-container i { color: #0b55d4; font-size: .9rem !important; }
+
+    .status-buttons .btn {
+        border: 0;
+        border-radius: 12px;
+        color: var(--primetech-blue);
+        background: #fff;
+        transition: transform .2s ease, background .2s ease;
+        &:hover { transform: translateY(-2px); background: #eef4ff; }
+    }
+
+    .cashier-name { border-radius: 12px; background: #f1f5ff; padding: .45rem .8rem; }
+
+    .pos-content { overflow: hidden !important; background: transparent !important; }
+
+    .product-screen { padding: .6rem 1rem .8rem; gap: .9rem; flex-direction: row-reverse; }
+    .product-screen .rightpane { min-width: 0; }
+    .product-screen .leftpane {
+        flex: 0 0 clamp(330px, 28vw, 440px) !important;
+        padding: .75rem !important;
+        background: #fff;
+        border: 1px solid var(--primetech-border);
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgba(22, 60, 140, .08);
+    }
+
+    .primetech-product-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .12rem .55rem .42rem;
+    }
+    .primetech-product-title { display: flex; align-items: center; gap: .85rem; }
+    .primetech-product-title h2 { margin: 0; font-weight: 800; font-size: 1.55rem; color: var(--primetech-ink); }
+    .primetech-product-title span { padding: .42rem .8rem; border-radius: 12px; background: #fff0e2; color: var(--primetech-orange); font-weight: 700; font-size: .8rem; }
+    .primetech-sort-hint { align-items: center; gap: .65rem; color: #1a47ac; }
+    .primetech-sort-options { display: flex; overflow: hidden; border: 1px solid var(--primetech-border); border-radius: 9px; background: #fff; }
+    .primetech-sort-options button { border: 0; border-right: 1px solid #e4ecfc; padding: .55rem .7rem; background: transparent; color: #3156a4; font-size: .8rem; font-weight: 600; }
+    .primetech-sort-options button:last-child { border-right: 0; }
+    .primetech-sort-options button.active { background: var(--primetech-orange); color: white; }
+    .primetech-cart-heading { display: flex; align-items: center; gap: .55rem; }
+    .product-list .primetech-stock-badge.is-available { background: #e2f8eb !important; color: #087a42 !important; }
+    .product-list .primetech-stock-badge.is-warning { background: #fff1cf !important; color: #b56b00 !important; }
+    .product-list .primetech-stock-badge.is-critical,
+    .product-list .primetech-stock-badge.is-empty { background: #ffe1e4 !important; color: #c62a38 !important; }
+
+    .category-list {
+        display: flex !important;
+        grid-template-columns: none !important;
+        overflow-x: auto;
+        padding: 0 .45rem .32rem !important;
+        gap: .38rem !important;
+        scrollbar-width: thin;
+    }
+    .category-list .category-button {
+        flex: 0 0 auto;
+        height: 36px !important;
+        min-width: 86px;
+        flex-direction: row;
+        justify-content: center;
+        border: 0 !important;
+        background: #eef4ff !important;
+        color: var(--primetech-blue);
+        box-shadow: none;
+        transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .category-list .category-button:before { display: none; content: none; }
+    .category-list .category-button .category-img-thumb { display: none !important; }
+    .category-list .category-button .text-wrap-categ { font-size: .78rem !important; line-height: 1.1; white-space: nowrap; }
+    .category-list .category-button.o_colorlist_item_color_0,
+    .category-list .category-button.opacity-50 { opacity: 1 !important; }
+    .category-list .category-button { background: #fff !important; color: var(--primetech-blue) !important; }
+    .category-list .category-button:hover { transform: translateY(-2px); border-color: #9fc4ff; box-shadow: 0 5px 12px rgba(15, 68, 164, .12); }
+    .category-list .category-button.primetech-category-active { transform: translateY(-2px); border-color: transparent; background: linear-gradient(145deg, #ff8700, #ff6200) !important; color: #fff !important; box-shadow: 0 7px 14px rgba(255,112,0,.25); }
+
+    .product-list { grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)) !important; gap: .75rem !important; }
+    .product-list .product {
+        display: flex !important;
+        flex-direction: column;
+        min-height: 230px;
+        overflow: hidden;
+        border: 1px solid #e2ebfb !important;
+        background: #fff !important;
+        box-shadow: 0 2px 8px rgba(26, 65, 145, .045);
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .product-list .product:hover { transform: translateY(-4px); border-color: #bcd1fb !important; box-shadow: 0 12px 22px rgba(27, 75, 166, .15); }
+    .product-list .product .product-img { height: 130px; padding: .55rem; background: #fff; }
+    .product-list .product .product-img img { height: 100%; object-fit: contain; }
+    .product-list .product .product-content { min-height: 58px; padding: 0 .9rem !important; flex: 0 0 58px; }
+    .product-list .product .product-name { display: -webkit-box; flex: 1 1 auto; max-height: 2.5em; margin-right: .35rem; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: #111; font-family: var(--o-font-family-sans-serif, sans-serif); font-weight: 400; font-size: .95rem; line-height: 1.25; text-overflow: ellipsis; }
+    .product-list .product:has(.product-name.no-image) .product-content.h-100 { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; height: auto !important; min-height: 0; padding: 2rem 1rem 3.8rem !important; }
+    .product-list .product .product-name.no-image { display: -webkit-box; align-items: center; justify-content: center; max-height: 6.25em; margin: 0; overflow: hidden; text-align: center; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+    .product-list .product:has(.product-name.no-image) .primetech-product-price { position: absolute; right: 0; bottom: 0; left: 0; z-index: 2; width: 100%; padding: 0 .9rem 1rem; }
+    .product-list .product .product-information-tag { display: none; }
+    .primetech-stock-badge { position: absolute; top: .55rem; right: .55rem; z-index: 2; display: inline-flex; align-items: center; padding: .3rem .55rem; border-radius: 8px; background: #ddf9eb; color: #087343; font-size: .78rem; font-weight: 800; box-shadow: 0 2px 7px rgba(6, 130, 73, .1); }
+    .primetech-stock-badge.is-empty { background: #ffe3e6; color: #ba172d; }
+    .product-list .product.primetech-product-out-of-stock { opacity: .86; filter: grayscale(.55); cursor: not-allowed !important; background: #eef0f3 !important; box-shadow: none !important; }
+    .product-list .product.primetech-product-out-of-stock .product-name,
+    .product-list .product.primetech-product-out-of-stock .primetech-product-price { color: #687386 !important; }
+    .product-list .product.primetech-product-out-of-stock:hover { transform: none; box-shadow: none !important; }
+    .product-list .product.primetech-product-out-of-stock .primetech-product-info { position: relative; z-index: 5; cursor: pointer; filter: none; }
+    .primetech-product-price { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 .9rem 1rem; font-size: 1rem; font-weight: 800; color: #063bcc; }
+    .primetech-product-info { width: 34px; height: 34px; border: 1px solid #bed1ff; border-radius: 8px; background: #fff; color: #073bc1; transition: transform .18s ease, background .18s ease; }
+    .primetech-product-info:hover { transform: translateY(-2px); background: #eaf2ff; }
+
+    .primetech-cart-heading { display: flex; align-items: center; justify-content: space-between; padding: .25rem .2rem .75rem; border-bottom: 1px solid #e3ebfa; color: var(--primetech-ink); font-size: 1.35rem; font-weight: 800; }
+    .primetech-cart-heading small { color: #2457cb; font-size: .8rem; font-weight: 700; }
+    .primetech-cart-actions { display: flex; align-items: center; gap: .6rem; }
+    .primetech-clear-cart { display: inline-flex; align-items: center; gap: .35rem; padding: .36rem .6rem; border: 1px solid #ffd2d7; border-radius: 7px; background: #fff5f6; color: #ca3040; font-size: .72rem; font-weight: 800; transition: transform .16s ease, background .16s ease, box-shadow .16s ease; }
+    .primetech-clear-cart:hover { transform: translateY(-1px); background: #ffe8eb; box-shadow: 0 4px 10px rgba(190, 40, 58, .14); }
+    .primetech-clear-cart i { font-size: .86rem; }
+    .leftpane .order-container { padding-top: .25rem; }
+    .leftpane .orderline { border-bottom: 1px solid #edf1fa; transition: background .15s ease; }
+    .leftpane .orderline:hover { background: #f4f8ff; }
+    .leftpane .order-summary { border-radius: 12px; background: linear-gradient(100deg, #fff7ec, #fff); color: var(--primetech-ink); }
+    .leftpane .order-summary .fs-2 { color: var(--primetech-orange); }
+    .leftpane .pay-button { min-height: 54px; border: 0; border-radius: 10px; background: linear-gradient(110deg, #ff8700, #ff5c00); box-shadow: 0 8px 18px rgba(255,103,0,.25); }
+    html:not(.primetech-pos-dark) .pos .leftpane .orderline button,
+    html:not(.primetech-pos-dark) .pos .leftpane .order-summary button:not(.pay-button) { border: 1px solid #c8daf8 !important; border-radius: 8px; background: #fff !important; color: #0a45b8 !important; box-shadow: 0 1px 3px rgba(20, 70, 155, .06); transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease; }
+    html:not(.primetech-pos-dark) .pos .leftpane .orderline button:hover,
+    html:not(.primetech-pos-dark) .pos .leftpane .order-summary button:not(.pay-button):hover { border-color: #79a9f6 !important; background: #eef5ff !important; box-shadow: 0 4px 10px rgba(26, 86, 182, .14); transform: translateY(-1px); }
+    html:not(.primetech-pos-dark) .pos .leftpane .orderline button:active,
+    html:not(.primetech-pos-dark) .pos .leftpane .order-summary button:not(.pay-button):active { background: #dbeaff !important; box-shadow: inset 0 1px 3px rgba(21, 74, 160, .18); transform: translateY(0) scale(.97); }
+    html:not(.primetech-pos-dark) .pos .leftpane .orderline button:focus-visible,
+    html:not(.primetech-pos-dark) .pos .leftpane .order-summary button:not(.pay-button):focus-visible { outline: 2px solid #4b8ff8; outline-offset: 2px; }
+
+    .primetech-pos-footer {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        height: 64px;
+        min-height: 64px;
+        padding: .35rem .55rem;
+        border-top: 1px solid #dce7fa;
+        background: #fff;
+        color: #073ba8;
+        font-size: .72rem;
+        font-weight: 600;
+    }
+    .primetech-footer-location { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; }
+    .primetech-footer-location b { font-weight: 800; }
+    .primetech-new-order { display: grid; place-items: center; flex: 0 0 38px; width: 38px; height: 38px; border: 0; border-radius: 8px; background: linear-gradient(145deg, #ff8a00, #ff6100); color: #fff; box-shadow: 0 4px 10px rgba(255, 105, 0, .25); transition: transform .18s ease, box-shadow .18s ease; }
+    .primetech-new-order:hover { transform: translateY(-2px) rotate(4deg); box-shadow: 0 7px 14px rgba(255, 105, 0, .34); }
+    .primetech-open-orders { display: flex; flex: 1 1 260px; align-self: center; align-items: flex-start; box-sizing: border-box; height: 56px; gap: .45rem; min-width: 0; overflow-x: auto; overflow-y: hidden; padding: 1px 3px 8px; scrollbar-width: thin; scrollbar-color: #91a6c9 transparent; }
+    .primetech-open-orders::-webkit-scrollbar { height: 5px; }
+    .primetech-open-orders::-webkit-scrollbar-track { background: transparent; }
+    .primetech-open-orders::-webkit-scrollbar-thumb { border-radius: 99px; background: #91a6c9; }
+    .primetech-order-chip { display: grid; flex: 0 0 260px; box-sizing: border-box; width: 260px; height: 44px; min-height: 44px; grid-template-columns: minmax(0, 1fr) auto 13px; grid-template-rows: auto auto; column-gap: .45rem; row-gap: .12rem; padding: .25rem .65rem; border: 1px solid #cfe0ff; border-radius: 7px; background: linear-gradient(145deg, #fff, #f2f7ff); color: #0c3a9a; text-align: left; box-shadow: 0 2px 7px rgba(15, 68, 164, .07); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+    .primetech-order-chip:hover { transform: translateY(-2px); border-color: #0f66e8; box-shadow: 0 6px 14px rgba(15, 68, 164, .18); }
+    .primetech-order-chip.is-active { border-color: var(--primetech-orange); background: linear-gradient(135deg, #ff8a00, #ff6200); color: #fff; box-shadow: 0 6px 15px rgba(255, 105, 0, .28); }
+    .primetech-order-chip.is-active i { color: #fff; }
+    .primetech-order-chip:focus-visible { outline: 2px solid var(--primetech-orange); outline-offset: 2px; }
+    .primetech-order-chip-head { grid-column: 1 / span 2; grid-row: 1; display: flex; min-width: 0; align-items: center; gap: .35rem; }
+    .primetech-order-chip b { min-width: 0; overflow: visible; white-space: nowrap; font-size: .62rem; color: #486292; }
+    .primetech-order-chip-head span { display: grid; place-items: center; flex: 0 0 10px; width: 10px; height: 10px; border-radius: 99px; background: #e1f8ec; color: #087343; font-size: .38rem; }
+    .primetech-order-chip strong { grid-column: 1; grid-row: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(.73rem, .82vw, .86rem); font-variant-numeric: tabular-nums; color: #082b86; line-height: 1.05; }
+    .primetech-order-chip small { grid-column: 2; grid-row: 2; min-width: 0; white-space: nowrap; font-size: .52rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #6075a2; }
+    .primetech-delete-order { display: grid; grid-column: 3; grid-row: 1; place-items: center; width: 15px; height: 15px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #d73c45; font-size: .62rem; transition: background .16s ease, color .16s ease, transform .16s ease; }
+    .primetech-delete-order:hover { background: #ffe3e5; color: #b4232a; transform: scale(1.12); }
+    .primetech-order-chip.is-active .primetech-delete-order { color: #fff2f2; }
+    .primetech-order-chip.is-active .primetech-delete-order:hover { background: rgba(255, 255, 255, .2); color: #fff; }
+    .primetech-order-chip > i { grid-column: 3; grid-row: 2; align-self: center; color: #0b50ce; font-size: .62rem; }
+    .primetech-footer-status { margin-left: auto; }
+    .primetech-pos-footer a { color: inherit; text-decoration: none; }
+    .primetech-pos-footer a:hover { color: var(--primetech-orange); }
+
+    // Payment screen: same Hitech hierarchy, colors and call-to-action.
+    .payment-screen {
+        padding: 1rem !important;
+        background: linear-gradient(135deg, #f6faff, #edf4ff) !important;
+    }
+    .payment-screen .payment-buttons,
+    .payment-screen .paymentmethods { gap: .7rem !important; }
+    .payment-screen .paymentmethod,
+    .payment-screen .button-payment {
+        border: 1px solid var(--primetech-border) !important;
+        border-radius: 12px !important;
+        background: #fff !important;
+        color: var(--primetech-blue) !important;
+        box-shadow: 0 3px 10px rgba(20, 67, 150, .07);
+    }
+    .payment-screen .paymentmethod.selected,
+    .payment-screen .button-payment.selected { border-color: var(--primetech-orange) !important; background: #fff2e7 !important; color: var(--primetech-orange) !important; }
+    .payment-screen .paymentlines-container,
+    .payment-screen .payment-summary { border-radius: 16px; background: #fff; box-shadow: 0 8px 26px rgba(20, 67, 150, .08); }
+    .payment-screen .button.validate,
+    .payment-screen .btn-primary { border: 0 !important; border-radius: 12px !important; background: linear-gradient(110deg, #ff8700, #ff5c00) !important; box-shadow: 0 9px 20px rgba(255,103,0,.25); }
+}
+
+html.primetech-pos-dark {
+    .pos { background: linear-gradient(135deg, #121a2a 0%, #0d1421 100%); color: #e7eefb; }
+    .pos .pos-topheader, .pos .primetech-pos-footer { background: #172236 !important; border-color: #2c3d58 !important; box-shadow: 0 3px 18px rgba(0, 0, 0, .34); }
+    .pos .primetech-live-clock { border-color: #33455f; color: #dbe7fb; }
+    .pos .primetech-live-clock i, .pos .primetech-theme-toggle { color: #ffd166; }
+    .pos .primetech-theme-toggle { border-color: #40536f; background: #202e46; }
+    .pos .primetech-theme-toggle:hover { background: #2a3c5c; }
+    .pos .status-buttons .form-control, .pos .status-buttons input { border-color: #3a506f !important; background: #202d42 !important; color: #e7eefb !important; }
+    .pos .product-list .product, .pos .leftpane, .pos .rightpane, .pos .order-container, .pos .order-summary { background: #172236 !important; color: #e7eefb !important; border-color: #2e405c !important; }
+    .pos .product-list .product .product-name, .pos .member_portal_title h2 { color: #fff !important; font-weight: 400; }
+    .pos .product-list .product .product-price, .pos .primetech-product-price { color: #8eb7ff !important; }
+    .pos .category-button { background: #202d42 !important; border-color: #3a4d6a !important; color: #dce8fb !important; }
+    .pos .category-button.primetech-category-active { background: #ff7000 !important; border-color: #ff7000 !important; color: #fff !important; }
+    .pos .primetech-cart-heading, .pos .leftpane .orderline { border-color: #2e405c; color: #e7eefb; }
+    .pos .primetech-product-title h2, .pos .primetech-cart-heading > span { color: #fff !important; }
+    .pos .leftpane .orderline:hover { background: #202d42; }
+    .pos .primetech-clear-cart { border-color: #7d3b48; background: #39232c; color: #ffafb9; }
+    .pos .primetech-pos-footer { color: #c9d9f3; }
+    .pos .payment-screen { background: linear-gradient(135deg, #121a2a, #0d1421) !important; }
+    .pos .payment-screen .paymentmethod, .pos .payment-screen .button-payment, .pos .payment-screen .paymentlines-container, .pos .payment-screen .payment-summary { border-color: #2e405c !important; background: #172236 !important; color: #e7eefb !important; box-shadow: none; }
+    .pos .payment-screen .paymentmethod.selected, .pos .payment-screen .button-payment.selected { border-color: #ff7000 !important; background: #3b2a1d !important; color: #ffbd7b !important; }
+}
+
+@media (max-width: 1100px) {
+    .pos .primetech-pos-brand { flex-basis: 135px; width: 135px; }
+    .pos .status-buttons > .p-0 { flex-basis: 310px; max-width: 440px; }
+    .pos .product-screen .leftpane { flex-basis: 330px !important; }
+    .pos .category-list .category-button { flex-basis: 90px; }
+}
+
+@media (max-width: 768px) {
+    .pos .pos-topheader { min-height: 60px; padding: .3rem .6rem !important; }
+    .pos .primetech-pos-brand { display: none; }
+    .pos .product-screen { padding: .4rem; }
+    .pos .product-list { grid-template-columns: repeat(auto-fill, minmax(142px, 1fr)) !important; }
+}

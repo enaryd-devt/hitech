@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_invoice_analysis_report_wizard_form" model="ir.ui.view">
+    <field name="name">invoice.analysis.report.wizard.form</field>
+    <field name="model">primetech.invoice.analysis.report.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Analyse de Facturation" create="0" edit="0">
+        <sheet>
+          <div class="oe_title">
+            <h1><i class="fa fa-file-text-o me-2"/>
+
+                            Analyse de Facturation
+
+                        </h1>
+            <div class="text-muted">
+
+                            Analyse détaillée des factures,
+                            paiements, créances, commerciaux
+                            et clients.
+
+                        </div>
+          </div>
+          <separator string="Période" colspan="4"/>
+          <group col="4">
+            <group>
+              <field name="date_from" required="1"/>
+            </group>
+            <group>
+              <field name="date_to" required="1"/>
+            </group>
+            <group>
+              <field name="company_id"/>
+            </group>
+            <group/>
+          </group>
+          <separator string="Filtres" colspan="4"/>
+          <group col="4">
+            <group>
+              <field name="partner_id"/>
+            </group>
+            <group>
+              <field name="user_id"/>
+            </group>
+            <group>
+              <field name="move_type"/>
+            </group>
+            <group>
+              <field name="payment_state"/>
+            </group>
+          </group>
+          <separator string="Indicateurs Inclus" colspan="4"/>
+          <div class="alert alert-info">
+            <ul style="margin-bottom:0;">
+              <li>
+                                KPI de facturation
+                            </li>
+              <li>
+                                Analyse des paiements
+                            </li>
+              <li>
+                                Créances clients
+                            </li>
+              <li>
+                                Vieillissement des soldes
+                            </li>
+              <li>
+                                Top clients
+                            </li>
+              <li>
+                                Top produits
+                            </li>
+              <li>
+                                Top commerciaux
+                            </li>
+              <li>
+                                Analyse TVA
+                            </li>
+              <li>
+                                Analyse mensuelle
+                            </li>
+              <li>
+                                Alertes et impayés
+                            </li>
+            </ul>
+          </div>
+        </sheet>
+        <footer>
+          <button name="action_preview" string="Aperçu" type="object" class="btn btn-primary" icon="fa-search"/>
+          <button name="action_print_pdf" string="Exporter PDF" type="object" class="btn btn-secondary" icon="fa-file-pdf-o"/>
+          <button name="action_export_xlsx" string="Exporter Excel" type="object" class="btn btn-success" icon="fa-file-excel-o"/>
+          <button string="Fermer" special="cancel" class="btn btn-light" icon="fa-times"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

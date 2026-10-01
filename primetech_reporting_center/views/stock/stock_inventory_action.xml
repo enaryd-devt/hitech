@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================== -->
+  <!-- ACTION -->
+  <!-- ===================================== -->
+  <record id="action_stock_inventory_wizard" model="ir.actions.act_window">
+    <field name="name">Inventaire</field>
+    <field name="res_model">pt.stock.inventory.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>

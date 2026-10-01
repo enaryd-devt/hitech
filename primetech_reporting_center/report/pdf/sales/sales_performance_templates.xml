@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_performance_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <h2 style="text-align:center; margin-bottom:20px;">
+
+                        PERFORMANCE COMMERCIALE
+
+                    </h2>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <td>
+                <strong>Date début</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.date_from"/>
+              </td>
+              <td>
+                <strong>Date fin</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.date_to"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Société</strong>
+              </td>
+              <td>
+                <t t-esc="wizard.company_id.name"/>
+              </td>
+              <td>
+                <strong>Commercial</strong>
+              </td>
+              <td>
+                <t t-if="wizard.user_id">
+                  <t t-esc="wizard.user_id.name"/>
+                </t>
+                <t t-else="">
+                                    Tous
+                                </t>
+              </td>
+            </tr>
+          </table>
+          <br/>
+          <h4>Résumé Général</h4>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <th>Nb commerciaux</th>
+              <td>
+                <t t-esc="report_data['summary']['salesman_count']"/>
+              </td>
+              <th>Nb factures</th>
+              <td>
+                <t t-esc="report_data['summary']['invoice_count']"/>
+              </td>
+            </tr>
+            <tr>
+              <th>Qté vendue</th>
+              <td>
+                <t t-esc="report_data['summary']['qty_sold']"/>
+              </td>
+              <th>CA HT</th>
+              <td>
+                <t t-esc="'{:,.0f}'.format(report_data['summary']['turnover_ht'])"/>
+              </td>
+            </tr>
+            <tr>
+              <th>CA TTC</th>
+              <td colspan="3">
+                <t t-esc="'{:,.0f}'.format(report_data['summary']['turnover_ttc'])"/>
+              </td>
+            </tr>
+          </table>
+          <br/>
+          <h4>Classement des commerciaux</h4>
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Commercial</th>
+                <th>Factures</th>
+                <th>Qté</th>
+                <th>CA HT</th>
+                <th>CA TTC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr t-foreach="report_data['performance_lines']" t-as="line">
+                <td>
+                  <t t-esc="line['salesman']"/>
+                </td>
+                <td>
+                  <t t-esc="line['invoice_count']"/>
+                </td>
+                <td>
+                  <t t-esc="line['qty']"/>
+                </td>
+                <td>
+                  <t t-esc="'{:,.0f}'.format(line['ht'])"/>
+                </td>
+                <td>
+                  <t t-esc="'{:,.0f}'.format(line['ttc'])"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <br/>
+          <br/>
+          <br/>
+          <table style="width:100%; margin-top:50px;">
+            <tr>
+              <td style="width:33%; text-align:center;"><strong>
+                                    Préparé par
+                                </strong><br/><br/><br/><br/>
+
+                                ___________________
+
+                            </td>
+              <td style="width:33%; text-align:center;"><strong>
+                                    Vérifié par
+                                </strong><br/><br/><br/><br/>
+
+                                ___________________
+
+                            </td>
+              <td style="width:33%; text-align:center;"><strong>
+                                    Approuvé par
+                                </strong><br/><br/><br/><br/>
+
+                                ___________________
+
+                            </td>
+            </tr>
+          </table>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

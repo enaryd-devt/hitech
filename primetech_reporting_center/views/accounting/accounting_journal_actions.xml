@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_accounting_journal_wizard" model="ir.actions.act_window">
+    <field name="name">Journaux Comptables</field>
+    <field name="res_model">primetech.accounting.journal.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="view_id" ref="view_accounting_journal_wizard"/>
+    <field name="target">new</field>
+  </record>
+</odoo>

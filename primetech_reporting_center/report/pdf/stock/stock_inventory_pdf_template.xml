@@ -1,0 +1,303 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="stock_inventory_pdf">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <div class="page">
+          <!-- ============================== -->
+          <!-- TITRE -->
+          <!-- ============================== -->
+          <div style="text-align:center; margin-bottom:20px;">
+            <h2>
+
+                            INVENTAIRE PHYSIQUE
+
+                        </h2>
+            <div>
+              <t t-esc="docs.company_id.name"/>
+            </div>
+          </div>
+          <div style="margin-top:5px; font-size:11px;">
+
+                        Date d'impression :
+
+                        <t t-out="context_timestamp( datetime.datetime.now() ).strftime( '%d/%m/%Y %H:%M' )"/>
+
+                    </div>
+          <!-- ============================== -->
+          <!-- KPI -->
+          <!-- ============================== -->
+          <table style="width:100%; margin-bottom:20px; border-collapse:collapse;">
+            <tr>
+              <td class="kpi">
+
+                                Produits
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['products_count']"/></strong>
+
+                            </td>
+              <td class="kpi">
+
+                                Lots
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['lots_count']"/></strong>
+
+                            </td>
+              <td class="kpi">
+
+                                Entrepôts
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['warehouses_count']"/></strong>
+
+                            </td>
+              <td class="kpi">
+
+                                Emplacements
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['locations_count']"/></strong>
+
+                            </td>
+              <td class="kpi">
+
+                                Quantité
+
+                                <br/>
+
+                                <strong><t t-esc="data['kpi']['total_qty']"/></strong>
+
+                            </td>
+            </tr>
+          </table>
+          <!-- ============================== -->
+          <!-- INVENTAIRE -->
+          <!-- ============================== -->
+          <t t-foreach="data['inventory'].items()" t-as="warehouse">
+            <!-- ============================== -->
+            <!-- ENTREPOT -->
+            <!-- ============================== -->
+            <div style="margin-top:15px; margin-bottom:10px; padding:8px; background:#e5e7eb; font-weight:bold; font-size:14px;">
+
+                            ENTREPÔT :
+                            <t t-esc="warehouse[0]"/>
+
+                        </div>
+            <t t-foreach="warehouse[1].items()" t-as="location">
+              <!-- ============================== -->
+              <!-- EMPLACEMENT -->
+              <!-- ============================== -->
+              <div style="margin-left:15px; margin-top:10px; margin-bottom:8px; font-weight:bold;">
+
+                                EMPLACEMENT :
+                                <t t-esc="location[0]"/>
+
+                            </div>
+              <t t-foreach="location[1].items()" t-as="category">
+                <!-- ============================== -->
+                <!-- CATEGORIE -->
+                <!-- ============================== -->
+                <div style="margin-left:30px; margin-top:10px; margin-bottom:8px; font-weight:bold;">
+
+                                    CATÉGORIE :
+                                    <t t-esc="category[0]"/>
+
+                                </div>
+                <!-- ============================== -->
+                <!-- TABLEAU -->
+                <!-- ============================== -->
+                <table class="inventory_table" style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+                  <thead>
+                    <tr>
+                      <th>
+                                                Produit
+                                            </th>
+                      <th>
+                                                Référence
+                                            </th>
+                      <th>
+                                                Lot
+                                            </th>
+                      <th>
+                                                Stock Disponible
+                                            </th>
+                      <th>
+                                                Stock Réservé
+                                            </th>
+                      <th>
+                                                Qté Comptée
+                                            </th>
+                      <th>
+                                                Écart Observé
+                                            </th>
+                      <th>
+                                                Observation
+                                            </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <t t-foreach="category[1]" t-as="line">
+                      <tr>
+                        <!-- ============================== -->
+                        <!-- PRODUIT -->
+                        <!-- ============================== -->
+                        <td>
+                          <t t-if="line['first_line']">
+                            <strong>
+                              <t t-esc="line['product_name']"/>
+                            </strong>
+                          </t>
+                        </td>
+                        <!-- ============================== -->
+                        <!-- REFERENCE -->
+                        <!-- ============================== -->
+                        <td>
+                          <t t-if="line['first_line']">
+                            <strong>
+                              <t t-esc="line['default_code']"/>
+                            </strong>
+                          </t>
+                        </td>
+                        <!-- ============================== -->
+                        <!-- LOT -->
+                        <!-- ============================== -->
+                        <td>
+                          <t t-esc="line['lot_name']"/>
+                        </td>
+                        <!-- ============================== -->
+                        <!-- STOCK DISPONIBLE -->
+                        <!-- ============================== -->
+                        <td style="text-align:right;">
+                          <t t-esc="line['qty_available']"/>
+                        </td>
+                        <!-- ============================== -->
+                        <!-- STOCK RESERVE -->
+                        <!-- ============================== -->
+                        <td style="text-align:right;">
+                          <t t-esc="line['qty_reserved']"/>
+                        </td>
+                        <!-- ============================== -->
+                        <!-- QTE COMPTEE -->
+                        <!-- ============================== -->
+                        <td/>
+                        <!-- ============================== -->
+                        <!-- ECART OBSERVE -->
+                        <!-- ============================== -->
+                        <td/>
+                        <!-- ============================== -->
+                        <!-- OBSERVATION -->
+                        <!-- ============================== -->
+                        <td/>
+                      </tr>
+                    </t>
+                  </tbody>
+                </table>
+              </t>
+            </t>
+          </t>
+          <!-- ============================== -->
+          <!-- OBSERVATIONS -->
+          <!-- ============================== -->
+          <t t-if="wizard.observations">
+            <div style="margin-top:20px; border:1px solid #d1d5db; padding:12px;">
+              <strong>
+
+                                Observations / Consignes Générales
+
+                            </strong>
+              <div style="margin-top:10px;">
+                <t t-esc="wizard.observations"/>
+              </div>
+            </div>
+          </t>
+          <!-- ============================== -->
+          <!-- SIGNATURES -->
+          <!-- ============================== -->
+          <table style="width:100%; margin-top:40px; border-collapse:collapse;">
+            <tr>
+              <td style="width:33%; text-align:center;">
+
+                                Préparé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                ___________________
+
+                            </td>
+              <td style="width:33%; text-align:center;">
+
+                                Contrôlé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                ___________________
+
+                            </td>
+              <td style="width:33%; text-align:center;">
+
+                                Validé par
+
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+
+                                ___________________
+
+                            </td>
+            </tr>
+          </table>
+          <!-- ============================== -->
+          <!-- STYLES -->
+          <!-- ============================== -->
+          <style>
+
+                        .kpi{
+
+                            border:1px solid #d1d5db;
+
+                            padding:10px;
+
+                            text-align:center;
+
+                            font-size:11px;
+                        }
+
+                        .inventory_table th{
+
+                            border:1px solid #000;
+
+                            padding:6px;
+
+                            background:#f3f4f6;
+
+                            font-size:11px;
+                        }
+
+                        .inventory_table td{
+
+                            border:1px solid #000;
+
+                            padding:5px;
+
+                            font-size:10px;
+                        }
+
+                    </style>
+        </div>
+      </t>
+    </t>
+  </template>
+</odoo>

@@ -1,0 +1,221 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <template id="sales_product_analysis_pdf">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="wizard">
+        <t t-call="web.external_layout">
+          <t t-set="summary" t-value="report_data.get('summary', {})"/>
+          <t t-set="product_lines" t-value="report_data.get('product_lines', [])"/>
+          <t t-set="detail_lines" t-value="report_data.get('detail_lines', [])"/>
+          <div class="page">
+            <h2 style="text-align:center; margin-bottom:20px;">
+
+                            ANALYSE PRODUITS
+
+                        </h2>
+            <table style="width:100%; margin-bottom:20px;">
+              <tr>
+                <td><strong>
+                                        Période :
+                                    </strong><t t-esc="wizard.date_from"/>
+
+                                    au
+
+                                    <t t-esc="wizard.date_to"/>
+
+                                </td>
+                <td style="text-align:right;">
+                  <strong>
+                                        Imprimé le :
+                                    </strong>
+                  <t t-esc="generated_at.strftime('%d/%m/%Y %H:%M:%S')"/>
+                </td>
+              </tr>
+            </table>
+            <!-- ================================= -->
+            <!-- RESUME -->
+            <!-- ================================= -->
+            <h3>
+                            Résumé Général
+                        </h3>
+            <table class="table table-sm table-bordered">
+              <tr>
+                <td>
+                                    Nombre Produits
+                                </td>
+                <td>
+                  <t t-esc="summary.get( 'product_count', 0 )"/>
+                </td>
+                <td>
+                                    Nombre Factures
+                                </td>
+                <td>
+                  <t t-esc="summary.get( 'invoice_count', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    Quantité Vendue
+                                </td>
+                <td>
+                  <t t-esc="summary.get( 'qty_sold', 0 )"/>
+                </td>
+                <td>
+                                    CA HT
+                                </td>
+                <td>
+                  <t t-esc="summary.get( 'turnover_ht', 0 )"/>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                                    CA TTC
+                                </td>
+                <td colspan="3">
+                  <t t-esc="summary.get( 'turnover_ttc', 0 )"/>
+                </td>
+              </tr>
+            </table>
+            <!-- ================================= -->
+            <!-- CLASSEMENT -->
+            <!-- ================================= -->
+            <h3>
+                            Classement Produits
+                        </h3>
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>
+                                        Produit
+                                    </th>
+                  <th>
+                                        Factures
+                                    </th>
+                  <th>
+                                        Quantité
+                                    </th>
+                  <th>
+                                        CA HT
+                                    </th>
+                  <th>
+                                        CA TTC
+                                    </th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="product_lines" t-as="line">
+                  <tr>
+                    <td>
+                      <t t-esc="line.get('product')"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('invoice_count',0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('qty',0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('ht',0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('ttc',0)"/>
+                    </td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+            <!-- ================================= -->
+            <!-- DETAILS -->
+            <!-- ================================= -->
+            <h3>
+                            Détail des Ventes
+                        </h3>
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>
+                                        Facture
+                                    </th>
+                  <th>
+                                        Date
+                                    </th>
+                  <th>
+                                        Client
+                                    </th>
+                  <th>
+                                        Produit
+                                    </th>
+                  <th>
+                                        Qté
+                                    </th>
+                  <th>
+                                        PU
+                                    </th>
+                  <th>
+                                        HT
+                                    </th>
+                  <th>
+                                        TTC
+                                    </th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="detail_lines" t-as="line">
+                  <tr>
+                    <td>
+                      <t t-esc="line.get('invoice')"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('date')"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('customer')"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('product')"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('qty',0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('unit_price',0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('ht',0)"/>
+                    </td>
+                    <td>
+                      <t t-esc="line.get('ttc',0)"/>
+                    </td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+            <!-- ================================= -->
+            <!-- SIGNATURES -->
+            <!-- ================================= -->
+            <div style="margin-top:60px; width:100%;">
+              <table style="width:100%; border:none;">
+                <tr>
+                  <td style="width:50%; text-align:center;"><strong>
+                                            Préparé par
+                                        </strong><br/><br/><br/><br/>
+
+                                        ____________________
+
+                                    </td>
+                  <td style="width:50%; text-align:center;"><strong>
+                                            Validé par
+                                        </strong><br/><br/><br/><br/>
+
+                                        ____________________
+
+                                    </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </t>
+      </t>
+    </t>
+  </template>
+</odoo>

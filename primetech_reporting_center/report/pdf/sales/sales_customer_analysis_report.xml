@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="sales_customer_analysis_pdf_report" model="ir.actions.report">
+    <field name="name">Analyse Clients</field>
+    <field name="model">primetech.sales.customer.analysis.report.wizard</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">primetech_reporting_center.sales_customer_analysis_pdf</field>
+    <field name="report_file">primetech_reporting_center.sales_customer_analysis_pdf</field>
+    <field name="binding_model_id" ref="model_primetech_sales_customer_analysis_report_wizard"/>
+    <field name="binding_type">report</field>
+    <field name="print_report_name">'Analyse_Clients'</field>
+  </record>
+</odoo>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="action_accounting_journal_xlsx" model="ir.actions.report">
+    <field name="name">Journaux Comptables XLSX</field>
+    <field name="model">primetech.accounting.journal.wizard</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">primetech_reporting_center.accounting_journal_xlsx</field>
+    <field name="report_file">primetech_reporting_center.accounting_journal_xlsx</field>
+  </record>
+</odoo>

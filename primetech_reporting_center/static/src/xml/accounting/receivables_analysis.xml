@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+
+<t t-name="primetech_reporting_center.ReceivablesAnalysis" owl="1">
+
+    <div class="finance-receivables">
+
+        <!-- ===================================== -->
+        <!-- KPI PRINCIPAL -->
+        <!-- ===================================== -->
+
+        <div class="finance-main-kpi">
+
+            <div class="finance-main-icon">
+
+                <i class="fa fa-file-invoice-dollar"/>
+
+            </div>
+
+            <div class="finance-main-content">
+
+                <div class="finance-main-label">
+
+                    Encours Clients
+
+                </div>
+
+                <div class="finance-main-value">
+
+                    <t t-esc="formatCurrency( state.data.total_receivables )"/>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- KPI SECONDAIRES -->
+        <!-- ===================================== -->
+
+        <div class="row g-3 mt-2">
+
+            <div class="col-6">
+
+                <div class="finance-mini-card danger">
+
+                    <div class="finance-mini-icon">
+
+                        <i class="fa fa-clock"/>
+
+                    </div>
+
+                    <div>
+
+                        <div class="finance-mini-label">
+
+                            Factures Échues
+
+                        </div>
+
+                        <div class="finance-mini-value">
+
+                            <t t-esc="formatCurrency( state.data.overdue_amount )"/>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6">
+
+                <div class="finance-mini-card warning">
+
+                    <div class="finance-mini-icon">
+
+                        <i class="fa fa-triangle-exclamation"/>
+
+                    </div>
+
+                    <div>
+
+                        <div class="finance-mini-label">
+
+                            Clients à Risque
+
+                        </div>
+
+                        <div class="finance-mini-value">
+
+                            <t t-esc="state.data.risk_customers || 0"/>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- TOP DEBITEURS -->
+        <!-- ===================================== -->
+
+        <div class="finance-debtors-section">
+
+            <div class="finance-section-title">
+
+                <i class="fa fa-trophy me-2"/>
+
+                Top Débiteurs
+
+            </div>
+
+            <t t-foreach="state.data.top_debtors || []" t-as="debtor" t-key="debtor.id">
+
+                <div class="finance-debtor-card">
+
+                    <div class="finance-debtor-header">
+
+                        <span class="finance-debtor-name">
+
+                            <i class="fa fa-building me-2"/>
+
+                            <t t-esc="debtor.name"/>
+
+                        </span>
+
+                        <span class="finance-debtor-amount">
+
+                            <t t-esc="formatCurrency( debtor.amount )"/>
+
+                        </span>
+
+                    </div>
+
+                    <div class="finance-progress">
+
+                        <div class="finance-progress-bar" t-att-style="'width:' + ( state.data.total_receivables ? ( debtor.amount / state.data.total_receivables * 100 ) : 0 ) + '%'"/>
+
+                    </div>
+
+                </div>
+
+            </t>
+
+        </div>
+
+    </div>
+
+</t>
+
+</templates>

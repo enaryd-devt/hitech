@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+<templates xml:space="preserve">
+<t t-name="primetech_reporting_center.SalesOverviewDashboard">
+<div class="pt-sales-overview">
+    <t t-if="!state.loaded">
+        <div class="pt-sales-loading"><i class="fa fa-spinner fa-spin fa-3x"/><h4>Chargement du Dashboard...</h4></div>
+    </t>
+    <t t-if="state.loaded">
+        <header class="pt-sales-header">
+            <div><h1>Ventes - Vue d'ensemble</h1></div>
+            <div class="pt-sales-header-icons"><button t-on-click="refresh"><i class="fa fa-refresh"/></button><button><i class="fa fa-cog"/></button><button><i class="fa fa-expand"/></button></div>
+        </header>
+
+        <section class="pt-sales-filters">
+            <label>Société<select><option>Toutes les sociétés</option></select></label>
+            <label>Période<select t-att-value="state.period" t-on-change="(ev) => this.setPeriod(ev.target.value)"><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="quarter">Ce trimestre</option><option value="year">Cette année</option></select></label>
+            <label>Comparaison<select><option>Période précédente</option></select></label>
+            <span class="pt-sales-updated">Actualisé le : <t t-esc="state.data.updated_at"/></span>
+        </section>
+
+        <section class="pt-sales-kpis">
+            <button class="pt-sales-kpi" t-on-click="() => this.openInvoices()"><span>Chiffre d'affaires</span><strong><t t-esc="money(state.data.turnover_ht)"/></strong><em class="up">▲ <t t-esc="pct(state.data.growth_rate)"/></em><small><t t-esc="money(state.data.turnover_previous_month)"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openInvoices()"><span>Montant facturé</span><strong><t t-esc="money(state.data.turnover_ttc)"/></strong><em class="up">▲ <t t-esc="pct(state.data.invoiced_growth)"/></em><small><t t-esc="money(state.data.previous_invoiced)"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openInvoices([['payment_state', 'in', ['paid', 'in_payment']]])"><span>Montant encaissé</span><strong><t t-esc="money(state.data.paid_amount)"/></strong><em class="up">▲ <t t-esc="pct(state.data.paid_growth)"/></em><small><t t-esc="money(state.data.previous_paid)"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openInvoices()"><span>Marge commerciale</span><strong><t t-esc="money(state.data.margin_amount)"/></strong><em class="up">▲ <t t-esc="pct(state.data.margin_rate)"/></em><small><t t-esc="money(state.data.previous_margin)"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openOrders()"><span>Commandes</span><strong><t t-esc="state.data.order_count"/></strong><em class="up">▲ <t t-esc="state.data.confirmed_order_count"/></em><small><t t-esc="state.data.previous_order_count"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openOrders()"><span>Panier moyen</span><strong><t t-esc="money(state.data.average_ticket)"/></strong><em class="up">▲ <t t-esc="pct(state.data.average_ticket_growth)"/></em><small><t t-esc="money(state.data.previous_average_ticket)"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openOrders([['state', 'in', ['sale', 'done']]])"><span>Taux conversion</span><strong><t t-esc="pct(state.data.conversion_rate)"/></strong><em class="up">▲ <t t-esc="pct(state.data.conversion_growth)"/></em><small><t t-esc="pct(state.data.previous_conversion_rate)"/></small></button>
+            <button class="pt-sales-kpi" t-on-click="() => this.openPartners()"><span>Clients actifs</span><strong><t t-esc="state.data.customer_count"/></strong><em class="up">▲ <t t-esc="pct(state.data.customer_growth)"/></em><small><t t-esc="state.data.previous_customer_count"/></small></button>
+        </section>
+
+        <section class="pt-sales-grid-main">
+            <article class="pt-sales-card pt-pipeline"><h3><i class="fa fa-file-text-o"/> Pipeline commercial</h3><div class="pt-pipeline-grid">
+                <button class="blue" t-on-click="() => this.openOrders([['state', '=', 'draft']])"><span>Nouveaux devis</span><strong><t t-esc="state.data.pipeline.draft"/></strong></button>
+                <button class="orange" t-on-click="() => this.openOrders([['state', '=', 'sent']])"><span>Devis envoyés</span><strong><t t-esc="state.data.pipeline.sent"/></strong></button>
+                <button class="red" t-on-click="() => this.openOrders([['validity_date', '&lt;', state.data.today], ['state', 'in', ['draft', 'sent']]])"><span>Devis expirés</span><strong><t t-esc="state.data.pipeline.expired"/></strong></button>
+                <button class="green" t-on-click="() => this.openOrders([['state', 'in', ['sale', 'done']]])"><span>Commandes confirmées</span><strong><t t-esc="state.data.pipeline.confirmed"/></strong></button>
+                <button class="purple" t-on-click="() => this.openOrders([['invoice_status', '=', 'to invoice']])"><span>À livrer</span><strong><t t-esc="state.data.pipeline.to_deliver"/></strong></button>
+                <button class="pink" t-on-click="() => this.openOrders([['invoice_status', '=', 'to invoice']])"><span>À facturer</span><strong><t t-esc="state.data.pipeline.to_invoice"/></strong></button>
+                <button class="coral" t-on-click="() => this.openOrders([['state', '=', 'cancel']])"><span>Bloquées</span><strong><t t-esc="state.data.pipeline.blocked"/></strong></button>
+            </div></article>
+            <article class="pt-sales-card pt-evolution"><h3><i class="fa fa-calendar"/> Évolution des ventes</h3><div class="pt-chart-box"><canvas id="salesEvolutionChart"/></div></article>
+            <article class="pt-sales-card"><h3><i class="fa fa-cube"/> Top 5 produits (CA)</h3><table><thead><tr><th>Produit</th><th>CA</th><th>Qté</th><th>Marge</th></tr></thead><tbody><tr t-foreach="state.data.top_products || []" t-as="product" t-key="product.id" t-on-click="() => this.openProducts([product.id])"><td><t t-esc="product.name"/></td><td><t t-esc="money(product.amount)"/></td><td><t t-esc="product.qty"/></td><td><t t-esc="money(product.margin)"/></td></tr></tbody></table><button class="pt-card-link" t-on-click="() => this.openProducts((state.data.top_products || []).map((p) => p.id))">Voir tous les produits</button></article>
+        </section>
+
+        <section class="pt-sales-grid-bottom">
+            <article class="pt-sales-card"><h3>Top 5 clients (CA)</h3><table><thead><tr><th>Client</th><th>CA</th><th>Évolution</th></tr></thead><tbody><tr t-foreach="state.data.top_customers || []" t-as="customer" t-key="customer.id" t-on-click="() => this.openPartners([customer.id])"><td><t t-esc="customer.name"/></td><td><t t-esc="money(customer.amount)"/></td><td class="positive">▲ <t t-esc="pct(customer.growth)"/></td></tr></tbody></table><button class="pt-card-link" t-on-click="() => this.openPartners((state.data.top_customers || []).map((c) => c.id))">Voir tous les clients</button></article>
+            <article class="pt-sales-card"><h3>Performance commerciale</h3><table><thead><tr><th>Commercial</th><th>Objectif</th><th>CA</th><th>Réalisation</th><th>Marge</th><th>Clients</th></tr></thead><tbody><tr t-foreach="state.data.top_salespersons || []" t-as="sp" t-key="sp.id" t-on-click="() => this.openSalespersons([sp.id])"><td><t t-esc="sp.name"/></td><td><t t-esc="money(sp.target)"/></td><td><t t-esc="money(sp.amount)"/></td><td><t t-esc="pct(sp.realization)"/></td><td><t t-esc="money(sp.margin)"/></td><td><t t-esc="sp.customers"/></td></tr></tbody></table><button class="pt-card-link" t-on-click="() => this.openSalespersons((state.data.top_salespersons || []).map((s) => s.id))">Voir tous les commerciaux</button></article>
+            <article class="pt-sales-card"><h3>Situation de facturation</h3><div class="pt-donut-wrap"><div class="pt-donut" t-att-style="'--paid:' + state.data.billing.paid_percent + ';--open:' + state.data.billing.open_percent"/><ul><li><b class="green"/>Factures payées <t t-esc="state.data.billing.paid"/></li><li><b class="orange"/>Partiellement payées <t t-esc="state.data.billing.partial"/></li><li><b class="purple"/>Impayées <t t-esc="state.data.billing.unpaid"/></li></ul></div></article>
+            <article class="pt-sales-card pt-alerts"><h3>Alertes ventes</h3><button t-on-click="() => this.openOrders([['validity_date', '&lt;=', state.data.alert_date], ['state', 'in', ['draft', 'sent']]])"><i class="fa fa-clock-o"/> <t t-esc="state.data.alerts.expiring_quotes"/> devis expirent bientôt</button><button t-on-click="() => this.openOrders([['invoice_status', '=', 'to invoice']])"><i class="fa fa-bell-o"/> <t t-esc="state.data.alerts.late_orders"/> commandes en retard</button><button t-on-click="() => this.openInvoices([['payment_state', 'in', ['not_paid', 'partial']]])"><i class="fa fa-warning"/> <t t-esc="state.data.alerts.unpaid_invoices"/> factures impayées</button><button t-on-click="() => this.openOrders([['state', '=', 'cancel']])"><i class="fa fa-ban"/> <t t-esc="state.data.alerts.blocked_orders"/> commandes bloquées</button><button class="pt-alert-link" t-on-click="() => this.openInvoices([['payment_state', 'in', ['not_paid', 'partial']]])">Voir toutes les alertes</button></article>
+        </section>
+    </t>
+</div>
+</t>
+</templates>

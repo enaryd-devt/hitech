@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_primetech_supplier_invoice" model="ir.ui.view">
+        <field name="name">stock.picking.form.primetech.supplier.invoice</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_primetech_supplier_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="primetech_supplier_invoice_count == 0">
+                    <field name="primetech_supplier_invoice_count" widget="statinfo" string="Factures fournisseurs"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

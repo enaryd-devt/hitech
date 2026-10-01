@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <!-- ===================================================== -->
+  <!-- VUE D'ENSEMBLE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_stock_dashboard" name="Vue d'Ensemble" parent="menu_primetech_reporting_stock" action="action_stock_dashboard" sequence="10"/>
+  <!-- ===================================================== -->
+  <!-- CENTRE DE COMMANDEMENT LOGISTIQUE (Supply Chain Manager) -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_logistics_command_center" name="Centre de Commandement Logistique" parent="menu_primetech_reporting_stock" action="primetech_reporting_center.action_logistics_command_center" groups="primetech_reporting_center.group_reporting_manager" sequence="15"/>
+  <!-- ===================================================== -->
+  <!-- ANALYSE -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_stock_analysis_root" name="Analyse" parent="menu_primetech_reporting_stock" sequence="20"/>
+  <menuitem id="menu_stock_state" name="État du Stock" parent="menu_stock_analysis_root" action="action_stock_status_wizard" sequence="10"/>
+  <menuitem id="menu_stock_card" name="Fiche de Stock" parent="menu_stock_analysis_root" action="action_stock_card_wizard" sequence="20"/>
+  <menuitem id="menu_stock_inventory" name="Inventaire" parent="menu_stock_analysis_root" action="action_stock_inventory_wizard" sequence="30"/>
+  <menuitem id="menu_stock_valuation" name="Valorisation du Stock" parent="menu_stock_analysis_root" action="action_stock_valuation_wizard" sequence="40"/>
+  <!-- ===================================================== -->
+  <!-- MOUVEMENTS -->
+  <!-- ===================================================== -->
+  <menuitem id="menu_stock_operations_root" name="Mouvements" parent="menu_primetech_reporting_stock" sequence="30"/>
+  <menuitem id="menu_stock_movements" name="Mouvements de Stock" parent="menu_stock_operations_root" action="action_stock_movement_wizard" sequence="10"/>
+</odoo>
