@@ -51,6 +51,14 @@ class AccountMove(models.Model):
         string="Taux de change", default=1.0, digits="Product Price",
         help="Taux informatif utilisé par les calculs logistiques spécifiques.",
     )
+    primetech_display_exchange_rate = fields.Float(
+        string="Taux",
+        compute="_compute_primetech_display_exchange_rate",
+        inverse="_inverse_primetech_display_exchange_rate",
+        digits="Product Price",
+        help="Montant en devise de la société pour une unité de la devise de la facture."
+             " Exemple : 1 USD = 675 FCFA.",
+    )
     primetech_total_units = fields.Float(
         string="Total unités", compute="_compute_primetech_logistics_totals", store=True,
     )
@@ -126,7 +134,7 @@ class AccountMove(models.Model):
                 move.primetech_stock_location_id = warehouse.lot_stock_id
 
     @api.onchange(
-        "invoice_currency_rate", "primetech_weight_rate", "primetech_volume_rate",
+        "invoice_currency_rate", "primetech_display_exchange_rate", "primetech_weight_rate", "primetech_volume_rate",
         "primetech_calculation_basis", "invoice_line_ids",
     )
     def _onchange_primetech_logistics(self):
@@ -135,6 +143,28 @@ class AccountMove(models.Model):
             for line in move.invoice_line_ids.filtered(lambda item: not item.display_type):
                 line._compute_primetech_logistics()
             move._compute_primetech_logistics_totals()
+
+    @api.depends("currency_id", "company_currency_id", "invoice_currency_rate")
+    def _compute_primetech_display_exchange_rate(self):
+        """Show the bill currency first: for example, 1 USD = 675 FCFA."""
+        for move in self:
+            if (
+                not move.currency_id
+                or not move.company_currency_id
+                or move.currency_id == move.company_currency_id
+            ):
+                move.primetech_display_exchange_rate = 1.0
+                continue
+            internal_rate = move.invoice_currency_rate or 0.0
+            move.primetech_display_exchange_rate = 1.0 / internal_rate if internal_rate else 0.0
+
+    def _inverse_primetech_display_exchange_rate(self):
+        """Convert the supplier-facing rate back to Odoo's internal rate."""
+        for move in self:
+            if move.currency_id and move.company_currency_id and move.currency_id != move.company_currency_id:
+                displayed_rate = move.primetech_display_exchange_rate or 0.0
+                if displayed_rate > 0:
+                    move.invoice_currency_rate = 1.0 / displayed_rate
 
     def action_post(self):
         result = super().action_post()

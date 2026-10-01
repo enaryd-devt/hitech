@@ -5,17 +5,41 @@
 // child of `.o_form_view`; use descendant selectors deliberately.
 .o_form_view:has(.o-mail-Form-chatter:not(.o-aside)) {
     flex-flow: column nowrap !important;
+    overflow-x: hidden;
 
     .o_form_view_container,
     .o_form_sheet_bg {
         width: 100% !important;
         max-width: none;
+        min-width: 0 !important;
+    }
+
+    // The XXL form layout sets the form container to `width: 1px` and makes
+    // the sheet a horizontal flex item for an aside chatter.  A bottom
+    // chatter must never inherit those dimensions: they make the invoice
+    // appear outside the left edge of the viewport.
+    &.o_xxl_form_view {
+        .o_form_view_container {
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            height: auto !important;
+        }
+
+        .o_form_sheet_bg {
+            display: block !important;
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            overflow: visible !important;
+        }
     }
 
     .o-mail-Form-chatter:not(.o-aside) {
         align-self: stretch;
         flex: 0 0 100%;
         width: 100% !important;
+        min-width: 0 !important;
         max-width: none;
         margin-left: 0;
         margin-right: 0;

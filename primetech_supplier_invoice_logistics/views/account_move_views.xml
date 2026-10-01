@@ -121,6 +121,30 @@
             <xpath expr="//div[@name='in_and_refresh_button_div']/div[1]" position="replace">
                 <div>Taux</div>
             </xpath>
+            <!-- Supplier bills display the invoice currency first: 1 USD = 675 FCFA.
+                 Odoo's internal rate remains present but is managed by the
+                 inverse field so accounting computations keep their standard behaviour. -->
+            <xpath expr="//div[@name='currency_conversion_div']" position="replace">
+                <div name="currency_conversion_div"
+                     class="d-flex gap-1 text-muted"
+                     invisible="move_type != 'in_invoice' or currency_id == company_currency_id">
+                    <span>1</span>
+                    <field name="currency_id" readonly="True" options="{'no_open': True}" class="w-auto"/>
+                    <span>=</span>
+                    <field name="primetech_display_exchange_rate" digits="[12,6]" readonly="state != 'draft'"/>
+                    <field name="company_currency_id" readonly="True" options="{'no_open': True}" class="w-auto"/>
+                    <field name="invoice_currency_rate" invisible="1"/>
+                </div>
+                <div name="currency_conversion_div_native"
+                     class="d-flex gap-1 text-muted"
+                     invisible="move_type == 'in_invoice' or currency_id == company_currency_id">
+                    <span>1</span>
+                    <field name="company_currency_id" readonly="True" options="{'no_open': True}" class="w-auto"/>
+                    <span>=</span>
+                    <field name="invoice_currency_rate" digits="[12,6]" readonly="state != 'draft'"/>
+                    <field name="currency_id" readonly="True" options="{'no_open': True}" class="w-auto"/>
+                </div>
+            </xpath>
             <!-- Exact logistics-column order used by the supplier bill grid. -->
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="before">
                 <!-- Ensures that Odoo formats Price and Dernier Prix with the
