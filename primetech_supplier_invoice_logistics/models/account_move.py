@@ -347,16 +347,16 @@ class AccountMoveLine(models.Model):
         related="product_id.image_1920", string="Image", readonly=True,
     )
     primetech_weight = fields.Float(
-        string="Poids", compute="_compute_primetech_logistics",
+        string="Poids", compute="_compute_primetech_logistics", digits=(16, 6),
         inverse="_inverse_primetech_weight", store=True,
     )
-    primetech_weight_manual = fields.Float(copy=False)
+    primetech_weight_manual = fields.Float(digits=(16, 6), copy=False)
     primetech_weight_is_manual = fields.Boolean(copy=False)
     primetech_volume = fields.Float(
-        string="Volume", compute="_compute_primetech_logistics",
+        string="Volume", compute="_compute_primetech_logistics", digits=(16, 6),
         inverse="_inverse_primetech_volume", store=True,
     )
-    primetech_volume_manual = fields.Float(copy=False)
+    primetech_volume_manual = fields.Float(digits=(16, 6), copy=False)
     primetech_volume_is_manual = fields.Boolean(copy=False)
     primetech_last_price = fields.Monetary(
         string="Dernier Prix", compute="_compute_primetech_logistics", currency_field="currency_id",
@@ -517,8 +517,7 @@ class AccountMoveLine(models.Model):
             )
             line.primetech_cost_by_weight = (
                 line.primetech_real_price
-                + ((product.weight or 0.0) * (line.move_id.primetech_weight_rate or 0.0))
-                if product else line.primetech_real_price
+                + line.primetech_weight_cost
             )
             line.primetech_cost_by_volume = (
                 line.primetech_real_price
