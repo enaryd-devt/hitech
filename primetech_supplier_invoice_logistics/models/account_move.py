@@ -322,6 +322,21 @@ class AccountMove(models.Model):
                 lambda reversal: reversal.move_type in ("in_refund", "out_refund")
             ))
 
+    def _primetech_final_stock_pickings(self):
+        """Return completed stock documents that define an invoice's net quantity."""
+        self.ensure_one()
+        if self.move_type == "in_invoice":
+            credits = self.reversal_move_ids.filtered(
+                lambda move: move.move_type == "in_refund" and move.state == "posted"
+            )
+            return self.primetech_receipt_picking_ids | credits.primetech_return_picking_ids
+        if self.move_type == "out_invoice":
+            credits = self.reversal_move_ids.filtered(
+                lambda move: move.move_type == "out_refund" and move.state == "posted"
+            )
+            return self.primetech_delivery_picking_ids | credits.primetech_return_picking_ids
+        return self.env["stock.picking"]
+
     @api.onchange("primetech_warehouse_id")
     def _onchange_primetech_warehouse_id(self):
         for move in self:
@@ -995,11 +1010,17 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     primetech_quantity_received = fields.Float(
-        string="Reçu", compute="_compute_primetech_stock_quantities",
+        string="Reçu final", compute="_compute_primetech_stock_quantities",
         digits="Product Unit of Measure", readonly=True,
+        help="Quantité nette réellement reçue, après déduction des retours liés aux avoirs.",
     )
     primetech_quantity_delivered = fields.Float(
-        string="Livré", compute="_compute_primetech_stock_quantities",
+        string="Livré final", compute="_compute_primetech_stock_quantities",
+        digits="Product Unit of Measure", readonly=True,
+        help="Quantité nette réellement livrée, après déduction des retours liés aux avoirs.",
+    )
+    primetech_quantity_returned = fields.Float(
+        string="Retourné", compute="_compute_primetech_stock_quantities",
         digits="Product Unit of Measure", readonly=True,
     )
 
@@ -1008,21 +1029,33 @@ class AccountMoveLine(models.Model):
         for line in self:
             line.primetech_quantity_received = 0.0
             line.primetech_quantity_delivered = 0.0
+            line.primetech_quantity_returned = 0.0
             if not line.product_id or not line.move_id:
                 continue
             invoice = line.move_id
+            if invoice.move_type in ("in_refund", "out_refund"):
+                returned_quantity = 0.0
+                for picking in invoice.primetech_return_picking_ids.filtered(
+                    lambda item: item.state == "done"
+                ):
+                    for stock_move in picking.move_ids_without_package.filtered(
+                        lambda item: item.product_id == line.product_id and item.state == "done"
+                    ):
+                        moved_quantity = stock_move.quantity or stock_move.product_uom_qty
+                        if stock_move.product_uom != line.product_uom_id:
+                            moved_quantity = stock_move.product_uom._compute_quantity(
+                                moved_quantity, line.product_uom_id,
+                            )
+                        returned_quantity += moved_quantity
+                line.primetech_quantity_returned = returned_quantity
+                continue
             if invoice.move_type == "in_invoice":
-                pickings = invoice.primetech_receipt_picking_ids
-                # A supplier credit note reverses an original supplier bill.
-                pickings |= invoice.reversal_move_ids.primetech_return_picking_ids
                 positive_code = "incoming"
             elif invoice.move_type == "out_invoice":
-                pickings = invoice.primetech_delivery_picking_ids
-                # A customer credit note reverses an original customer invoice.
-                pickings |= invoice.reversal_move_ids.primetech_return_picking_ids
                 positive_code = "outgoing"
             else:
                 continue
+            pickings = invoice._primetech_final_stock_pickings()
             quantity = 0.0
             for picking in pickings.filtered(lambda item: item.state == "done"):
                 sign = 1.0 if picking.picking_type_id.code == positive_code else -1.0

@@ -29,12 +29,15 @@
                 <attribute name="groups">base.group_user</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="after">
-                <field name="primetech_quantity_received" string="Reçu" readonly="1"
+                <field name="primetech_quantity_received" string="Reçu final" readonly="1"
                        class="pt-invoice-stock-quantity"
-                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_quantity_delivered" string="Livré" readonly="1"
+                       column_invisible="parent.move_type != 'in_invoice'"/>
+                <field name="primetech_quantity_delivered" string="Livré final" readonly="1"
                        class="pt-invoice-stock-quantity"
-                       column_invisible="parent.move_type not in ('out_invoice', 'out_refund')"/>
+                       column_invisible="parent.move_type != 'out_invoice'"/>
+                <field name="primetech_quantity_returned" string="Retourné" readonly="1"
+                       class="pt-invoice-stock-quantity"
+                       column_invisible="parent.move_type not in ('in_refund', 'out_refund')"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="attributes">
                 <attribute name="string">Article</attribute>
