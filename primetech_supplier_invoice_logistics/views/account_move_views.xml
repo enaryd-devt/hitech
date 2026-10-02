@@ -66,6 +66,20 @@
                 <button name="action_view_primetech_deliveries" type="object" class="oe_stat_button" icon="fa-truck" invisible="move_type != 'out_invoice' or primetech_delivery_picking_count == 0">
                     <field name="primetech_delivery_picking_count" widget="statinfo" string="Livraisons"/>
                 </button>
+                <button name="action_view_primetech_credit_notes" type="object" class="oe_stat_button" icon="fa-undo"
+                        invisible="move_type not in ('in_invoice', 'out_invoice') or primetech_credit_note_count == 0">
+                    <field name="primetech_credit_note_count" widget="statinfo" string="Avoirs"/>
+                </button>
+                <button name="action_view_primetech_returns" type="object" class="oe_stat_button" icon="fa-exchange"
+                        invisible="move_type not in ('in_refund', 'out_refund') or primetech_return_picking_count == 0">
+                    <field name="primetech_return_picking_count" widget="statinfo" string="Retours"/>
+                </button>
+            </xpath>
+            <xpath expr="//header/button[@name='button_cancel']" position="attributes">
+                <attribute name="groups">account.group_account_manager</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='button_draft']" position="attributes">
+                <attribute name="groups">account.group_account_manager</attribute>
             </xpath>
             <!-- Complete the native supplier-bill header on the left. -->
             <xpath expr="//group[@id='header_left_group']/field[@name='ref'][1]" position="after">

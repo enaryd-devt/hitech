@@ -163,6 +163,16 @@ class AccountMove(models.Model):
     primetech_delivery_picking_count = fields.Integer(
         compute="_compute_primetech_delivery_picking_count", string="Livraisons",
     )
+    primetech_return_picking_ids = fields.Many2many(
+        "stock.picking", "primetech_invoice_return_rel", "move_id", "picking_id",
+        string="Retours liés", copy=False, readonly=True,
+    )
+    primetech_return_picking_count = fields.Integer(
+        compute="_compute_primetech_return_picking_count", string="Retours",
+    )
+    primetech_credit_note_count = fields.Integer(
+        compute="_compute_primetech_credit_note_count", string="Avoirs",
+    )
 
     @api.depends(
         "amount_untaxed", "amount_total", "primetech_apply_discount",
@@ -300,6 +310,18 @@ class AccountMove(models.Model):
         for move in self:
             move.primetech_delivery_picking_count = len(move.primetech_delivery_picking_ids)
 
+    @api.depends("primetech_return_picking_ids")
+    def _compute_primetech_return_picking_count(self):
+        for move in self:
+            move.primetech_return_picking_count = len(move.primetech_return_picking_ids)
+
+    @api.depends("reversal_move_ids")
+    def _compute_primetech_credit_note_count(self):
+        for move in self:
+            move.primetech_credit_note_count = len(move.reversal_move_ids.filtered(
+                lambda reversal: reversal.move_type in ("in_refund", "out_refund")
+            ))
+
     @api.onchange("primetech_warehouse_id")
     def _onchange_primetech_warehouse_id(self):
         for move in self:
@@ -386,6 +408,8 @@ class AccountMove(models.Model):
             move.sudo()._primetech_apply_supplier_product_costs()
         for move in self.filtered(lambda item: item.move_type == "out_invoice"):
             move.sudo()._primetech_create_delivery_picking()
+        for move in self.filtered(lambda item: item.move_type in ("in_refund", "out_refund")):
+            move.sudo()._primetech_create_credit_note_return_picking()
         return result
 
     @api.model_create_multi
@@ -405,6 +429,10 @@ class AccountMove(models.Model):
             lambda item: item.move_type == "out_invoice" and item.state == "posted"
         ):
             move.sudo()._primetech_create_delivery_picking()
+        for move in moves.filtered(
+            lambda item: item.move_type in ("in_refund", "out_refund") and item.state == "posted"
+        ):
+            move.sudo()._primetech_create_credit_note_return_picking()
         return moves
 
     def write(self, vals):
@@ -416,6 +444,8 @@ class AccountMove(models.Model):
                 move.sudo()._primetech_apply_supplier_product_costs()
             for move in self.filtered(lambda item: item.move_type == "out_invoice"):
                 move.sudo()._primetech_create_delivery_picking()
+            for move in self.filtered(lambda item: item.move_type in ("in_refund", "out_refund")):
+                move.sudo()._primetech_create_credit_note_return_picking()
         return result
 
     def _primetech_create_receipt_picking(self):
@@ -852,6 +882,113 @@ class AccountMove(models.Model):
         action["domain"] = [("id", "in", self.primetech_delivery_picking_ids.ids)]
         action["context"] = {"create": False}
         return action
+
+    def _primetech_create_credit_note_return_picking(self):
+        """Create the stock return that is inseparable from a posted credit note."""
+        self.ensure_one()
+        if self.primetech_return_picking_ids:
+            return self.primetech_return_picking_ids
+        lines = self.invoice_line_ids.filtered(
+            lambda line: line.display_type in (False, "product")
+            and line.product_id and line.quantity > 0
+        )
+        if not lines:
+            return self.env["stock.picking"]
+        supplier_return = self.move_type == "in_refund"
+        original = self.reversed_entry_id
+        original_pickings = (
+            original.primetech_receipt_picking_ids if supplier_return
+            else original.primetech_delivery_picking_ids
+        ) if original else self.env["stock.picking"]
+        original_picking = original_pickings.filtered(lambda picking: picking.state != "cancel")[:1]
+        return_code = "outgoing" if supplier_return else "incoming"
+        picking_type = self.env["stock.picking.type"].search([
+            ("code", "=", return_code), ("company_id", "=", self.company_id.id),
+        ], limit=1)
+        if not picking_type:
+            raise UserError(_("Configurez un type d'opération de retour avant de valider l'avoir."))
+        if original_picking:
+            source, destination = original_picking.location_dest_id, original_picking.location_id
+        elif supplier_return:
+            source = self.primetech_stock_location_id or picking_type.default_location_src_id or picking_type.warehouse_id.lot_stock_id
+            destination = picking_type.default_location_dest_id or self.partner_id.property_stock_supplier
+        else:
+            source = picking_type.default_location_src_id or self.partner_id.property_stock_customer
+            destination = self.primetech_delivery_stock_location_id or picking_type.default_location_dest_id or picking_type.warehouse_id.lot_stock_id
+        if not source or not destination:
+            raise UserError(_("Configurez les emplacements de retour avant de valider l'avoir."))
+        picking = self.env["stock.picking"].create({
+            "picking_type_id": picking_type.id,
+            "partner_id": self.partner_id.id,
+            "origin": self.name or self.ref,
+            "location_id": source.id,
+            "location_dest_id": destination.id,
+            "company_id": self.company_id.id,
+            "scheduled_date": self.invoice_date or fields.Datetime.now(),
+        })
+        for line in lines:
+            self.env["stock.move"].create({
+                "name": line.name or line.product_id.display_name,
+                "product_id": line.product_id.id,
+                "product_uom_qty": line.quantity,
+                "product_uom": line.product_uom_id.id,
+                "picking_id": picking.id,
+                "location_id": source.id,
+                "location_dest_id": destination.id,
+                "company_id": self.company_id.id,
+            })
+        picking.action_confirm()
+        self.primetech_return_picking_ids = [(4, picking.id)]
+        return picking
+
+    def action_view_primetech_returns(self):
+        self.ensure_one()
+        if len(self.primetech_return_picking_ids) == 1:
+            return {
+                "type": "ir.actions.act_window", "res_model": "stock.picking",
+                "res_id": self.primetech_return_picking_ids.id, "view_mode": "form",
+                "views": [(False, "form")], "target": "current", "context": {"create": False},
+            }
+        action = self.env["ir.actions.actions"]._for_xml_id("stock.action_picking_tree_all")
+        action["domain"] = [("id", "in", self.primetech_return_picking_ids.ids)]
+        action["context"] = {"create": False}
+        return action
+
+    def action_view_primetech_credit_notes(self):
+        self.ensure_one()
+        credits = self.reversal_move_ids.filtered(lambda move: move.move_type in ("in_refund", "out_refund"))
+        if len(credits) == 1:
+            return {
+                "type": "ir.actions.act_window", "res_model": "account.move",
+                "res_id": credits.id, "view_mode": "form", "views": [(False, "form")],
+                "target": "current",
+            }
+        action_ref = "account.action_move_in_refund_type" if self.move_type == "in_invoice" else "account.action_move_out_refund_type"
+        action = self.env["ir.actions.actions"]._for_xml_id(action_ref)
+        action["domain"] = [("id", "in", credits.ids)]
+        return action
+
+    def button_draft(self):
+        if self.filtered(lambda move: move.move_type in ("in_invoice", "out_invoice")) and not self.env.user.has_group("account.group_account_manager"):
+            raise UserError(_("Seul un administrateur Comptabilité peut remettre une facture en brouillon."))
+        return super().button_draft()
+
+    def button_cancel(self):
+        if self.filtered(lambda move: move.move_type in ("in_invoice", "out_invoice")) and not self.env.user.has_group("account.group_account_manager"):
+            raise UserError(_("Seul un administrateur Comptabilité peut annuler une facture."))
+        return super().button_cancel()
+
+    def unlink(self):
+        for move in self:
+            if (
+                move.primetech_receipt_picking_ids
+                or move.primetech_delivery_picking_ids
+                or move.primetech_return_picking_ids
+                or move.reversed_entry_id
+                or move.reversal_move_ids
+            ):
+                raise UserError(_("Cette facture est liée à un avoir ou à un mouvement de stock et ne peut pas être supprimée."))
+        return super().unlink()
 
 
 class AccountMoveLine(models.Model):

@@ -12,6 +12,9 @@
                 <button name="action_view_primetech_customer_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="primetech_customer_invoice_count == 0">
                     <field name="primetech_customer_invoice_count" widget="statinfo" string="Factures clients"/>
                 </button>
+                <button name="action_view_primetech_return_invoices" type="object" class="oe_stat_button" icon="fa-undo" invisible="primetech_return_invoice_count == 0">
+                    <field name="primetech_return_invoice_count" widget="statinfo" string="Avoirs"/>
+                </button>
             </xpath>
         </field>
     </record>
