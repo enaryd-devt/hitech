@@ -184,9 +184,9 @@
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']" position="after">
                 <group string="Totaux logistiques" invisible="move_type != 'in_invoice'">
-                    <field name="primetech_total_units" readonly="1"/>
-                    <field name="primetech_total_weight" readonly="1" digits="[16,5]"/>
-                    <field name="primetech_total_volume" readonly="1" digits="[16,5]"/>
+                    <field name="primetech_total_units" string="Total unités" readonly="1" digits="[16,0]"/>
+                    <field name="primetech_total_weight" string="Total poids (kg)" readonly="1" digits="[16,5]"/>
+                    <field name="primetech_total_volume" string="Total volume (CBM)" readonly="1" digits="[16,5]"/>
                     <field name="primetech_total_cost" readonly="1"/>
                     <field name="primetech_total_constant" readonly="1"/>
                 </group>
