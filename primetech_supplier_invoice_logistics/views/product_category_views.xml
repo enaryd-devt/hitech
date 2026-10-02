@@ -43,4 +43,52 @@
             </xpath>
         </field>
     </record>
+
+    <record id="view_product_template_purchase_history_invoice" model="ir.ui.view">
+        <field name="name">product.template.purchase.history.invoice</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="purchase.view_product_supplier_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='purchase']/group[@name='purchase']" position="after">
+                <group string="Historique des factures fournisseurs" groups="purchase.group_purchase_user">
+                    <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="move_id" string="N° facture" readonly="1"/>
+                            <field name="partner_id" string="Fournisseur" readonly="1"/>
+                            <field name="quantity" string="Quantité" readonly="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="price_unit" string="Prix unitaire" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <button name="action_open_primetech_supplier_invoice" type="object"
+                                    string="Ouvrir" icon="fa-external-link"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_purchase_history_invoice" model="ir.ui.view">
+        <field name="name">product.product.purchase.history.invoice</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="purchase.view_product_product_supplier_inherit"/>
+        <field name="arch" type="xml">
+            <field name="seller_ids" position="after">
+                <group string="Historique des factures fournisseurs" groups="purchase.group_purchase_user">
+                    <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="move_id" string="N° facture" readonly="1"/>
+                            <field name="partner_id" string="Fournisseur" readonly="1"/>
+                            <field name="quantity" string="Quantité" readonly="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="price_unit" string="Prix unitaire" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <button name="action_open_primetech_supplier_invoice" type="object"
+                                    string="Ouvrir" icon="fa-external-link"/>
+                        </list>
+                    </field>
+                </group>
+            </field>
+        </field>
+    </record>
 </odoo>

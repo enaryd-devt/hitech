@@ -6,7 +6,7 @@
     "category": "Accounting/Inventory",
     "author": "Primetech",
     "license": "LGPL-3",
-    "depends": ["account", "stock", "om_account_asset"],
+    "depends": ["account", "stock", "purchase", "om_account_asset"],
     "data": [
         "views/product_category_views.xml",
         "views/account_move_views.xml",

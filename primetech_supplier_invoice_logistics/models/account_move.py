@@ -857,6 +857,18 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    def action_open_primetech_supplier_invoice(self):
+        """Open the posted supplier bill from a product purchase-history row."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "account.move",
+            "res_id": self.move_id.id,
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "current",
+        }
+
     def _primetech_get_last_supplier_line(self):
         """Return the latest posted supplier line for the same product/company."""
         self.ensure_one()
