@@ -171,7 +171,11 @@
                 <field name="primetech_sale_price_by_volume" string="Prix de vente par volume" optional="show"/>
                 <field name="primetech_last_final_sale_price" string="Dernier prix de vente final" optional="show"/>
                 <field name="primetech_final_sale_price" string="Prix de vente final" optional="show"/>
+                <field name="primetech_weight_manual" column_invisible="1" force_save="1"/>
+                <field name="primetech_weight_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_weight" string="Poids" optional="show"/>
+                <field name="primetech_volume_manual" column_invisible="1" force_save="1"/>
+                <field name="primetech_volume_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_volume" string="Volume" optional="show"/>
                 <field name="primetech_constant_cost" string="Constante" optional="hide"/>
             </xpath>

@@ -397,6 +397,20 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    @api.onchange("primetech_weight")
+    def _onchange_primetech_weight_manual_value(self):
+        """Keep a weight entered in the invoice grid before recomputing."""
+        for line in self:
+            line.primetech_weight_manual = line.primetech_weight or 0.0
+            line.primetech_weight_is_manual = True
+
+    @api.onchange("primetech_volume")
+    def _onchange_primetech_volume_manual_value(self):
+        """Keep a volume entered in the invoice grid before recomputing."""
+        for line in self:
+            line.primetech_volume_manual = line.primetech_volume or 0.0
+            line.primetech_volume_is_manual = True
+
     @api.onchange(
         "product_id", "quantity", "price_unit", "primetech_weight",
         "primetech_volume", "primetech_constant_cost", "primetech_final_cost",
@@ -419,11 +433,25 @@ class AccountMoveLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if "primetech_weight" in vals:
+                vals["primetech_weight_manual"] = vals["primetech_weight"]
+                vals["primetech_weight_is_manual"] = True
+            if "primetech_volume" in vals:
+                vals["primetech_volume_manual"] = vals["primetech_volume"]
+                vals["primetech_volume_is_manual"] = True
         lines = super().create(vals_list)
         lines.mapped("move_id")._compute_primetech_logistics_totals()
         return lines
 
     def write(self, vals):
+        vals = dict(vals)
+        if "primetech_weight" in vals:
+            vals["primetech_weight_manual"] = vals["primetech_weight"]
+            vals["primetech_weight_is_manual"] = True
+        if "primetech_volume" in vals:
+            vals["primetech_volume_manual"] = vals["primetech_volume"]
+            vals["primetech_volume_is_manual"] = True
         result = super().write(vals)
         if {
             "product_id", "quantity", "price_unit", "primetech_weight",
