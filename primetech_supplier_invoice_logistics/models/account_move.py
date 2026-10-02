@@ -221,10 +221,6 @@ class AccountMove(models.Model):
         be recalculated while the user edits an existing article line.
         """
         for move in self:
-            for line in move.invoice_line_ids.filtered(
-                lambda item: item.display_type in (False, "product")
-            ):
-                line._compute_primetech_logistics()
             move._compute_primetech_logistics_totals()
 
     @api.depends("currency_id", "company_currency_id", "invoice_currency_rate")
@@ -403,6 +399,8 @@ class AccountMoveLine(models.Model):
         for line in self:
             line.primetech_weight_manual = line.primetech_weight or 0.0
             line.primetech_weight_is_manual = True
+            if line.move_id:
+                line.move_id._compute_primetech_logistics_totals()
 
     @api.onchange("primetech_volume")
     def _onchange_primetech_volume_manual_value(self):
@@ -410,6 +408,8 @@ class AccountMoveLine(models.Model):
         for line in self:
             line.primetech_volume_manual = line.primetech_volume or 0.0
             line.primetech_volume_is_manual = True
+            if line.move_id:
+                line.move_id._compute_primetech_logistics_totals()
 
     @api.onchange(
         "product_id", "quantity", "price_unit", "primetech_weight",
@@ -428,7 +428,6 @@ class AccountMoveLine(models.Model):
                 or line.display_type not in (False, "product")
             ):
                 continue
-            line._compute_primetech_logistics()
             line.move_id._compute_primetech_logistics_totals()
 
     @api.model_create_multi
@@ -441,7 +440,6 @@ class AccountMoveLine(models.Model):
                 vals["primetech_volume_manual"] = vals["primetech_volume"]
                 vals["primetech_volume_is_manual"] = True
         lines = super().create(vals_list)
-        lines.mapped("move_id")._compute_primetech_logistics_totals()
         return lines
 
     def write(self, vals):
@@ -453,18 +451,10 @@ class AccountMoveLine(models.Model):
             vals["primetech_volume_manual"] = vals["primetech_volume"]
             vals["primetech_volume_is_manual"] = True
         result = super().write(vals)
-        if {
-            "product_id", "quantity", "price_unit", "primetech_weight",
-            "primetech_volume", "primetech_constant_cost", "primetech_final_cost",
-        }.intersection(vals):
-            self.mapped("move_id")._compute_primetech_logistics_totals()
         return result
 
     def unlink(self):
-        moves = self.mapped("move_id")
-        result = super().unlink()
-        moves._compute_primetech_logistics_totals()
-        return result
+        return super().unlink()
 
     @api.constrains("product_id", "display_type", "move_id")
     def _check_primetech_supplier_line_product(self):
