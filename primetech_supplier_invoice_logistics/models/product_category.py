@@ -37,7 +37,7 @@ class ProductTemplate(models.Model):
                 ("product_id.product_tmpl_id", "=", template.id),
                 ("move_id.move_type", "=", "in_invoice"),
                 ("move_id.state", "=", "posted"),
-            ], order="move_id.invoice_date desc, id desc")
+            ], order="date desc, id desc")
 
 
 class ProductProduct(models.Model):
@@ -57,4 +57,4 @@ class ProductProduct(models.Model):
                 ("product_id", "=", product.id),
                 ("move_id.move_type", "=", "in_invoice"),
                 ("move_id.state", "=", "posted"),
-            ], order="move_id.invoice_date desc, id desc")
+            ], order="date desc, id desc")
