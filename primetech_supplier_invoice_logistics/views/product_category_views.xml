@@ -15,4 +15,32 @@
             </xpath>
         </field>
     </record>
+
+    <record id="view_product_template_form_primetech_precision" model="ir.ui.view">
+        <field name="name">product.template.form.primetech.precision</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='weight']" position="attributes">
+                <attribute name="digits">[16, 6]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='volume']" position="attributes">
+                <attribute name="digits">[16, 6]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_form_primetech_precision" model="ir.ui.view">
+        <field name="name">product.product.form.primetech.precision</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='weight']" position="attributes">
+                <attribute name="digits">[16, 6]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='volume']" position="attributes">
+                <attribute name="digits">[16, 6]</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>

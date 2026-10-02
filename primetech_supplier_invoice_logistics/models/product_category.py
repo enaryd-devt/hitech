@@ -17,3 +17,17 @@ class ProductCategory(models.Model):
         string="Rang", default="family",
     )
     primetech_reference = fields.Char(string="Référence")
+
+
+class ProductTemplate(models.Model):
+    _inherit = "product.template"
+
+    weight = fields.Float(digits=(16, 6))
+    volume = fields.Float(digits=(16, 6))
+
+
+class ProductProduct(models.Model):
+    _inherit = "product.product"
+
+    weight = fields.Float(digits=(16, 6))
+    volume = fields.Float(digits=(16, 6))
