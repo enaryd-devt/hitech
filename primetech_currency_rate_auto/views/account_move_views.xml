@@ -10,7 +10,7 @@
                     <button name="action_primetech_refresh_invoice_currency_rate"
                             type="object"
                             icon="fa-refresh"
-                            class="btn btn-link btn-sm p-0 text-muted"
+                            class="btn btn-primary btn-sm"
                             string="Recharger les taux"
                             invisible="move_type not in ('in_invoice', 'in_refund') or state != 'draft'"
                             title="Récupérer le taux international actuel de la devise sélectionnée"/>

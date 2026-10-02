@@ -7,6 +7,17 @@ from odoo.exceptions import UserError, ValidationError
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Always date supplier bills created from the standard form or API."""
+        today = fields.Date.context_today(self)
+        default_move_type = self.env.context.get("default_move_type")
+        for vals in vals_list:
+            move_type = vals.get("move_type", default_move_type)
+            if move_type in ("in_invoice", "in_refund") and not vals.get("invoice_date"):
+                vals["invoice_date"] = today
+        return super().create(vals_list)
+
     @api.model
     def default_get(self, fields_list):
         """Pre-fill the supplier invoice date when the user leaves it empty."""
@@ -19,6 +30,13 @@ class AccountMove(models.Model):
         ):
             values["invoice_date"] = fields.Date.context_today(self)
         return values
+
+    @api.onchange("move_type")
+    def _onchange_primetech_supplier_invoice_date(self):
+        """Fill the supplier bill date immediately in the interactive form."""
+        for move in self:
+            if move.move_type in ("in_invoice", "in_refund") and not move.invoice_date:
+                move.invoice_date = fields.Date.context_today(move)
 
     primetech_apply_discount = fields.Boolean(string="Appliquer réduction")
     primetech_discount_account_id = fields.Many2one(
@@ -78,6 +96,14 @@ class AccountMove(models.Model):
     primetech_total_weight_volume = fields.Float(
         string="Total poids/volume", compute="_compute_primetech_logistics_totals", store=True,
     )
+    primetech_total_weight = fields.Float(
+        string="Total poids", compute="_compute_primetech_logistics_totals",
+        store=True, digits=(16, 5),
+    )
+    primetech_total_volume = fields.Float(
+        string="Total volume", compute="_compute_primetech_logistics_totals",
+        store=True, digits=(16, 5),
+    )
     primetech_total_cost = fields.Monetary(
         string="Total coût de revient", compute="_compute_primetech_logistics_totals",
         store=True, currency_field="company_currency_id",
@@ -114,11 +140,21 @@ class AccountMove(models.Model):
     @api.depends(
         "invoice_line_ids.quantity", "invoice_line_ids.primetech_weight",
         "invoice_line_ids.primetech_volume", "invoice_line_ids.primetech_final_cost",
-        "invoice_line_ids.primetech_constant_cost", "primetech_calculation_basis",
+        "invoice_line_ids.primetech_constant_cost",
+        "invoice_line_ids.primetech_weight_cost",
+        "invoice_line_ids.primetech_volume_cost",
+        "invoice_line_ids.primetech_cost_by_weight",
+        "invoice_line_ids.primetech_cost_by_volume",
+        "primetech_calculation_basis",
     )
     def _compute_primetech_logistics_totals(self):
         for move in self:
-            lines = move.invoice_line_ids.filtered(lambda line: not line.display_type)
+            # Odoo 18 identifies regular invoice articles with
+            # ``display_type == 'product'``.  They must be included while
+            # sections and notes remain excluded from logistics totals.
+            lines = move.invoice_line_ids.filtered(
+                lambda line: line.display_type in (False, "product")
+            )
             move.primetech_total_units = sum(lines.mapped("quantity"))
             measure_field = (
                 "primetech_weight" if move.primetech_calculation_basis == "weight"
@@ -126,12 +162,39 @@ class AccountMove(models.Model):
             )
             # Weight/volume are unit values on invoice lines; the dashboard
             # footer must therefore sum each measure multiplied by quantity.
+            move.primetech_total_weight = sum(
+                (line.primetech_weight or 0.0) * (line.quantity or 0.0)
+                for line in lines
+            )
+            move.primetech_total_volume = sum(
+                (line.primetech_volume or 0.0) * (line.quantity or 0.0)
+                for line in lines
+            )
             move.primetech_total_weight_volume = sum(
                 (line[measure_field] or 0.0) * (line.quantity or 0.0)
                 for line in lines
             )
-            move.primetech_total_cost = sum(lines.mapped("primetech_final_cost"))
-            move.primetech_total_constant = sum(lines.mapped("primetech_constant_cost"))
+            automatic_cost_field = (
+                "primetech_cost_by_weight"
+                if move.primetech_calculation_basis == "weight"
+                else "primetech_cost_by_volume"
+            )
+            automatic_constant_field = (
+                "primetech_weight_cost"
+                if move.primetech_calculation_basis == "weight"
+                else "primetech_volume_cost"
+            )
+            # The final cost is optional. Until it is entered, show the
+            # logistics proposal so the dashboard never stays empty while
+            # the supplier-bill grid is being completed.
+            move.primetech_total_cost = sum(
+                line.primetech_final_cost or line[automatic_cost_field] or 0.0
+                for line in lines
+            )
+            move.primetech_total_constant = sum(
+                line.primetech_constant_cost or line[automatic_constant_field] or 0.0
+                for line in lines
+            )
 
     @api.depends("primetech_receipt_picking_ids")
     def _compute_primetech_receipt_picking_count(self):
@@ -151,9 +214,16 @@ class AccountMove(models.Model):
         "primetech_calculation_basis", "invoice_line_ids",
     )
     def _onchange_primetech_logistics(self):
-        """Recalculate every logistics amount and footer total directly in the form."""
+        """Refresh the logistics footer immediately after any line edit.
+
+        A simple ``invoice_line_ids`` onchange only reacts to adding/removing
+        a line.  The explicit dotted fields are necessary for the totals to
+        be recalculated while the user edits an existing article line.
+        """
         for move in self:
-            for line in move.invoice_line_ids.filtered(lambda item: not item.display_type):
+            for line in move.invoice_line_ids.filtered(
+                lambda item: item.display_type in (False, "product")
+            ):
                 line._compute_primetech_logistics()
             move._compute_primetech_logistics_totals()
 
@@ -326,6 +396,47 @@ class AccountMove(models.Model):
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
+
+    @api.onchange(
+        "product_id", "quantity", "price_unit", "primetech_weight",
+        "primetech_volume", "primetech_constant_cost", "primetech_final_cost",
+    )
+    def _onchange_primetech_refresh_move_logistics_totals(self):
+        """Propagate each grid edit to the logistics totals of the bill.
+
+        Editing an existing one2many row does not reliably invoke an onchange
+        on the parent record in the web client.  Performing the refresh from
+        the line guarantees an immediate update of the supplier-bill footer.
+        """
+        for line in self:
+            if (
+                not line.move_id
+                or line.display_type not in (False, "product")
+            ):
+                continue
+            line._compute_primetech_logistics()
+            line.move_id._compute_primetech_logistics_totals()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines.mapped("move_id")._compute_primetech_logistics_totals()
+        return lines
+
+    def write(self, vals):
+        result = super().write(vals)
+        if {
+            "product_id", "quantity", "price_unit", "primetech_weight",
+            "primetech_volume", "primetech_constant_cost", "primetech_final_cost",
+        }.intersection(vals):
+            self.mapped("move_id")._compute_primetech_logistics_totals()
+        return result
+
+    def unlink(self):
+        moves = self.mapped("move_id")
+        result = super().unlink()
+        moves._compute_primetech_logistics_totals()
+        return result
 
     @api.constrains("product_id", "display_type", "move_id")
     def _check_primetech_supplier_line_product(self):
