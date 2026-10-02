@@ -63,5 +63,16 @@
 			</AppsMenu>
 		</xpath>
 	</t>
+
+	<t t-name="muk_web_theme.NavBar.ActiveSections"
+	   t-inherit="web.NavBar.SectionsMenu"
+	   t-inherit-mode="extension">
+		<xpath expr="//DropdownItem[@class=&quot;'o_nav_entry'&quot;]" position="attributes">
+			<attribute name="class">{ 'o_nav_entry': true, 'mk_nav_entry_active': appsMenuNavigation.activeSectionId === section.id }</attribute>
+		</xpath>
+		<xpath expr="//Dropdown[button/span]/button" position="attributes">
+			<attribute name="t-att-class">{ 'mk_nav_entry_active': appsMenuNavigation.activeSectionId === section.id }</attribute>
+		</xpath>
+	</t>
 	
 </templates>

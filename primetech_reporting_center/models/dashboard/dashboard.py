@@ -178,10 +178,9 @@ class PrimetechDashboard(models.AbstractModel):
         pos_revenue = self._sum_pos_orders(pos_domain)
         revenue_total = invoice_revenue + pos_revenue
         purchase_cost = self._get_sales_purchase_cost(start, end)
-        purchase_total = sum(self.env['purchase.order'].search([
-            ('state', 'in', ['purchase', 'done']),
-            ('date_approve', '>=', start),
-            ('date_approve', '<', fields.Datetime.to_datetime(end) + timedelta(days=1)),
+        purchase_total = sum(self.env['account.move'].search([
+            ('move_type', '=', 'in_invoice'), ('state', '=', 'posted'),
+            ('invoice_date', '>=', start), ('invoice_date', '<=', end),
         ]).mapped('amount_total'))
         stock_value = sum(product.qty_available * product.standard_price for product in self.env['product.product'].search([]))
         return {
@@ -210,7 +209,7 @@ class PrimetechDashboard(models.AbstractModel):
     def get_executive_detail_sections(self, filters=None):
         filters = filters or {}
         overview = self.get_executive_overview(filters)
-        sales_orders = self.env['sale.order'].search_count([('state', 'in', ('sale', 'done'))]) if 'sale.order' in self.env.registry else 0
+        sales_orders = self.env['account.move'].search_count([('move_type', '=', 'out_invoice'), ('state', '=', 'posted')])
         pending_deliveries = self.env['stock.picking'].search_count([('picking_type_code', '=', 'outgoing'), ('state', 'not in', ('done', 'cancel'))])
         pending_receipts = self.env['stock.picking'].search_count([('picking_type_code', '=', 'incoming'), ('state', 'not in', ('done', 'cancel'))])
         vendor_bills = self.env['account.move'].search_count([('move_type', '=', 'in_invoice'), ('state', '=', 'draft')])
@@ -1053,14 +1052,14 @@ class PrimetechDashboard(models.AbstractModel):
         sale_report_domain = [('date', '>=', start), ('date', '<=', end)]
         actions = {
             'sales': open_model(
-                'Analyse du chiffre d\'affaires',
-                'sale.report',
-                sale_report_domain,
-                {'group_by': ['date:year', 'date:month', 'date:day']},
+                'Factures clients',
+                'account.move',
+                [('move_type', '=', 'out_invoice'), ('state', '=', 'posted')] + self._get_date_domain(filters, 'invoice_date'),
+                {'group_by': ['invoice_date:year', 'invoice_date:month', 'invoice_date:day']},
                 'pivot,graph,list',
             ),
             'finance': open_model('Situation financière', 'account.move', [], {'search_default_posted': 1}),
-            'purchase': open_model('Commandes fournisseurs', 'purchase.order', [('state', 'in', ['purchase', 'done'])] + period_datetime_domain),
+            'purchase': open_model('Factures fournisseurs', 'account.move', [('move_type', '=', 'in_invoice'), ('state', '=', 'posted')] + self._get_date_domain(filters, 'invoice_date')),
             'stock': open_model('Stocks disponibles', 'stock.quant', [('location_id.usage', '=', 'internal')]),
             'transfers': open_model('Bons de transfert', 'stock.picking', []),
             'products': open_model('Produits', 'product.template', []),
@@ -1150,17 +1149,13 @@ class PrimetechDashboard(models.AbstractModel):
         global_invoices = self.env['account.move'].search(global_invoice_domain)
         global_invoice_total = sum(global_invoices.mapped('amount_total'))
         global_receivable_total = sum(global_invoices.mapped('amount_residual'))
-        confirmed_purchase_domain = [
-            ('state', 'in', ['purchase', 'done']),
-        ] + period_datetime_domain
-        purchase_group = self.env['purchase.order'].read_group(confirmed_purchase_domain, ['amount_total'], [])
-        purchase_total_confirmed = purchase_group[0].get('amount_total', 0.0) if purchase_group else 0.0
         supplier_bill_domain = [
             ('move_type', '=', 'in_invoice'),
             ('state', '=', 'posted'),
         ] + self._get_date_domain(filters, 'invoice_date')
         supplier_bill_group = self.env['account.move'].read_group(supplier_bill_domain, ['amount_total', 'amount_residual'], [])
         supplier_bill_total = supplier_bill_group[0].get('amount_total', 0.0) if supplier_bill_group else 0.0
+        purchase_total_confirmed = supplier_bill_total
         supplier_debt_total = supplier_bill_group[0].get('amount_residual', 0.0) if supplier_bill_group else 0.0
         supplier_unpaid_count = self.env['account.move'].search_count(supplier_bill_domain + [('amount_residual', '>', 0)])
         supplier_payment_domain = [
@@ -1171,9 +1166,7 @@ class PrimetechDashboard(models.AbstractModel):
         supplier_payment_total = supplier_payment_group[0].get('amount', 0.0) if supplier_payment_group else 0.0
         supplier_bill_paid_total = supplier_bill_total - supplier_debt_total
         supplier_payment_total = max(supplier_payment_total, supplier_bill_paid_total)
-        period_purchase_orders = self.env['purchase.order'].search(confirmed_purchase_domain)
-        active_supplier_ids = set(period_purchase_orders.mapped('partner_id').ids)
-        active_supplier_ids.update(self.env['account.move'].search(supplier_bill_domain).mapped('partner_id').ids)
+        active_supplier_ids = set(self.env['account.move'].search(supplier_bill_domain).mapped('partner_id').ids)
         supplier_action_domain = [('id', 'in', list(active_supplier_ids))]
         supplier_action = open_model('Fournisseurs actifs sur la période', 'res.partner', supplier_action_domain)
         supplier_bills_action = open_model('Factures fournisseurs', 'account.move', supplier_bill_domain, {'search_default_posted': 1})
@@ -1275,8 +1268,8 @@ class PrimetechDashboard(models.AbstractModel):
             }
 
         procurement_items = [
-            count_action_item('En attente', 'purchase.order', [('state', 'in', ['draft', 'sent', 'to approve'])], 'Demandes d’approvisionnement en attente'),
-            count_action_item('Validées', 'purchase.order', [('state', 'in', ['purchase', 'done'])], 'Demandes d’approvisionnement validées'),
+            count_action_item('Factures brouillon', 'account.move', [('move_type', '=', 'in_invoice'), ('state', '=', 'draft')], 'Factures fournisseurs à valider'),
+            count_action_item('Factures validées', 'account.move', [('move_type', '=', 'in_invoice'), ('state', '=', 'posted')], 'Factures fournisseurs comptabilisées'),
             count_action_item('En préparation', 'stock.picking', [('picking_type_id.code', '=', 'incoming'), ('state', 'in', ['confirmed', 'assigned'])], 'Réceptions fournisseurs en préparation'),
             count_action_item('Expédiées', 'stock.picking', [('picking_type_id.code', '=', 'incoming'), ('state', 'in', ['waiting', 'confirmed', 'assigned'])], 'Réceptions fournisseurs attendues'),
             count_action_item('Réceptionnées', 'stock.picking', [('picking_type_id.code', '=', 'incoming'), ('state', '=', 'done')], 'Réceptions fournisseurs terminées'),
@@ -2000,15 +1993,14 @@ class PrimetechDashboard(models.AbstractModel):
             day = record_date.date()
             return day.replace(day=1) if chart_group == 'month' else day
 
-        sale_domain = [
-            ('state', 'in', ['sale', 'done']),
-            ('date_order', '>=', fields.Datetime.to_datetime(start)),
-            ('date_order', '<', fields.Datetime.to_datetime(end) + timedelta(days=1)),
+        invoice_domain = [
+            ('move_type', '=', 'out_invoice'), ('state', '=', 'posted'),
+            ('invoice_date', '>=', start), ('invoice_date', '<=', end),
         ]
-        for order in self.env['sale.order'].search(sale_domain):
-            key = bucket(order.date_order)
+        for invoice in self.env['account.move'].search(invoice_domain):
+            key = bucket(invoice.invoice_date)
             if key in values:
-                values[key]['sale'] += order.amount_total or 0.0
+                values[key]['sale'] += invoice.amount_total or 0.0
 
         pos_domain = [
             ('state', 'not in', ['draft', 'cancel']),
@@ -2058,11 +2050,11 @@ class PrimetechDashboard(models.AbstractModel):
                 category_revenue[category_name] += group.get(amount_field, 0.0) or 0.0
                 category_ids[category_name] = category.id
 
-        sale_domain = [
-            ('order_id.state', 'in', ['sale', 'done']),
+        invoice_line_domain = [
+            ('move_id.move_type', '=', 'out_invoice'), ('move_id.state', '=', 'posted'),
             ('product_id', '!=', False),
-        ] + self._get_date_domain(period_filters, 'order_id.date_order')
-        add_grouped_revenue('sale.order.line', sale_domain, 'price_total')
+        ] + self._get_date_domain(period_filters, 'move_id.invoice_date')
+        add_grouped_revenue('account.move.line', invoice_line_domain, 'price_total')
         if 'pos.order.line' in self.env.registry:
             pos_domain = [('order_id.state', 'not in', ['draft', 'cancel']), ('product_id', '!=', False)] + self._get_date_domain(period_filters, 'order_id.date_order')
             add_grouped_revenue('pos.order.line', pos_domain, 'price_subtotal_incl')
@@ -2075,7 +2067,7 @@ class PrimetechDashboard(models.AbstractModel):
                 'percent': value / total * 100 if total else 0.0,
                 'action': open_model('Produits catégorie ' + name, 'product.product', [('categ_id', 'child_of', category_ids[name])] if category_ids.get(name) else []),
             } for name, value in sorted(category_revenue.items(), key=lambda item: item[1], reverse=True)[:5]],
-            'action': open_model('Analyse détaillée des ventes par catégorie', 'sale.order.line', sale_domain, {'group_by': ['product_id']}, 'pivot,graph,list'),
+            'action': open_model('Analyse détaillée des ventes par catégorie', 'account.move.line', invoice_line_domain, {'group_by': ['product_id']}, 'pivot,graph,list'),
             'products_action': open_model('Catalogue des produits par catégorie', 'product.product', [('categ_id', '!=', False)], {'group_by': ['categ_id']}, 'list,kanban'),
         }
 
@@ -2272,14 +2264,14 @@ class PrimetechDashboard(models.AbstractModel):
         current_month_start = today.replace(day=1)
         previous_month_start = current_month_start - relativedelta(months=1)
         sales = sum(self.env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted')]).mapped('amount_untaxed'))
-        purchases = sum(self.env['purchase.order'].search([('state', 'in', ['purchase', 'done'])]).mapped('amount_untaxed'))
+        purchases = sum(self.env['account.move'].search([('move_type', '=', 'in_invoice'), ('state', '=', 'posted')]).mapped('amount_untaxed'))
         gross_margin = sales - purchases
         cash_balance = sum(self.env['account.account'].search([('account_type', '=', 'asset_cash')]).mapped('current_balance'))
         current_revenue = sum(self.env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('invoice_date', '>=', current_month_start)]).mapped('amount_total')) + self._sum_pos_orders([('date_order', '>=', current_month_start)])
         previous_revenue = sum(self.env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('invoice_date', '>=', previous_month_start), ('invoice_date', '<', current_month_start)]).mapped('amount_total')) + self._sum_pos_orders([('date_order', '>=', previous_month_start), ('date_order', '<', current_month_start)])
         revenue_trend = (current_revenue - previous_revenue) / previous_revenue * 100 if previous_revenue else 100
-        current_purchases = sum(self.env['purchase.order'].search([('state', 'in', ['purchase', 'done']), ('date_approve', '>=', current_month_start)]).mapped('amount_total'))
-        previous_purchases = sum(self.env['purchase.order'].search([('state', 'in', ['purchase', 'done']), ('date_approve', '>=', previous_month_start), ('date_approve', '<', current_month_start)]).mapped('amount_total'))
+        current_purchases = sum(self.env['account.move'].search([('move_type', '=', 'in_invoice'), ('state', '=', 'posted'), ('invoice_date', '>=', current_month_start)]).mapped('amount_total'))
+        previous_purchases = sum(self.env['account.move'].search([('move_type', '=', 'in_invoice'), ('state', '=', 'posted'), ('invoice_date', '>=', previous_month_start), ('invoice_date', '<', current_month_start)]).mapped('amount_total'))
         purchases_trend = (current_purchases - previous_purchases) / previous_purchases * 100 if previous_purchases else 100
         customer_receivables = sum(self.env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ['not_paid', 'partial'])]).mapped('amount_residual'))
         deliveries_pending = self.env['stock.picking'].search_count([('picking_type_code', '=', 'outgoing'), ('state', 'not in', ['done', 'cancel'])])
@@ -2375,7 +2367,7 @@ class PrimetechDashboard(models.AbstractModel):
     @api.model
     def get_activity_chart(self):
         revenue = sum(self.env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted')]).mapped('amount_untaxed'))
-        purchases = sum(self.env['purchase.order'].search([('state', 'in', ['purchase', 'done'])]).mapped('amount_untaxed'))
+        purchases = sum(self.env['account.move'].search([('move_type', '=', 'in_invoice'), ('state', '=', 'posted')]).mapped('amount_untaxed'))
         receivables = sum(self.env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ['not_paid', 'partial'])]).mapped('amount_residual'))
         reserved_stock = self.env['stock.move'].search_count([('picking_id.picking_type_code', '=', 'outgoing'), ('state', 'in', ['assigned', 'partially_available'])])
         return {'labels': ['CA', 'Achats', 'Créances', 'Réservations'], 'values': [revenue, purchases, receivables, reserved_stock]}

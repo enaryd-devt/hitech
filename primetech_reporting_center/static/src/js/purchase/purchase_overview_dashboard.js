@@ -76,7 +76,10 @@ export class PrimetechPurchaseOverviewDashboard extends Component {
     }
 
     openOrders(extraDomain = []) {
-        this.openView("Commandes fournisseurs", "purchase.order", [...(this.domain.orders || []), ...extraDomain]);
+        // Procurement is recorded directly on supplier invoices in this
+        // database.  Keep legacy template calls functional while opening the
+        // accounting source rather than a purchase order list.
+        this.openBills(extraDomain);
     }
 
     openBills(extraDomain = []) {

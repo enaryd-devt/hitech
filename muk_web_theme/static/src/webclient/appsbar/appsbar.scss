@@ -1,0 +1,137 @@
+// Softer AppsBar appearance.  Every shade is derived from the configurable
+// MuK theme variables, so no fixed brand colour is imposed here.
+.mk_apps_sidebar_panel {
+    background:
+        linear-gradient(150deg, rgba($mk-appbar-background, .98), rgba($mk-appbar-background, .86)) !important;
+    border-right: 1px solid rgba($mk-appbar-color, .10);
+    box-shadow: 5px 0 18px rgba($mk-appbar-background, .16);
+    transition: width .24s ease, box-shadow .24s ease;
+
+    .mk_apps_sidebar_menu {
+        padding: 0 10px 10px !important;
+
+        > li {
+            margin: 1px 0;
+            animation: mk-appbar-item-in .32s both cubic-bezier(.16, 1, .3, 1);
+
+            @for $index from 1 through 30 {
+                &:nth-child(#{$index}) { animation-delay: #{$index * 18}ms; }
+            }
+
+            &:first-child { margin-top: 0; }
+
+            > a {
+                position: relative;
+                display: flex;
+                align-items: center;
+                min-height: 49px;
+                padding: 8px 10px !important;
+                border: 1px solid transparent;
+                border-radius: 10px;
+                color: $mk-appbar-color !important;
+                font-size: 14.5px;
+                font-weight: 400;
+                letter-spacing: .01em;
+                opacity: .88;
+                transition: background-color .18s ease, border-color .18s ease,
+                    color .18s ease, opacity .18s ease, transform .22s ease, box-shadow .22s ease;
+
+                &::before {
+                    position: absolute;
+                    top: 9px;
+                    bottom: 9px;
+                    left: -7px;
+                    width: 3px;
+                    border-radius: 8px;
+                    background: $mk-appbar-active;
+                    content: "";
+                    opacity: 0;
+                    transform: scaleY(.35);
+                    transition: opacity .2s ease, transform .22s ease;
+                }
+
+                .mk_apps_sidebar_icon {
+                    width: 32px !important;
+                    height: 32px !important;
+                    margin-right: 10px !important;
+                    padding: 5px;
+                    border: 1px solid rgba($mk-appbar-active, .10);
+                    border-radius: 8px;
+                    background: rgba($mk-appbar-active, .10);
+                    box-shadow: 0 2px 7px rgba($mk-appbar-background, .10);
+                    object-fit: contain;
+                    transition: transform .22s ease, filter .22s ease, background-color .22s ease;
+                }
+            }
+
+            &:hover > a,
+            > a:focus-visible {
+                background-color: rgba($mk-appbar-active, .11) !important;
+                border-color: rgba($mk-appbar-active, .14);
+                color: $mk-appbar-color !important;
+                opacity: 1;
+                transform: translateX(3px);
+
+                .mk_apps_sidebar_icon {
+                    filter: brightness(1.08);
+                    background-color: rgba($mk-appbar-active, .18);
+                    transform: translateY(-1px) scale(1.06);
+                }
+            }
+
+            &.active > a {
+                background-color: rgba($mk-appbar-active, .34) !important;
+                border-color: rgba($mk-appbar-active, .30);
+                box-shadow: 0 6px 15px rgba($mk-appbar-background, .18), inset 0 1px 0 rgba($mk-appbar-color, .10);
+                color: $mk-appbar-active !important;
+                font-weight: 600;
+                opacity: 1;
+
+                &::before { opacity: 1; transform: scaleY(1); }
+                .mk_apps_sidebar_icon {
+                    background-color: rgba($mk-appbar-active, .38);
+                    border-color: rgba($mk-appbar-active, .38);
+                    transform: scale(1.03);
+                }
+            }
+
+            // Only the current application expands its visual breathing room.
+            // All other entries remain compact regardless of their label size.
+            &.active {
+                margin-top: 2px;
+                margin-bottom: 2px;
+            }
+        }
+    }
+
+    .mk_apps_sidebar_logo {
+        opacity: .82;
+        transition: opacity .2s ease, transform .2s ease;
+
+        &:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+    }
+}
+
+// The compact bar keeps the same soft feedback without reserving unused space.
+.mk_sidebar_type_small .mk_apps_sidebar_menu > li > a {
+    justify-content: center;
+    padding: 8px !important;
+
+    &::before { left: -6px; }
+
+    .mk_apps_sidebar_icon {
+        margin-right: 0 !important;
+    }
+}
+
+.mk_sidebar_type_large {
+    --mk-sidebar-width: 180px;
+}
+
+@keyframes mk-appbar-item-in {
+    from { opacity: 0; transform: translateX(-7px); }
+    to { opacity: 1; transform: translateX(0); }
+}

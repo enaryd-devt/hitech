@@ -6,11 +6,16 @@ import { computeAppsAndMenuItems } from '@web/webclient/menus/menu_helpers';
 import { NavBar } from '@web/webclient/navbar/navbar';
 import { AppsMenu } from "@muk_web_theme/webclient/appsmenu/appsmenu";
 
+function containsMenu(menu, menuId) {
+	return menu.id === menuId || menu.childrenTree?.some((child) => containsMenu(child, menuId));
+}
+
 patch(NavBar.prototype, {
 	setup() {
         super.setup();
         this.appMenuService = useService('app_menu');
 		this.appsMenuSearch = useState({ query: '' });
+		this.appsMenuNavigation = useState({ activeSectionId: null });
     },
 	get menuSearchResults() {
 		const query = this.appsMenuSearch.query.trim().toLocaleLowerCase();
@@ -25,8 +30,17 @@ patch(NavBar.prototype, {
 	onAppsMenuSearchInput(ev) {
 		this.appsMenuSearch.query = ev.target.value;
 	},
+	_setActiveNavigationSection(menu) {
+		if (!menu?.appID) {
+			return;
+		}
+		const appTree = this.menuService.getMenuAsTree(menu.appID);
+		const section = appTree.childrenTree?.find((item) => containsMenu(item, menu.id));
+		this.appsMenuNavigation.activeSectionId = section?.id || null;
+	},
 	onNavBarDropdownItemSelection(menu) {
 		this.appsMenuSearch.query = '';
+		this._setActiveNavigationSection(menu);
 		return super.onNavBarDropdownItemSelection(menu);
 	},
 });

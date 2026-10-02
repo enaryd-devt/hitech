@@ -72,7 +72,9 @@ export class SalesOverviewDashboard extends Component {
     }
 
     openOrders(extraDomain = []) {
-        this.openView("Commandes clients", "sale.order", [...(this.domain.orders || []), ...extraDomain]);
+        // Direct invoicing is the sales workflow: there are no sale orders to
+        // consult from this dashboard.
+        this.openInvoices(extraDomain);
     }
 
     openInvoices(extraDomain = []) {
