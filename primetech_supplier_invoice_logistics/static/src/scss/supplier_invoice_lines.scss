@@ -65,6 +65,12 @@
     }
 }
 
+/* Net received/delivered quantities: visible but visually soft in the active theme. */
+.o_form_view .pt-invoice-stock-quantity {
+    color: var(--o-brand-primary, #714b67) !important;
+    font-weight: 600;
+}
+
 /* Keep the invoice margin informative and visually secondary to totals. */
 .o_form_view .pt-invoice-total-margin {
     color: var(--o-brand-primary, #714b67) !important;

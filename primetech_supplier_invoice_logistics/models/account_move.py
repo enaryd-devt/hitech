@@ -994,6 +994,52 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    primetech_quantity_received = fields.Float(
+        string="Reçu", compute="_compute_primetech_stock_quantities",
+        digits="Product Unit of Measure", readonly=True,
+    )
+    primetech_quantity_delivered = fields.Float(
+        string="Livré", compute="_compute_primetech_stock_quantities",
+        digits="Product Unit of Measure", readonly=True,
+    )
+
+    def _compute_primetech_stock_quantities(self):
+        """Show net completed receipts/deliveries, including linked returns."""
+        for line in self:
+            line.primetech_quantity_received = 0.0
+            line.primetech_quantity_delivered = 0.0
+            if not line.product_id or not line.move_id:
+                continue
+            invoice = line.move_id
+            if invoice.move_type == "in_invoice":
+                pickings = invoice.primetech_receipt_picking_ids
+                # A supplier credit note reverses an original supplier bill.
+                pickings |= invoice.reversal_move_ids.primetech_return_picking_ids
+                positive_code = "incoming"
+            elif invoice.move_type == "out_invoice":
+                pickings = invoice.primetech_delivery_picking_ids
+                # A customer credit note reverses an original customer invoice.
+                pickings |= invoice.reversal_move_ids.primetech_return_picking_ids
+                positive_code = "outgoing"
+            else:
+                continue
+            quantity = 0.0
+            for picking in pickings.filtered(lambda item: item.state == "done"):
+                sign = 1.0 if picking.picking_type_id.code == positive_code else -1.0
+                for stock_move in picking.move_ids_without_package.filtered(
+                    lambda item: item.product_id == line.product_id and item.state == "done"
+                ):
+                    moved_quantity = stock_move.quantity or stock_move.product_uom_qty
+                    if stock_move.product_uom != line.product_uom_id:
+                        moved_quantity = stock_move.product_uom._compute_quantity(
+                            moved_quantity, line.product_uom_id,
+                        )
+                    quantity += sign * moved_quantity
+            if invoice.move_type == "in_invoice":
+                line.primetech_quantity_received = quantity
+            else:
+                line.primetech_quantity_delivered = quantity
+
     def action_open_primetech_supplier_invoice(self):
         """Open the posted supplier bill from a product purchase-history row."""
         self.ensure_one()
