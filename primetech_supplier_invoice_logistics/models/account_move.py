@@ -571,8 +571,11 @@ class AccountMove(models.Model):
         if not source or not destination:
             raise UserError(_("Configurez les emplacements de stock avant de confirmer la facture."))
         expected = self._primetech_stock_invoice_lines()
+        done_pickings = pickings.filtered(lambda picking: picking.state == "done")
         editable = pickings.filtered(lambda picking: picking.state not in ("done", "cancel"))[:1]
-        if editable:
+        # Before any transfer has been validated, retain and update the first
+        # linked picking: it is still the invoice's original full transfer.
+        if editable and not done_pickings:
             picking = editable
             if picking.state == "assigned":
                 picking.move_ids_without_package._do_unreserve()
@@ -609,8 +612,18 @@ class AccountMove(models.Model):
             picking.action_confirm()
             return picking
 
+        # Once a first transfer is done, an open complementary transfer must
+        # never be rewritten with all invoice quantities.  Cancel its pending
+        # moves and rebuild only the fresh product-by-product differences below.
+        for picking in pickings.filtered(lambda item: item.state not in ("done", "cancel")):
+            if picking.state == "assigned":
+                picking.move_ids_without_package._do_unreserve()
+            picking.move_ids_without_package.filtered(
+                lambda stock_move: stock_move.state != "cancel"
+            )._action_cancel()
+
         actual = {}
-        for picking in pickings.filtered(lambda item: item.state == "done"):
+        for picking in done_pickings:
             sign = 1 if (
                 picking.location_id == source and picking.location_dest_id == destination
             ) else -1
