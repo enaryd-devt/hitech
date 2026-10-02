@@ -118,7 +118,7 @@ class AccountMove(models.Model):
         string="Taux",
         compute="_compute_primetech_display_exchange_rate",
         inverse="_inverse_primetech_display_exchange_rate",
-        digits="Product Price",
+        digits=(16, 6),
         help="Montant en devise de la société pour une unité de la devise de la facture."
              " Exemple : 1 USD = 675 FCFA.",
     )
@@ -888,16 +888,22 @@ class AccountMoveLine(models.Model):
         self.ensure_one()
         if not previous:
             return 0.0
+        # In the same currency, preserve the exact unit price entered on the
+        # latest supplier invoice.  No conversion or monetary rounding occurs.
+        if previous.currency_id == self.currency_id:
+            return round(previous.price_unit or 0.0, 3)
         if previous.currency_id == previous.company_currency_id:
             previous_real_price = previous.price_unit or 0.0
         else:
             previous_rate = previous.move_id.invoice_currency_rate or 1.0
             previous_real_price = (previous.price_unit or 0.0) / previous_rate
-        previous_real_price = previous.company_currency_id.round(previous_real_price)
+        # Keep the same thousandth precision as the displayed historic and
+        # proposed supplier prices, so all related values use one rounding rule.
+        previous_real_price = round(previous_real_price, 3)
         if self.currency_id == self.company_currency_id:
-            return previous_real_price
+            return round(previous_real_price, 3)
         current_rate = self.move_id.invoice_currency_rate or 1.0
-        return self.currency_id.round(previous_real_price * current_rate)
+        return round(previous_real_price * current_rate, 3)
 
     @api.onchange("product_id")
     def _onchange_primetech_supplier_last_price(self):
@@ -1004,14 +1010,16 @@ class AccountMoveLine(models.Model):
     primetech_volume_manual = fields.Float(digits=(16, 6), copy=False)
     primetech_volume_is_manual = fields.Boolean(copy=False)
     primetech_last_price = fields.Monetary(
-        string="Dernier Prix", compute="_compute_primetech_logistics", currency_field="currency_id",
+        string="Dernier Prix", compute="_compute_primetech_logistics",
+        currency_field="currency_id", digits=(16, 3),
     )
     primetech_stock_quantity = fields.Float(
         string="Stock actuel", compute="_compute_primetech_logistics",
         help="Quantité actuellement disponible pour l'article dans Odoo.",
     )
     primetech_last_real_price = fields.Monetary(
-        string="Dernier Prix Réel", compute="_compute_primetech_logistics", currency_field="company_currency_id",
+        string="Dernier Prix Réel", compute="_compute_primetech_logistics",
+        currency_field="company_currency_id", digits=(16, 3),
     )
     primetech_sale_cost = fields.Monetary(
         string="Coût", compute="_compute_primetech_logistics",
@@ -1131,7 +1139,7 @@ class AccountMoveLine(models.Model):
                 else:
                     previous_rate = previous.move_id.invoice_currency_rate or 1.0
                     previous_real_price = (previous.price_unit or 0.0) / previous_rate
-                previous_real_price = previous.company_currency_id.round(previous_real_price)
+                previous_real_price = round(previous_real_price, 3)
                 line.primetech_last_price = line._primetech_last_supplier_price_in_invoice_currency(previous)
                 line.primetech_last_real_price = previous_real_price
                 # The field is deliberately sourced from the *final cost* of

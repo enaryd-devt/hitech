@@ -50,7 +50,8 @@
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="attributes">
                 <attribute name="string">Prix unitaire</attribute>
                 <attribute name="widget">monetary</attribute>
-                <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                <attribute name="digits">[16, 3]</attribute>
+                <attribute name="options">{'currency_field': 'currency_id', 'field_digits': True}</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
                 <attribute name="optional">hide</attribute>
@@ -202,13 +203,16 @@
                      currency selected on the supplier bill. -->
                 <field name="currency_id" column_invisible="1"/>
                 <field name="primetech_last_price" widget="monetary"
-                       options="{'currency_field': 'currency_id'}" string="Dernier prix fournisseur" optional="show"
+                       options="{'currency_field': 'currency_id', 'field_digits': True}" digits="[16, 3]"
+                       string="Dernier prix fournisseur" optional="show"
                        column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
                 <field name="company_currency_id" column_invisible="1"/>
                 <field name="primetech_stock_quantity" string="Stock actuel" readonly="1" optional="show"/>
-                <field name="primetech_last_real_price" string="Dernier prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
+                <field name="primetech_last_real_price" string="Dernier prix réel" optional="show"
+                       widget="monetary" options="{'currency_field': 'company_currency_id', 'field_digits': True}"
+                       digits="[16, 3]" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
                 <field name="primetech_real_price" string="Prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
                 <field name="primetech_weight_cost" string="Constante de poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
                 <field name="primetech_volume_cost" string="Constante de volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
