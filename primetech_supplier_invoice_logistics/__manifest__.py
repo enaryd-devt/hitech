@@ -15,6 +15,7 @@
     "assets": {
         "web.assets_backend": [
             "primetech_supplier_invoice_logistics/static/src/js/chatter_bottom.js",
+            "primetech_supplier_invoice_logistics/static/src/js/supplier_invoice_article_tooltip.js",
             "primetech_supplier_invoice_logistics/static/src/scss/chatter_bottom.scss",
             "primetech_supplier_invoice_logistics/static/src/scss/supplier_invoice_lines.scss",
         ],

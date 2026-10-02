@@ -1,11 +1,24 @@
 # -*- coding: utf-8 -*-
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    @api.model
+    def default_get(self, fields_list):
+        """Pre-fill the supplier invoice date when the user leaves it empty."""
+        values = super().default_get(fields_list)
+        move_type = values.get("move_type") or self.env.context.get("default_move_type")
+        if (
+            "invoice_date" in fields_list
+            and move_type in ("in_invoice", "in_refund")
+            and not values.get("invoice_date")
+        ):
+            values["invoice_date"] = fields.Date.context_today(self)
+        return values
 
     primetech_apply_discount = fields.Boolean(string="Appliquer réduction")
     primetech_discount_account_id = fields.Many2one(
@@ -166,6 +179,33 @@ class AccountMove(models.Model):
                 if displayed_rate > 0:
                     move.invoice_currency_rate = 1.0 / displayed_rate
 
+    @api.onchange("currency_id", "company_id", "invoice_date")
+    def _onchange_primetech_daily_currency_rate(self):
+        """Use the current Odoo currency rate as soon as a bill is prepared.
+
+        Odoo's currency table is the reliable, auditable source for daily
+        international rates.  It is also what the native refresh action uses,
+        so the amount displayed as ``1 USD = ... FCFA`` and all accounting
+        calculations always use exactly the same rate.
+        """
+        for move in self:
+            if (
+                move.move_type not in ("in_invoice", "in_refund")
+                or not move.currency_id
+                or not move.company_currency_id
+                or move.currency_id == move.company_currency_id
+            ):
+                continue
+            rate_date = move.invoice_date or fields.Date.context_today(move)
+            rate = self.env["res.currency"]._get_conversion_rate(
+                move.company_currency_id,
+                move.currency_id,
+                move.company_id,
+                rate_date,
+            )
+            if rate > 0:
+                move.invoice_currency_rate = rate
+
     def action_post(self):
         result = super().action_post()
         for move in self.filtered(lambda item: item.move_type == "in_invoice"):
@@ -181,6 +221,10 @@ class AccountMove(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         """Also cover invoices imported directly in the posted state."""
+        for values in vals_list:
+            move_type = values.get("move_type") or self.env.context.get("default_move_type")
+            if move_type in ("in_invoice", "in_refund") and not values.get("invoice_date"):
+                values["invoice_date"] = fields.Date.context_today(self)
         moves = super().create(vals_list)
         for move in moves.filtered(
             lambda item: item.move_type == "in_invoice" and item.state == "posted"
@@ -282,6 +326,22 @@ class AccountMove(models.Model):
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
+
+    @api.constrains("product_id", "display_type", "move_id")
+    def _check_primetech_supplier_line_product(self):
+        """A supplier-bill product line is never meaningful without an item.
+
+        Sections and notes remain valid Odoo lines.  The check deliberately
+        applies only to supplier invoices/refunds so journal entries and other
+        standard accounting flows are unaffected.
+        """
+        for line in self:
+            if (
+                line.move_id.move_type in ("in_invoice", "in_refund")
+                and line.display_type in (False, "product")
+                and not line.product_id
+            ):
+                raise ValidationError(_("Veuillez sélectionner un article avant d'enregistrer cette ligne."))
 
     primetech_product_image = fields.Image(
         related="product_id.image_1920", string="Image", readonly=True,

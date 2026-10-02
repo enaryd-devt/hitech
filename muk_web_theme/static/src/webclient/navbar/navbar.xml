@@ -64,6 +64,18 @@
 		</xpath>
 	</t>
 
+	<t t-name="muk_web_theme.NavBar.ColorMode"
+	   t-inherit="web.NavBar"
+	   t-inherit-mode="extension">
+		<xpath expr="//div[contains(@class, 'o_menu_systray')]" position="before">
+			<button t-if="!env.isSmall" class="mk_color_mode_toggle" t-on-click="toggleColorMode"
+			        t-att-title="colorMode.dark ? 'Activer le thème clair' : 'Activer le thème sombre'"
+			        t-att-aria-label="colorMode.dark ? 'Activer le thème clair' : 'Activer le thème sombre'">
+				<i t-att-class="colorMode.dark ? 'fa fa-sun-o' : 'fa fa-moon-o'"/>
+			</button>
+		</xpath>
+	</t>
+
 	<t t-name="muk_web_theme.NavBar.ActiveSections"
 	   t-inherit="web.NavBar.SectionsMenu"
 	   t-inherit-mode="extension">

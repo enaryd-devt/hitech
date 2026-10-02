@@ -29,7 +29,7 @@
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='name']" position="attributes">
                 <attribute name="string">Libellé</attribute>
-                <attribute name="optional">hide</attribute>
+                <attribute name="optional">show</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
                 <attribute name="string">Compte</attribute>
@@ -119,7 +119,7 @@
             </xpath>
             <!-- Keep Odoo's unique native conversion widget and rename its label. -->
             <xpath expr="//div[@name='in_and_refresh_button_div']/div[1]" position="replace">
-                <div>Taux</div>
+                <div>Devise</div>
             </xpath>
             <!-- Supplier bills display the invoice currency first: 1 USD = 675 FCFA.
                  Odoo's internal rate remains present but is managed by the

@@ -1,0 +1,235 @@
+// Per-user dark mode, toggled from the navbar.  Brand and action colours stay
+// inherited from MuK's configurable palette while neutral surfaces are made
+// consistently dark across list, form, dialog and chatter views.
+html.mk_dark_mode {
+    color-scheme: dark;
+
+    body,
+    .o_web_client,
+    .o_action_manager,
+    .o_content {
+        background: #111827 !important;
+        color: #e5e7eb !important;
+    }
+
+    .o_main_navbar {
+        background: linear-gradient(100deg, #111827, #1f2937) !important;
+        border-color: rgba(255, 255, 255, .12) !important;
+
+        .o_menu_brand,
+        .o_menu_sections .o_nav_entry,
+        .o_menu_sections .dropdown-toggle,
+        .o_menu_systray .o_nav_entry,
+        .o_menu_systray button,
+        .o_navbar_apps_menu button {
+            color: #f8fafc !important;
+        }
+
+        .o_menu_sections .o_nav_entry:hover,
+        .o_menu_sections .dropdown-toggle:hover,
+        .o_menu_sections .mk_nav_entry_active {
+            background-color: rgba($mk-appbar-active, .28) !important;
+            color: #fff !important;
+        }
+    }
+
+    .o_control_panel,
+    .o_action,
+    .o_view_controller,
+    .o_form_view,
+    .o_list_view,
+    .o_kanban_view,
+    .o_searchview,
+    .o-dropdown--menu,
+    .dropdown-menu,
+    .modal-content,
+    .o-mail-Discuss,
+    .o-mail-Chatter,
+    .o-mail-Thread,
+    .o_cp_sidebar,
+    .o_pager,
+    .o_popover {
+        background-color: #182235 !important;
+        color: #e5e7eb !important;
+        border-color: rgba(148, 163, 184, .25) !important;
+    }
+
+    // Sidebars are standalone surfaces in the MuK layout and must not retain
+    // their light background when the main web client switches theme.
+    .mk_apps_sidebar_panel,
+    .o_cp_sidebar,
+    .o_search_panel,
+    .o_search_panel_section,
+    .o_app_menu_sidebar,
+    .o_burger_menu_content {
+        background: linear-gradient(160deg, #111827, #182235) !important;
+        color: #edf3fb !important;
+        border-color: rgba(148, 163, 184, .22) !important;
+    }
+
+    .mk_apps_sidebar_panel .mk_apps_sidebar_menu > li > a,
+    .mk_apps_sidebar_panel .mk_apps_sidebar_menu > li.active > a,
+    .o_cp_sidebar a,
+    .o_search_panel a,
+    .o_app_menu_sidebar a {
+        color: #edf3fb !important;
+    }
+
+    .o_form_sheet_bg,
+    .o_form_sheet,
+    .o_list_renderer,
+    .o_kanban_record,
+    .o_searchview_input_container,
+    .o_input,
+    .form-control,
+    .form-select,
+    input,
+    textarea,
+    select {
+        background-color: #202c42 !important;
+        color: #f8fafc !important;
+        border-color: rgba(148, 163, 184, .35) !important;
+    }
+
+    // Settings uses additional card and sidebar surfaces that do not occur in
+    // normal forms.  Keep them dark with a high-contrast foreground too.
+    .o_settings_container,
+    .settings,
+    .o_setting_container,
+    .o_setting_box,
+    .o_settings_tab,
+    .o_settings_tab .tab,
+    .o_settings_tab .tab-content,
+    .app_settings_block,
+    .o_settings_form_view {
+        background-color: #182235 !important;
+        color: #edf3fb !important;
+        border-color: rgba(148, 163, 184, .24) !important;
+    }
+
+    .o_settings_container h1,
+    .o_settings_container h2,
+    .o_settings_container h3,
+    .o_settings_container h4,
+    .o_settings_container label,
+    .o_settings_container .form-text,
+    .o_settings_container .text-muted,
+    .o_settings_container .o_form_label {
+        color: #edf3fb !important;
+    }
+
+    .o_form_label,
+    .o_form_view label,
+    .o_list_view th,
+    .o_list_view td,
+    .o_kanban_record,
+    .dropdown-item,
+    .o-mail-Message,
+    .o-mail-Message-body,
+    .text-muted {
+        color: #d7dfeb !important;
+    }
+
+    .o_list_view thead,
+    .o_list_view .o_list_table thead,
+    .o_list_view .o_list_table tbody tr:hover {
+        background-color: #26344d !important;
+    }
+
+    .o_list_view .o_list_renderer,
+    .o_list_view .o_list_table,
+    .o_list_view .o_list_table tbody,
+    .o_list_view .o_list_table tbody tr,
+    .o_list_view .o_list_table tbody td,
+    .o_list_view .o_list_table tbody th,
+    .o_kanban_renderer,
+    .o_kanban_record,
+    .bg-white,
+    .bg-light,
+    .bg-100,
+    .bg-200 {
+        background-color: #182235 !important;
+        color: #e7edf6 !important;
+    }
+
+    .o_list_view .o_list_table tbody tr,
+    .o_list_view .o_list_table td,
+    .o_list_view .o_list_table th,
+    .o_form_view .o_group,
+    .o_form_view .o_inner_group,
+    .o_notebook .nav-tabs {
+        border-color: rgba(148, 163, 184, .22) !important;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item:focus,
+    .o_kanban_record:hover {
+        background-color: rgba($mk-appbar-active, .22) !important;
+        color: #fff !important;
+    }
+
+    // Bootstrap utility classes and Odoo's semantic text tokens otherwise
+    // keep a near-black foreground in a dark surface.
+    .text-dark,
+    .text-body,
+    .text-900,
+    .text-800,
+    .text-700,
+    .o_field_widget,
+    .o_field_many2one,
+    .o_field_char,
+    .o_field_text,
+    .o_field_selection,
+    .o_form_uri,
+    .o_list_view a:not(.btn),
+    .o_kanban_record a:not(.btn),
+    .o_notebook .nav-link {
+        color: #edf3fb !important;
+    }
+
+    .o_notebook .nav-link.active,
+    .o_notebook .nav-link:hover {
+        color: #fff !important;
+        background-color: rgba($mk-appbar-active, .2) !important;
+        border-color: rgba($mk-appbar-active, .45) !important;
+    }
+}
+
+.mk_color_mode_toggle {
+    align-items: center;
+    background: rgba($mk-appbar-active, .14);
+    border: 1px solid rgba($mk-appbar-color, .2);
+    border-radius: 7px;
+    color: $mk-appbar-color;
+    display: inline-flex;
+    font-size: .95rem;
+    height: 30px;
+    justify-content: center;
+    margin: .3rem .45rem;
+    padding: 0;
+    width: 30px;
+    transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba($mk-appbar-active, .3);
+        box-shadow: 0 3px 10px rgba($mk-appbar-background, .22);
+        color: $mk-appbar-color;
+        transform: translateY(-1px);
+    }
+}
+
+html.mk_dark_mode .mk_color_mode_toggle {
+    background: rgba(251, 191, 36, .16);
+    border-color: rgba(251, 191, 36, .56);
+    color: #facc15 !important;
+    text-shadow: 0 0 9px rgba(250, 204, 21, .35);
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(251, 191, 36, .28);
+        border-color: #fde047;
+        color: #fde047 !important;
+        box-shadow: 0 0 14px rgba(250, 204, 21, .25);
+    }
+}

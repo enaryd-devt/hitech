@@ -16,12 +16,12 @@
 }
 
 .o_form_view .pt-supplier-bill-lines .o_list_table {
-    width: 2120px !important;
-    min-width: 2120px !important;
+    width: 2200px !important;
+    min-width: 2200px !important;
     table-layout: fixed !important;
 }
 
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td) {
+.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):not([data-name='product_id']):not([data-name='sequence']):not([data-name='primetech_product_image']):not(.o_handle_cell):not(:has([name='product_id'])):not(:has([name='sequence'])):not(:has([name='primetech_product_image'])) {
     width: 100px !important;
     min-width: 100px !important;
     max-width: 100px !important;
@@ -30,23 +30,46 @@
     white-space: nowrap;
 }
 
-/* The first visual column remains compact, as in the native Odoo list. */
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):first-child {
-    width: 42px !important;
-    min-width: 42px !important;
-    max-width: 42px !important;
+/* Native Odoo drag handle (sequence): keep its own narrow column. */
+.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='sequence'],
+.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > .o_handle_cell,
+.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='sequence']) {
+    box-sizing: border-box !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
 }
 
 .o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='primetech_product_image'],
 .o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='primetech_product_image']) {
+    box-sizing: border-box !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
     width: 54px !important;
     min-width: 54px !important;
     max-width: 54px !important;
 }
 
 .o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='product_id'],
+.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='product_id']) {
+    // Initial comfortable width only.  No !important width lock here: Odoo's
+    // native header drag handle must be able to apply the user's width.
+    width: 180px;
+    min-width: 130px;
+    max-width: none;
+}
+
+.o_form_view .pt-supplier-bill-lines .o_list_table th[data-name='product_id'] .o_resize {
+    opacity: .22 !important;
+
+    &:hover {
+        opacity: .75 !important;
+    }
+}
+
 .o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='name'],
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='product_id']),
 .o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='name']) {
     width: 100px !important;
     min-width: 100px !important;

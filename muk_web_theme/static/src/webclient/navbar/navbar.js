@@ -16,7 +16,19 @@ patch(NavBar.prototype, {
         this.appMenuService = useService('app_menu');
 		this.appsMenuSearch = useState({ query: '' });
 		this.appsMenuNavigation = useState({ activeSectionId: null });
+		const savedTheme = window.localStorage.getItem('muk_web_theme_color_mode');
+		this.colorMode = useState({ dark: savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches });
+		this._applyColorMode();
     },
+	_applyColorMode() {
+		document.documentElement.classList.toggle('mk_dark_mode', this.colorMode.dark);
+		document.documentElement.style.colorScheme = this.colorMode.dark ? 'dark' : 'light';
+		window.localStorage.setItem('muk_web_theme_color_mode', this.colorMode.dark ? 'dark' : 'light');
+	},
+	toggleColorMode() {
+		this.colorMode.dark = !this.colorMode.dark;
+		this._applyColorMode();
+	},
 	get menuSearchResults() {
 		const query = this.appsMenuSearch.query.trim().toLocaleLowerCase();
 		if (!query) {
