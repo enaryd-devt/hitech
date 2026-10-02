@@ -476,7 +476,7 @@ class AccountMove(models.Model):
         return picking
 
     def _primetech_apply_supplier_product_costs(self):
-        """Apply the validated purchase and sale costs to each product card."""
+        """Apply validated costs and manually entered physical data to products."""
         self.ensure_one()
         lines = self.invoice_line_ids.filtered(
             lambda line: line.display_type in (False, "product") and line.product_id
@@ -489,6 +489,16 @@ class AccountMove(models.Model):
                 product.standard_price = line.primetech_final_cost
             if line.primetech_final_sale_price > 0:
                 product.lst_price = line.primetech_final_sale_price
+            # Weight and volume remain editable on every invoice line.  When
+            # they were explicitly entered by the buyer, retain them on the
+            # product card so future supplier bills start with those values.
+            physical_values = {}
+            if line.primetech_weight_is_manual:
+                physical_values["weight"] = line.primetech_weight or 0.0
+            if line.primetech_volume_is_manual:
+                physical_values["volume"] = line.primetech_volume or 0.0
+            if physical_values:
+                product.write(physical_values)
 
     def _primetech_stock_invoice_lines(self):
         """Aggregate invoice product lines for stock-transfer synchronisation."""
