@@ -1,4 +1,4 @@
-/* Fixed, readable supplier-bill logistics grid. */
+/* Responsive invoice grid: native Odoo column resizing remains available. */
 .o_form_view .pt-supplier-bill-lines,
 .o_form_view .pt-supplier-bill-lines .o_field_x2many_list {
     width: 100%;
@@ -16,67 +16,64 @@
 }
 
 .o_form_view .pt-supplier-bill-lines .o_list_table {
-    width: 2200px !important;
-    min-width: 2200px !important;
+    width: 100% !important;
+    min-width: 100%;
     table-layout: fixed !important;
-}
-
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):not([data-name='product_id']):not([data-name='sequence']):not([data-name='primetech_product_image']):not(.o_handle_cell):not(:has([name='product_id'])):not(:has([name='sequence'])):not(:has([name='primetech_product_image'])) {
-    width: 100px !important;
-    min-width: 100px !important;
-    max-width: 100px !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Native Odoo drag handle (sequence): keep its own narrow column. */
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='sequence'],
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > .o_handle_cell,
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='sequence']) {
-    box-sizing: border-box !important;
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-    width: 28px !important;
-    min-width: 28px !important;
-    max-width: 28px !important;
-}
-
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='primetech_product_image'],
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='primetech_product_image']) {
-    box-sizing: border-box !important;
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-    width: 54px !important;
-    min-width: 54px !important;
-    max-width: 54px !important;
-}
-
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='product_id'],
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='product_id']) {
-    // Initial comfortable width only.  No !important width lock here: Odoo's
-    // native header drag handle must be able to apply the user's width.
-    width: 180px;
-    min-width: 130px;
-    max-width: none;
-}
-
-.o_form_view .pt-supplier-bill-lines .o_list_table th[data-name='product_id'] .o_resize {
-    opacity: .22 !important;
-
-    &:hover {
-        opacity: .75 !important;
-    }
-}
-
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td)[data-name='name'],
-.o_form_view .pt-supplier-bill-lines .o_list_table > :is(thead, tbody) > tr > :is(th, td):has([name='name']) {
-    width: 100px !important;
-    min-width: 100px !important;
-    max-width: 100px !important;
 }
 
 .o_form_view .pt-supplier-bill-lines .o_list_table th {
     vertical-align: middle;
     white-space: normal;
+}
+
+/* Compact, read-only customer identity block in the sales-invoice header. */
+.o_form_view .pt-customer-invoice-contact {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-left: 3px solid var(--o-brand-primary, #714b67);
+    background: var(--o-view-background-color, #f8f9fa);
+    border-radius: 0 6px 6px 0;
+    color: var(--o-main-text-color, #212529);
+
+    .o_field_widget {
+        min-width: 0;
+        margin: 0;
+    }
+
+    textarea.o_input {
+        min-height: 34px;
+        resize: none;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        font-size: .88rem;
+        line-height: 1.25;
+    }
+}
+
+.o_form_view .pt-customer-contact-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: .84rem;
+    color: var(--o-main-text-color, #212529);
+
+    .fa {
+        width: 14px;
+        color: var(--o-brand-primary, #714b67);
+    }
+}
+
+/* Keep the invoice margin informative and visually secondary to totals. */
+.o_form_view .pt-invoice-total-margin {
+    color: var(--o-brand-primary, #714b67) !important;
+    font-size: .78rem !important;
+    font-weight: 500 !important;
+    opacity: .88;
+
+    .o_field_monetary {
+        font-size: .82rem !important;
+        font-weight: 600 !important;
+    }
 }

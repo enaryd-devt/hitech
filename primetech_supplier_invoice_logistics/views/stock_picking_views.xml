@@ -9,6 +9,9 @@
                 <button name="action_view_primetech_supplier_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="primetech_supplier_invoice_count == 0">
                     <field name="primetech_supplier_invoice_count" widget="statinfo" string="Factures fournisseurs"/>
                 </button>
+                <button name="action_view_primetech_customer_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="primetech_customer_invoice_count == 0">
+                    <field name="primetech_customer_invoice_count" widget="statinfo" string="Factures clients"/>
+                </button>
             </xpath>
         </field>
     </record>

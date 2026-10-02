@@ -72,6 +72,38 @@ class AccountMove(models.Model):
         "stock.location", string="Emplacement de stock", check_company=True,
         domain="[('usage', '=', 'internal'), ('company_id', 'in', (False, company_id))]",
     )
+    primetech_delivery_warehouse_id = fields.Many2one(
+        "stock.warehouse", string="Branche / entrepôt", check_company=True,
+        domain="[('company_id', '=', company_id)]",
+    )
+    primetech_delivery_picking_type_id = fields.Many2one(
+        "stock.picking.type", string="Type de livraison", check_company=True,
+        domain="[('code', '=', 'outgoing'), ('company_id', '=', company_id)]",
+    )
+    primetech_delivery_stock_location_id = fields.Many2one(
+        "stock.location", string="Emplacement de stock", check_company=True,
+        domain="[('usage', '=', 'internal'), ('company_id', 'in', (False, company_id))]",
+    )
+    primetech_customer_address = fields.Text(
+        string="Adresse client", compute="_compute_primetech_customer_contact",
+        readonly=True,
+    )
+    primetech_customer_phone = fields.Char(
+        string="Téléphone", compute="_compute_primetech_customer_contact",
+        readonly=True,
+    )
+    primetech_customer_mobile = fields.Char(
+        string="Mobile", compute="_compute_primetech_customer_contact",
+        readonly=True,
+    )
+    primetech_customer_vat = fields.Char(
+        string="NIU / N° TVA", compute="_compute_primetech_customer_contact",
+        readonly=True,
+    )
+    primetech_customer_email = fields.Char(
+        string="E-mail", compute="_compute_primetech_customer_contact",
+        readonly=True,
+    )
     primetech_calculation_basis = fields.Selection(
         [("weight", "Poids"), ("volume", "Volume")],
         string="Calcul selon le", default="weight", required=True,
@@ -108,6 +140,11 @@ class AccountMove(models.Model):
         string="Total coût de revient", compute="_compute_primetech_logistics_totals",
         store=True, currency_field="company_currency_id",
     )
+    primetech_total_margin = fields.Monetary(
+        string="Marge totale", compute="_compute_primetech_logistics_totals",
+        store=True, currency_field="currency_id",
+        help="Marge HT de la facture après application de la réduction éventuelle.",
+    )
     primetech_total_constant = fields.Monetary(
         string="Total constante", compute="_compute_primetech_logistics_totals",
         store=True, currency_field="company_currency_id",
@@ -118,6 +155,13 @@ class AccountMove(models.Model):
     )
     primetech_receipt_picking_count = fields.Integer(
         compute="_compute_primetech_receipt_picking_count", string="Réceptions",
+    )
+    primetech_delivery_picking_ids = fields.Many2many(
+        "stock.picking", "primetech_invoice_delivery_rel", "move_id", "picking_id",
+        string="Livraisons liées", copy=False, readonly=True,
+    )
+    primetech_delivery_picking_count = fields.Integer(
+        compute="_compute_primetech_delivery_picking_count", string="Livraisons",
     )
 
     @api.depends(
@@ -138,6 +182,34 @@ class AccountMove(models.Model):
             move.primetech_amount_after_discount = move.amount_total - discount
 
     @api.depends(
+        "partner_id", "partner_id.street", "partner_id.street2",
+        "partner_id.zip", "partner_id.city", "partner_id.country_id.name",
+        "partner_id.phone", "partner_id.mobile", "partner_id.vat", "partner_id.email",
+    )
+    def _compute_primetech_customer_contact(self):
+        for move in self:
+            partner = move.partner_id
+            if not partner:
+                move.primetech_customer_address = False
+                move.primetech_customer_phone = False
+                move.primetech_customer_mobile = False
+                move.primetech_customer_vat = False
+                move.primetech_customer_email = False
+                continue
+            city_line = " ".join(filter(None, [partner.zip, partner.city]))
+            address_parts = [
+                partner.street, partner.street2, city_line,
+                partner.country_id.name if partner.country_id else False,
+            ]
+            move.primetech_customer_address = ", ".join(filter(None, address_parts))
+            move.primetech_customer_phone = partner.phone or partner.mobile
+            move.primetech_customer_mobile = (
+                partner.mobile if partner.mobile and partner.mobile != partner.phone else False
+            )
+            move.primetech_customer_vat = partner.vat
+            move.primetech_customer_email = partner.email
+
+    @api.depends(
         "invoice_line_ids.quantity", "invoice_line_ids.primetech_weight",
         "invoice_line_ids.primetech_volume", "invoice_line_ids.primetech_final_cost",
         "invoice_line_ids.primetech_constant_cost",
@@ -145,7 +217,9 @@ class AccountMove(models.Model):
         "invoice_line_ids.primetech_volume_cost",
         "invoice_line_ids.primetech_cost_by_weight",
         "invoice_line_ids.primetech_cost_by_volume",
-        "primetech_calculation_basis",
+        "invoice_line_ids.primetech_sale_cost",
+        "primetech_calculation_basis", "amount_untaxed",
+        "primetech_apply_discount", "primetech_discount_type", "primetech_discount_value",
     )
     def _compute_primetech_logistics_totals(self):
         for move in self:
@@ -156,6 +230,25 @@ class AccountMove(models.Model):
                 lambda line: line.display_type in (False, "product")
             )
             move.primetech_total_units = sum(lines.mapped("quantity"))
+            if move.move_type in ("out_invoice", "out_refund"):
+                move.primetech_total_weight = 0.0
+                move.primetech_total_volume = 0.0
+                move.primetech_total_weight_volume = 0.0
+                total_cost = sum(
+                    (line.primetech_sale_cost or 0.0) * (line.quantity or 0.0)
+                    for line in lines
+                )
+                discount = 0.0
+                if move.primetech_apply_discount:
+                    if move.primetech_discount_type == "percentage":
+                        discount = (move.amount_untaxed or 0.0) * (move.primetech_discount_value or 0.0) / 100.0
+                    else:
+                        discount = move.primetech_discount_value or 0.0
+                discount = min(max(discount, 0.0), move.amount_untaxed or 0.0)
+                move.primetech_total_cost = total_cost
+                move.primetech_total_margin = (move.amount_untaxed or 0.0) - discount - total_cost
+                move.primetech_total_constant = 0.0
+                continue
             measure_field = (
                 "primetech_weight" if move.primetech_calculation_basis == "weight"
                 else "primetech_volume"
@@ -195,11 +288,17 @@ class AccountMove(models.Model):
                 line.primetech_constant_cost or line[automatic_constant_field] or 0.0
                 for line in lines
             )
+            move.primetech_total_margin = 0.0
 
     @api.depends("primetech_receipt_picking_ids")
     def _compute_primetech_receipt_picking_count(self):
         for move in self:
             move.primetech_receipt_picking_count = len(move.primetech_receipt_picking_ids)
+
+    @api.depends("primetech_delivery_picking_ids")
+    def _compute_primetech_delivery_picking_count(self):
+        for move in self:
+            move.primetech_delivery_picking_count = len(move.primetech_delivery_picking_ids)
 
     @api.onchange("primetech_warehouse_id")
     def _onchange_primetech_warehouse_id(self):
@@ -208,6 +307,14 @@ class AccountMove(models.Model):
             if warehouse:
                 move.primetech_picking_type_id = warehouse.in_type_id
                 move.primetech_stock_location_id = warehouse.lot_stock_id
+
+    @api.onchange("primetech_delivery_warehouse_id")
+    def _onchange_primetech_delivery_warehouse_id(self):
+        for move in self:
+            warehouse = move.primetech_delivery_warehouse_id
+            if warehouse:
+                move.primetech_delivery_picking_type_id = warehouse.out_type_id
+                move.primetech_delivery_stock_location_id = warehouse.lot_stock_id
 
     @api.onchange(
         "invoice_currency_rate", "primetech_display_exchange_rate", "primetech_weight_rate", "primetech_volume_rate",
@@ -282,6 +389,8 @@ class AccountMove(models.Model):
                 lambda item: not item.display_type and item.product_id and item.primetech_final_sale_price > 0
             ):
                 line.product_id.lst_price = line.primetech_final_sale_price
+        for move in self.filtered(lambda item: item.move_type == "out_invoice"):
+            move.sudo()._primetech_create_delivery_picking()
         return result
 
     @api.model_create_multi
@@ -296,6 +405,10 @@ class AccountMove(models.Model):
             lambda item: item.move_type == "in_invoice" and item.state == "posted"
         ):
             move.sudo()._primetech_create_receipt_picking()
+        for move in moves.filtered(
+            lambda item: item.move_type == "out_invoice" and item.state == "posted"
+        ):
+            move.sudo()._primetech_create_delivery_picking()
         return moves
 
     def write(self, vals):
@@ -304,6 +417,8 @@ class AccountMove(models.Model):
         if vals.get("state") == "posted":
             for move in self.filtered(lambda item: item.move_type == "in_invoice"):
                 move.sudo()._primetech_create_receipt_picking()
+            for move in self.filtered(lambda item: item.move_type == "out_invoice"):
+                move.sudo()._primetech_create_delivery_picking()
         return result
 
     def _primetech_create_receipt_picking(self):
@@ -386,6 +501,84 @@ class AccountMove(models.Model):
             }
         action = self.env["ir.actions.actions"]._for_xml_id("stock.action_picking_tree_all")
         action["domain"] = [("id", "in", self.primetech_receipt_picking_ids.ids)]
+        action["context"] = {"create": False}
+        return action
+
+    def _primetech_create_delivery_picking(self):
+        """Create the outgoing delivery linked to one customer invoice."""
+        self.ensure_one()
+        if self.primetech_delivery_picking_ids:
+            return self.primetech_delivery_picking_ids
+        lines = self.invoice_line_ids.filtered(
+            lambda line: line.display_type in (False, "product")
+            and line.product_id and line.quantity > 0
+        )
+        if not lines:
+            return self.env["stock.picking"]
+        picking_type = self.primetech_delivery_picking_type_id or self.env["stock.picking.type"].search([
+            ("code", "=", "outgoing"), ("company_id", "=", self.company_id.id),
+        ], limit=1)
+        if not picking_type:
+            return self.env["stock.picking"]
+        source = (
+            self.primetech_delivery_stock_location_id
+            or picking_type.default_location_src_id
+            or picking_type.warehouse_id.lot_stock_id
+        )
+        destination = (
+            picking_type.default_location_dest_id
+            or self.partner_id.property_stock_customer
+        )
+        if not source or not destination:
+            raise UserError(_(
+                "Configurez un emplacement de départ et de destination sur la facture "
+                "ou sur le type de livraison avant de confirmer la facture."
+            ))
+        picking = self.env["stock.picking"].create({
+            "picking_type_id": picking_type.id,
+            "partner_id": self.partner_id.id,
+            "origin": self.name or self.ref,
+            "location_id": source.id,
+            "location_dest_id": destination.id,
+            "company_id": self.company_id.id,
+            "scheduled_date": self.invoice_date or fields.Datetime.now(),
+        })
+        for line in lines:
+            self.env["stock.move"].create({
+                "name": line.name or line.product_id.display_name,
+                "product_id": line.product_id.id,
+                "product_uom_qty": line.quantity,
+                "product_uom": line.product_uom_id.id,
+                "picking_id": picking.id,
+                "location_id": source.id,
+                "location_dest_id": destination.id,
+                "company_id": self.company_id.id,
+            })
+        picking.action_confirm()
+        self.primetech_delivery_picking_ids = [(4, picking.id)]
+        return picking
+
+    def action_create_primetech_delivery(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice" or self.state not in ("draft", "posted"):
+            raise UserError(_("La livraison peut uniquement être créée pour une facture client."))
+        self.sudo()._primetech_create_delivery_picking()
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def action_view_primetech_deliveries(self):
+        self.ensure_one()
+        if len(self.primetech_delivery_picking_ids) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "stock.picking",
+                "res_id": self.primetech_delivery_picking_ids.id,
+                "view_mode": "form",
+                "views": [(False, "form")],
+                "target": "current",
+                "context": {"create": False},
+            }
+        action = self.env["ir.actions.actions"]._for_xml_id("stock.action_picking_tree_all")
+        action["domain"] = [("id", "in", self.primetech_delivery_picking_ids.ids)]
         action["context"] = {"create": False}
         return action
 
@@ -497,6 +690,16 @@ class AccountMoveLine(models.Model):
     primetech_last_real_price = fields.Monetary(
         string="Dernier Prix Réel", compute="_compute_primetech_logistics", currency_field="company_currency_id",
     )
+    primetech_sale_cost = fields.Monetary(
+        string="Coût", compute="_compute_primetech_logistics",
+        currency_field="currency_id", store=True,
+        help="Coût unitaire de l'article pour la facture client.",
+    )
+    primetech_line_margin = fields.Monetary(
+        string="Marge totale", compute="_compute_primetech_logistics",
+        currency_field="currency_id", store=True,
+        help="Marge hors taxes de la ligne de facture client.",
+    )
     primetech_real_price = fields.Monetary(
         string="Prix réel", compute="_compute_primetech_logistics", store=True, currency_field="company_currency_id",
     )
@@ -570,6 +773,7 @@ class AccountMoveLine(models.Model):
 
     @api.depends(
         "product_id", "quantity", "price_unit", "primetech_constant_cost",
+        "price_subtotal", "product_id.standard_price",
         "product_id.categ_id.primetech_cost_percentage",
         "product_id.categ_id.primetech_sale_percentage",
         "primetech_weight_manual", "primetech_weight_is_manual",
@@ -580,6 +784,7 @@ class AccountMoveLine(models.Model):
         "move_id.primetech_calculation_basis",
         "move_id.invoice_currency_rate",
         "currency_id", "company_currency_id",
+        "move_id.invoice_date", "discount",
     )
     def _compute_primetech_logistics(self):
         for line in self:
@@ -635,6 +840,20 @@ class AccountMoveLine(models.Model):
                 conversion_rate = line.move_id.invoice_currency_rate or 1.0
                 real_price = (line.price_unit or 0.0) / conversion_rate
             line.primetech_real_price = line.company_currency_id.round(real_price)
+            if product and line.currency_id and line.company_currency_id:
+                sale_cost = line.company_currency_id._convert(
+                    product.standard_price or 0.0,
+                    line.currency_id,
+                    line.company_id,
+                    line.move_id.invoice_date or fields.Date.context_today(line),
+                )
+            else:
+                sale_cost = 0.0
+            line.primetech_sale_cost = sale_cost
+            line.primetech_line_margin = (
+                (line.price_subtotal or 0.0)
+                - (sale_cost * quantity)
+            )
             air_sale_factor = 1 + (line.primetech_sale_percentage or 0.0) / 100.0
             sea_sale_factor = air_sale_factor
             # The existing bill setting is deliberately reused: Poids means
