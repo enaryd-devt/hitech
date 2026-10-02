@@ -383,12 +383,7 @@ class AccountMove(models.Model):
         result = super().action_post()
         for move in self.filtered(lambda item: item.move_type == "in_invoice"):
             move.sudo()._primetech_create_receipt_picking()
-            # The final selling price validated on the supplier bill becomes
-            # the active sale price of each received product.
-            for line in move.invoice_line_ids.filtered(
-                lambda item: not item.display_type and item.product_id and item.primetech_final_sale_price > 0
-            ):
-                line.product_id.lst_price = line.primetech_final_sale_price
+            move.sudo()._primetech_apply_supplier_product_costs()
         for move in self.filtered(lambda item: item.move_type == "out_invoice"):
             move.sudo()._primetech_create_delivery_picking()
         return result
@@ -405,6 +400,7 @@ class AccountMove(models.Model):
             lambda item: item.move_type == "in_invoice" and item.state == "posted"
         ):
             move.sudo()._primetech_create_receipt_picking()
+            move.sudo()._primetech_apply_supplier_product_costs()
         for move in moves.filtered(
             lambda item: item.move_type == "out_invoice" and item.state == "posted"
         ):
@@ -417,6 +413,7 @@ class AccountMove(models.Model):
         if vals.get("state") == "posted":
             for move in self.filtered(lambda item: item.move_type == "in_invoice"):
                 move.sudo()._primetech_create_receipt_picking()
+                move.sudo()._primetech_apply_supplier_product_costs()
             for move in self.filtered(lambda item: item.move_type == "out_invoice"):
                 move.sudo()._primetech_create_delivery_picking()
         return result
@@ -424,7 +421,7 @@ class AccountMove(models.Model):
     def _primetech_create_receipt_picking(self):
         self.ensure_one()
         if self.primetech_receipt_picking_ids:
-            return self.primetech_receipt_picking_ids
+            return self._primetech_sync_linked_pickings("receipt")
         # In Odoo 18, a normal product line has display_type="product".
         # Sections, notes and accounting-only lines must not become stock moves.
         lines = self.invoice_line_ids.filtered(
@@ -478,6 +475,184 @@ class AccountMove(models.Model):
         self.primetech_receipt_picking_ids = [(4, picking.id)]
         return picking
 
+    def _primetech_apply_supplier_product_costs(self):
+        """Apply the validated purchase and sale costs to each product card."""
+        self.ensure_one()
+        lines = self.invoice_line_ids.filtered(
+            lambda line: line.display_type in (False, "product") and line.product_id
+        )
+        for line in lines:
+            product = line.product_id.with_company(self.company_id)
+            # ``standard_price`` is expressed in the company currency, as is
+            # the final purchase cost computed on the supplier bill.
+            if line.primetech_final_cost > 0:
+                product.standard_price = line.primetech_final_cost
+            if line.primetech_final_sale_price > 0:
+                product.lst_price = line.primetech_final_sale_price
+
+    def _primetech_stock_invoice_lines(self):
+        """Aggregate invoice product lines for stock-transfer synchronisation."""
+        self.ensure_one()
+        values = {}
+        for line in self.invoice_line_ids.filtered(
+            lambda item: item.display_type in (False, "product")
+            and item.product_id and item.quantity > 0
+        ):
+            item = values.setdefault(line.product_id.id, {
+                "product": line.product_id,
+                "uom": line.product_uom_id,
+                "quantity": 0.0,
+                "name": line.name or line.product_id.display_name,
+            })
+            item["quantity"] += line.quantity
+        return values
+
+    def _primetech_create_stock_adjustment(self, transfer_kind, picking_type, source, destination, lines, suffix):
+        """Create and link an additional delivery, receipt, or return picking."""
+        self.ensure_one()
+        if not lines:
+            return self.env["stock.picking"]
+        picking = self.env["stock.picking"].create({
+            "picking_type_id": picking_type.id,
+            "partner_id": self.partner_id.id,
+            "origin": "%s — %s" % (self.name or self.ref, suffix),
+            "location_id": source.id,
+            "location_dest_id": destination.id,
+            "company_id": self.company_id.id,
+            "scheduled_date": self.invoice_date or fields.Datetime.now(),
+        })
+        for item in lines.values():
+            self.env["stock.move"].create({
+                "name": item["name"],
+                "product_id": item["product"].id,
+                "product_uom_qty": item["quantity"],
+                "product_uom": item["uom"].id,
+                "picking_id": picking.id,
+                "location_id": source.id,
+                "location_dest_id": destination.id,
+                "company_id": self.company_id.id,
+            })
+        picking.action_confirm()
+        if transfer_kind == "receipt":
+            self.primetech_receipt_picking_ids = [(4, picking.id)]
+        else:
+            self.primetech_delivery_picking_ids = [(4, picking.id)]
+        return picking
+
+    def _primetech_sync_linked_pickings(self, transfer_kind):
+        """Synchronise editable pickings; create delta or return pickings after validation."""
+        self.ensure_one()
+        is_receipt = transfer_kind == "receipt"
+        pickings = (
+            self.primetech_receipt_picking_ids if is_receipt
+            else self.primetech_delivery_picking_ids
+        )
+        picking_type = (
+            self.primetech_picking_type_id if is_receipt
+            else self.primetech_delivery_picking_type_id
+        )
+        code = "incoming" if is_receipt else "outgoing"
+        if not picking_type:
+            picking_type = self.env["stock.picking.type"].search([
+                ("code", "=", code), ("company_id", "=", self.company_id.id),
+            ], limit=1)
+        if not picking_type:
+            return pickings
+        source = (
+            (picking_type.default_location_src_id or self.partner_id.property_stock_supplier)
+            if is_receipt else
+            (self.primetech_delivery_stock_location_id or picking_type.default_location_src_id or picking_type.warehouse_id.lot_stock_id)
+        )
+        destination = (
+            (self.primetech_stock_location_id or picking_type.default_location_dest_id or picking_type.warehouse_id.lot_stock_id)
+            if is_receipt else
+            (picking_type.default_location_dest_id or self.partner_id.property_stock_customer)
+        )
+        if not source or not destination:
+            raise UserError(_("Configurez les emplacements de stock avant de confirmer la facture."))
+        expected = self._primetech_stock_invoice_lines()
+        editable = pickings.filtered(lambda picking: picking.state not in ("done", "cancel"))[:1]
+        if editable:
+            picking = editable
+            if picking.state == "assigned":
+                picking.action_unreserve()
+            picking.write({
+                "picking_type_id": picking_type.id,
+                "location_id": source.id,
+                "location_dest_id": destination.id,
+                "scheduled_date": self.invoice_date or fields.Datetime.now(),
+            })
+            moves_by_product = {}
+            for stock_move in picking.move_ids_without_package.filtered(lambda move: move.state != "cancel"):
+                moves_by_product.setdefault(stock_move.product_id.id, self.env["stock.move"])
+                moves_by_product[stock_move.product_id.id] |= stock_move
+            for product_id, item in expected.items():
+                moves = moves_by_product.pop(product_id, self.env["stock.move"])
+                if moves:
+                    main_move, extra_moves = moves[:1], moves[1:]
+                    main_move.write({
+                        "name": item["name"], "product_uom_qty": item["quantity"],
+                        "product_uom": item["uom"].id, "location_id": source.id,
+                        "location_dest_id": destination.id,
+                    })
+                    if extra_moves:
+                        extra_moves._action_cancel()
+                else:
+                    self.env["stock.move"].create({
+                        "name": item["name"], "product_id": item["product"].id,
+                        "product_uom_qty": item["quantity"], "product_uom": item["uom"].id,
+                        "picking_id": picking.id, "location_id": source.id,
+                        "location_dest_id": destination.id, "company_id": self.company_id.id,
+                    })
+            for moves in moves_by_product.values():
+                moves._action_cancel()
+            picking.action_confirm()
+            return picking
+
+        actual = {}
+        for picking in pickings.filtered(lambda item: item.state == "done"):
+            sign = 1 if (
+                picking.location_id == source and picking.location_dest_id == destination
+            ) else -1
+            for stock_move in picking.move_ids_without_package:
+                quantity = stock_move.quantity or stock_move.product_uom_qty
+                actual[stock_move.product_id.id] = actual.get(stock_move.product_id.id, 0.0) + sign * quantity
+        additions, returns = {}, {}
+        product_ids = set(expected) | set(actual)
+        for product_id in product_ids:
+            item = expected.get(product_id)
+            desired = item["quantity"] if item else 0.0
+            delta = desired - actual.get(product_id, 0.0)
+            if abs(delta) < 1e-6:
+                continue
+            if not item:
+                stock_move = pickings.filtered(lambda picking: picking.state == "done").move_ids_without_package.filtered(
+                    lambda move: move.product_id.id == product_id
+                )[:1]
+                if not stock_move:
+                    continue
+                item = {"product": stock_move.product_id, "uom": stock_move.product_uom, "quantity": 0.0, "name": stock_move.name}
+            item = dict(item)
+            item["quantity"] = abs(delta)
+            (additions if delta > 0 else returns)[product_id] = item
+        if additions:
+            self._primetech_create_stock_adjustment(
+                transfer_kind, picking_type, source, destination, additions,
+                _("Complément de facture"),
+            )
+        if returns:
+            reverse_code = "outgoing" if is_receipt else "incoming"
+            return_type = self.env["stock.picking.type"].search([
+                ("code", "=", reverse_code), ("company_id", "=", self.company_id.id),
+            ], limit=1)
+            if not return_type:
+                raise UserError(_("Aucun type d'opération de retour n'est configuré."))
+            self._primetech_create_stock_adjustment(
+                transfer_kind, return_type, destination, source, returns,
+                _("Retour suite à modification de facture"),
+            )
+        return pickings
+
     def action_create_primetech_receipt(self):
         """Create the receipt linked to this supplier bill, without posting it."""
         self.ensure_one()
@@ -508,7 +683,7 @@ class AccountMove(models.Model):
         """Create the outgoing delivery linked to one customer invoice."""
         self.ensure_one()
         if self.primetech_delivery_picking_ids:
-            return self.primetech_delivery_picking_ids
+            return self._primetech_sync_linked_pickings("delivery")
         lines = self.invoice_line_ids.filtered(
             lambda line: line.display_type in (False, "product")
             and line.product_id and line.quantity > 0
@@ -585,6 +760,46 @@ class AccountMove(models.Model):
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
+
+    def _primetech_get_last_supplier_line(self):
+        """Return the latest posted supplier line for the same product/company."""
+        self.ensure_one()
+        if not self.product_id:
+            return self.env["account.move.line"]
+        return self.search([
+            ("id", "!=", self.id),
+            ("move_id", "!=", self.move_id.id),
+            ("product_id", "=", self.product_id.id),
+            ("move_id.move_type", "=", "in_invoice"),
+            ("move_id.state", "=", "posted"),
+            ("company_id", "=", self.company_id.id),
+        ], order="date desc, id desc", limit=1)
+
+    def _primetech_last_supplier_price_in_invoice_currency(self, previous):
+        """Express a historic supplier price in the current bill currency."""
+        self.ensure_one()
+        if not previous:
+            return 0.0
+        if previous.currency_id == previous.company_currency_id:
+            previous_real_price = previous.price_unit or 0.0
+        else:
+            previous_rate = previous.move_id.invoice_currency_rate or 1.0
+            previous_real_price = (previous.price_unit or 0.0) / previous_rate
+        previous_real_price = previous.company_currency_id.round(previous_real_price)
+        if self.currency_id == self.company_currency_id:
+            return previous_real_price
+        current_rate = self.move_id.invoice_currency_rate or 1.0
+        return self.currency_id.round(previous_real_price * current_rate)
+
+    @api.onchange("product_id")
+    def _onchange_primetech_supplier_last_price(self):
+        """Propose the last supplier price; the buyer may freely change it."""
+        for line in self:
+            if line.move_id.move_type not in ("in_invoice", "in_refund") or not line.product_id:
+                continue
+            previous = line._primetech_get_last_supplier_line()
+            if previous:
+                line.price_unit = line._primetech_last_supplier_price_in_invoice_currency(previous)
 
     @api.onchange("primetech_weight")
     def _onchange_primetech_weight_manual_value(self):
@@ -797,13 +1012,7 @@ class AccountMoveLine(models.Model):
             line.primetech_weight = line.primetech_weight_manual if line.primetech_weight_is_manual else computed_weight
             line.primetech_volume = line.primetech_volume_manual if line.primetech_volume_is_manual else computed_volume
             line.primetech_stock_quantity = product.qty_available if product else 0.0
-            previous = self.search([
-                ("id", "!=", line.id), ("move_id", "!=", line.move_id.id),
-                ("product_id", "=", product.id),
-                ("move_id.move_type", "=", "in_invoice"),
-                ("move_id.state", "=", "posted"),
-                ("company_id", "=", line.company_id.id),
-            ], order="date desc, id desc", limit=1) if product else self.env["account.move.line"]
+            previous = line._primetech_get_last_supplier_line()
             if previous:
                 # Bridge the historic supplier price through the company
                 # currency, then express it in the currency of the invoice
@@ -815,12 +1024,7 @@ class AccountMoveLine(models.Model):
                     previous_rate = previous.move_id.invoice_currency_rate or 1.0
                     previous_real_price = (previous.price_unit or 0.0) / previous_rate
                 previous_real_price = previous.company_currency_id.round(previous_real_price)
-                if line.currency_id == line.company_currency_id:
-                    last_price = previous_real_price
-                else:
-                    current_rate = line.move_id.invoice_currency_rate or 1.0
-                    last_price = previous_real_price * current_rate
-                line.primetech_last_price = line.currency_id.round(last_price)
+                line.primetech_last_price = line._primetech_last_supplier_price_in_invoice_currency(previous)
                 line.primetech_last_real_price = previous_real_price
                 # The field is deliberately sourced from the *final cost* of
                 # the latest posted supplier bill, not from the supplier unit
@@ -865,14 +1069,12 @@ class AccountMoveLine(models.Model):
             line.primetech_volume_cost = (
                 line.primetech_volume * quantity * (line.move_id.primetech_volume_rate or 0.0)
             )
-            # "Cout.R Final" is the validated final cost for the whole line.
-            # It must stay empty (zero) until the user enters the actual cost,
-            # exactly like the source grid. CR.poids and CR.volume remain the
-            # automatic unit-cost proposals used for analysis.
+            # Default to the latest approved final purchase cost.  The inverse
+            # field keeps any value entered by the buyer as an explicit override.
             line.primetech_final_cost = (
                 line.primetech_final_cost_manual
                 if line.primetech_final_cost_is_manual
-                else 0.0
+                else line.primetech_last_final_purchase_cost
             )
             line.primetech_cost_by_weight = (
                 line.primetech_real_price
@@ -880,8 +1082,7 @@ class AccountMoveLine(models.Model):
             )
             line.primetech_cost_by_volume = (
                 line.primetech_real_price
-                + ((product.volume or 0.0) * (line.move_id.primetech_volume_rate or 0.0))
-                if product else line.primetech_real_price
+                + line.primetech_volume_cost
             )
             line.primetech_sale_price_by_weight = line.primetech_cost_by_weight * air_sale_factor
             line.primetech_sale_price_by_volume = line.primetech_cost_by_volume * sea_sale_factor
