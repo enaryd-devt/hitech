@@ -10,6 +10,7 @@
     "data": [
         "data/ir_cron_data.xml",
         "views/res_config_settings_views.xml",
+        "views/account_move_views.xml",
     ],
     "installable": True,
     "application": False,
