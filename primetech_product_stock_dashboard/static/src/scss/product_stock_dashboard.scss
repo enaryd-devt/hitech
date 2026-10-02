@@ -1,0 +1,120 @@
+.o_kanban_view.o_kanban_ungrouped .pt_stock_kanban_card {
+    width: 280px;
+    max-width: 100%;
+    margin: 0;
+}
+
+.pt-stock-card {
+    --pt-stock-accent: #16a36a;
+    --pt-stock-soft: #eafaf2;
+    --pt-stock-track: #d8eee5;
+    border: 1px solid #e8edf5;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(25, 52, 93, .08);
+    color: #172b55;
+    overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(25, 52, 93, .14);
+    }
+}
+
+.pt-stock-card--critical { --pt-stock-accent: #e62645; --pt-stock-soft: #fff0f3; --pt-stock-track: #f9dbe2; }
+.pt-stock-card--warning { --pt-stock-accent: #f37a12; --pt-stock-soft: #fff5e4; --pt-stock-track: #f4e4c6; }
+.pt-stock-card--healthy { --pt-stock-accent: #00a968; --pt-stock-soft: #e9fbf2; --pt-stock-track: #d7eee5; }
+.pt-stock-card--critical { border-color: #f4c5cf; }
+.pt-stock-card--warning { border-color: #f3d8ae; }
+.pt-stock-card--healthy { border-color: #c6ecd9; }
+
+.pt-stock-card__top { display: flex; gap: 8px; min-height: 84px; padding: 9px 9px 4px; }
+.pt-stock-card__image { align-items: center; display: flex; flex: 0 0 96px; justify-content: center; }
+.pt-stock-card__image img { height: 76px; max-width: 92px; object-fit: contain; width: 100%; }
+.pt-stock-card__identity { flex: 1; min-width: 0; }
+.pt-stock-card__name { font-size: 15px; font-weight: 700; line-height: 1.2; min-height: 36px; overflow: hidden; }
+.pt-stock-card__reference, .pt-stock-card__barcode { color: #7486ab; font-size: 12px; margin-top: 2px; white-space: nowrap; }
+.pt-stock-card__barcode { color: #6880ab; font-size: 13px; letter-spacing: .2px; overflow: hidden; text-overflow: ellipsis; }
+.pt-stock-card__barcode .fa { color: #213d71; font-size: 15px; letter-spacing: 0; margin-right: 3px; }
+.pt-stock-card__favorite { color: #8294ba; flex: 0 0 auto; font-size: 19px; margin-top: -4px; }
+.pt-stock-card__prices { display: grid; gap: 4px; grid-template-columns: 1.2fr 1fr; padding: 0 9px 7px 113px; }
+.pt-stock-card__top:not(:has(.pt-stock-card__image)) + .pt-stock-card__prices { padding-left: 9px; }
+.pt-stock-card__prices > div { background: #f8fbff; border-radius: 7px; min-width: 0; padding: 4px 6px; }
+.pt-stock-card__prices span { color: #7890b7; display: block; font-size: 11px; }
+.pt-stock-card__prices strong { color: #00a968; display: block; font-size: 13px; white-space: nowrap; }
+.pt-stock-card__prices .pt-stock-card__cost { color: #415a86; }
+.pt-stock-card__stocks { display: grid; gap: 5px; grid-template-columns: 1fr 1fr; padding: 0 8px 8px; }
+.pt-stock-meter { background: var(--pt-stock-soft); border-radius: 7px; padding: 6px 7px; }
+.pt-stock-meter__label { color: var(--pt-stock-accent); font-size: 11px; font-weight: 500; white-space: nowrap; }
+.pt-stock-meter__label .fa { font-size: 13px; margin-right: 5px; }
+.pt-stock-meter__quantity { color: var(--pt-stock-accent); font-size: 16px; font-weight: 700; line-height: 1.15; padding-left: 18px; }
+.pt-stock-meter__track { background: var(--pt-stock-track); border-radius: 12px; height: 6px; margin: 3px 0 0 18px; overflow: hidden; }
+.pt-stock-meter__track span { background: var(--pt-stock-accent); border-radius: inherit; display: block; height: 100%; min-width: 3px; }
+.pt-stock-card__footer { border-top: 1px solid #edf1f7; color: #8291aa; display: flex; font-size: 10px; justify-content: space-between; padding: 5px 9px; }
+
+// Vue liste des articles : indicateurs discrets, mais immédiatement lisibles.
+.pt-stock-product-list {
+    border: 1px solid #e7edf5;
+    border-radius: 10px;
+    overflow: hidden;
+
+    thead > tr > th {
+        background: #f7faff;
+        border-bottom: 1px solid #dbe5f1;
+        color: #536988;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .01em;
+        padding-bottom: 11px;
+        padding-top: 11px;
+    }
+
+    tbody > tr.o_data_row {
+        border-left: 4px solid transparent;
+        transition: background-color .16s ease, box-shadow .16s ease;
+
+        > td {
+            border-bottom-color: #edf1f6;
+            padding-bottom: 9px;
+            padding-top: 9px;
+        }
+
+        &:hover > td {
+            background: #f5f9ff;
+        }
+
+        &.text-danger {
+            border-left-color: #dc3545;
+            > td { background: #fff7f8; }
+            &:hover > td { background: #ffedef; }
+        }
+
+        &.text-warning {
+            border-left-color: #f08a24;
+            > td { background: #fffaf1; }
+            &:hover > td { background: #fff3df; }
+        }
+
+        &.text-success {
+            border-left-color: #18a36a;
+            > td { background: #f4fcf8; }
+            &:hover > td { background: #eaf8f1; }
+        }
+    }
+
+    .o_field_widget[name="primetech_stock_level"] .badge {
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .01em;
+        padding: 5px 9px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .o_kanban_view.o_kanban_ungrouped .pt_stock_kanban_card { width: 100%; }
+    .pt-stock-card__image { flex-basis: 96px; }
+    .pt-stock-card__image img { height: 82px; max-width: 92px; }
+    .pt-stock-card__prices { padding-left: 12px; }
+}

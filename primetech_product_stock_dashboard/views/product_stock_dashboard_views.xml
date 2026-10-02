@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_template_form_stock_thresholds" model="ir.ui.view">
+        <field name="name">product.template.form.stock.thresholds</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_information']/group" position="inside">
+                <group string="Seuils de stock" class="pt_stock_threshold_fields">
+                    <field name="primetech_stock_alert_qty"/>
+                    <field name="primetech_optimal_stock_qty"/>
+                    <field name="primetech_stock_alert_qty_is_manual" invisible="1"/>
+                    <field name="primetech_optimal_stock_qty_is_manual" invisible="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_list_stock_thresholds" model="ir.ui.view">
+        <field name="name">product.template.list.stock.thresholds</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="class" add="pt-stock-product-list" separator=" "/>
+                <attribute name="decoration-danger">primetech_stock_level == 'critical'</attribute>
+                <attribute name="decoration-warning">primetech_stock_level == 'warning'</attribute>
+                <attribute name="decoration-success">primetech_stock_level == 'healthy'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="primetech_stock_level" widget="badge" optional="show"/>
+                <field name="primetech_stock_alert_qty" optional="show"/>
+                <field name="primetech_optimal_stock_qty" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_kanban_stock_dashboard" model="ir.ui.view">
+        <field name="name">product.template.kanban.stock.dashboard</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="image_128"/>
+                <field name="default_code"/>
+                <field name="barcode"/>
+                <field name="list_price"/>
+                <field name="standard_price"/>
+                <field name="qty_available"/>
+                <field name="virtual_available"/>
+                <field name="primetech_stock_alert_qty"/>
+                <field name="primetech_optimal_stock_qty"/>
+                <field name="primetech_stock_level"/>
+                <field name="primetech_stock_ratio"/>
+                <field name="primetech_forecast_ratio"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']" position="replace">
+                <t t-name="card" class="pt_stock_kanban_card">
+                    <div t-attf-class="pt-stock-card pt-stock-card--#{record.primetech_stock_level.raw_value}">
+                        <div class="pt-stock-card__top">
+                            <div class="pt-stock-card__image" t-if="record.image_128.raw_value">
+                                <field name="image_128" widget="image" alt="Article" options="{'img_class': 'object-fit-contain'}"/>
+                            </div>
+                            <div class="pt-stock-card__identity">
+                                <div class="pt-stock-card__name"><field name="name"/></div>
+                                <div class="pt-stock-card__reference" t-if="record.default_code.value">Réf. : <field name="default_code"/></div>
+                                <div class="pt-stock-card__barcode" t-if="record.barcode.value">
+                                    <i class="fa fa-barcode"/> <field name="barcode"/>
+                                </div>
+                            </div>
+                            <field name="is_favorite" widget="boolean_favorite" nolabel="1" class="pt-stock-card__favorite"/>
+                        </div>
+                        <div class="pt-stock-card__prices">
+                            <div>
+                                <span>Prix de vente</span>
+                                <strong><field name="list_price" widget="monetary" options="{'currency_field': 'currency_id', 'field_digits': True}"/></strong>
+                            </div>
+                            <div>
+                                <span>Coût</span>
+                                <strong class="pt-stock-card__cost"><field name="standard_price" widget="monetary" options="{'currency_field': 'cost_currency_id', 'field_digits': True}"/></strong>
+                            </div>
+                        </div>
+                        <div class="pt-stock-card__stocks">
+                            <div class="pt-stock-meter pt-stock-meter--available">
+                                <div class="pt-stock-meter__label"><i class="fa fa-cube"/> Stock disponible</div>
+                                <div class="pt-stock-meter__quantity"><field name="qty_available"/></div>
+                                <div class="pt-stock-meter__track"><span t-attf-style="width: #{record.primetech_stock_ratio.raw_value}%"/></div>
+                            </div>
+                            <div class="pt-stock-meter pt-stock-meter--forecast">
+                                <div class="pt-stock-meter__label"><i class="fa fa-cubes"/> Stock prévu</div>
+                                <div class="pt-stock-meter__quantity"><field name="virtual_available"/></div>
+                                <div class="pt-stock-meter__track"><span t-attf-style="width: #{record.primetech_forecast_ratio.raw_value}%"/></div>
+                            </div>
+                        </div>
+                        <div class="pt-stock-card__footer" t-if="record.primetech_stock_alert_qty.raw_value or record.primetech_optimal_stock_qty.raw_value">
+                            <span t-if="record.primetech_stock_alert_qty.raw_value">Alerte : <field name="primetech_stock_alert_qty"/></span>
+                            <span t-if="record.primetech_optimal_stock_qty.raw_value">Optimal : <field name="primetech_optimal_stock_qty"/></span>
+                        </div>
+                    </div>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_config_settings_view_form_stock_dashboard" model="ir.ui.view">
+        <field name="name">res.config.settings.stock.dashboard</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="Tableau de stock des articles" name="primetech_stock_dashboard">
+                    <setting id="primetech_stock_dashboard_thresholds" string="Seuils globaux par défaut" help="Ces valeurs sont proposées automatiquement lors de la création d'un article. Chaque article peut ensuite avoir ses propres seuils.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="primetech_default_alert_qty" class="col-lg-5 o_light_label"/>
+                                <field name="primetech_default_alert_qty" class="col-lg-3"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="primetech_default_optimal_qty" class="col-lg-5 o_light_label"/>
+                                <field name="primetech_default_optimal_qty" class="col-lg-3"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
