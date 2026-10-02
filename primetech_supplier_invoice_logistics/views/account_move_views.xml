@@ -20,7 +20,7 @@
                 <attribute name="optional">hide</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="attributes">
-                <attribute name="string">UDM</attribute>
+                <attribute name="string">Unité de mesure</attribute>
                 <attribute name="optional">show</attribute>
                 <attribute name="groups">base.group_user</attribute>
             </xpath>
@@ -32,13 +32,13 @@
                 <attribute name="optional">show</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
-                <attribute name="string">Compte</attribute>
+                <attribute name="string">Compte comptable</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='asset_category_id']" position="attributes">
-                <attribute name="string">Asset Category</attribute>
+                <attribute name="string">Catégorie d’actif</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='discount']" position="attributes">
-                <attribute name="string">Disc.%</attribute>
+                <attribute name="string">Remise (%)</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='tax_ids']" position="attributes">
                 <attribute name="optional">hide</attribute>
@@ -150,29 +150,30 @@
                 <!-- Ensures that Odoo formats Price and Dernier Prix with the
                      currency selected on the supplier bill. -->
                 <field name="currency_id" column_invisible="1"/>
-                <field name="primetech_stock_quantity" optional="show"/>
+                <field name="primetech_stock_quantity" string="Stock actuel" optional="show"/>
                 <field name="primetech_last_price" widget="monetary"
-                       options="{'currency_field': 'currency_id'}" optional="show"/>
+                       options="{'currency_field': 'currency_id'}" string="Dernier prix fournisseur" optional="show"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='primetech_stock_quantity']" position="after">
                 <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="move"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
                 <field name="company_currency_id" column_invisible="1"/>
-                <field name="primetech_last_real_price" optional="show"/>
-                <field name="primetech_real_price" optional="show"/>
-                <field name="primetech_weight_cost" optional="show"/>
-                <field name="primetech_volume_cost" optional="show"/>
-                <field name="primetech_cost_by_weight" optional="show"/>
-                <field name="primetech_cost_by_volume" optional="show"/>
-                <field name="primetech_final_cost" optional="show"/>
-                <field name="primetech_sale_price_by_weight" string="PV.poids" optional="show"/>
-                <field name="primetech_sale_price_by_volume" string="PV.volume" optional="show"/>
-                <field name="primetech_last_final_sale_price" optional="show"/>
-                <field name="primetech_final_sale_price" optional="show"/>
-                <field name="primetech_weight" optional="show"/>
-                <field name="primetech_volume" optional="show"/>
-                <field name="primetech_constant_cost" optional="hide"/>
+                <field name="primetech_last_real_price" string="Dernier prix réel" optional="show"/>
+                <field name="primetech_real_price" string="Prix réel" optional="show"/>
+                <field name="primetech_weight_cost" string="Constante de poids" optional="show"/>
+                <field name="primetech_volume_cost" string="Constante de volume" optional="show"/>
+                <field name="primetech_cost_by_weight" string="Coût de revient par poids" optional="show"/>
+                <field name="primetech_cost_by_volume" string="Coût de revient par volume" optional="show"/>
+                <field name="primetech_last_final_purchase_cost" string="Dernier coût d’achat final" readonly="1" optional="show"/>
+                <field name="primetech_final_cost" string="Coût de revient final" optional="show"/>
+                <field name="primetech_sale_price_by_weight" string="Prix de vente par poids" optional="show"/>
+                <field name="primetech_sale_price_by_volume" string="Prix de vente par volume" optional="show"/>
+                <field name="primetech_last_final_sale_price" string="Dernier prix de vente final" optional="show"/>
+                <field name="primetech_final_sale_price" string="Prix de vente final" optional="show"/>
+                <field name="primetech_weight" string="Poids" optional="show"/>
+                <field name="primetech_volume" string="Volume" optional="show"/>
+                <field name="primetech_constant_cost" string="Constante" optional="hide"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="before">
                 <field name="primetech_product_image" widget="image" optional="hide"/>

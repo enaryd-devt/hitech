@@ -386,6 +386,11 @@ class AccountMoveLine(models.Model):
     primetech_cost_by_volume = fields.Monetary(
         string="CR.volume", compute="_compute_primetech_logistics", store=True, currency_field="company_currency_id",
     )
+    primetech_last_final_purchase_cost = fields.Monetary(
+        string="Dernier coût d’achat final", compute="_compute_primetech_logistics",
+        currency_field="company_currency_id", readonly=True,
+        help="Coût de revient final renseigné sur la dernière facture fournisseur validée pour cet article.",
+    )
     primetech_final_cost = fields.Monetary(
         string="Cout.R Final", compute="_compute_primetech_logistics",
         inverse="_inverse_primetech_final_cost", store=True, currency_field="company_currency_id",
@@ -459,7 +464,8 @@ class AccountMoveLine(models.Model):
             line.primetech_volume = line.primetech_volume_manual if line.primetech_volume_is_manual else computed_volume
             line.primetech_stock_quantity = product.qty_available if product else 0.0
             previous = self.search([
-                ("id", "!=", line.id), ("product_id", "=", product.id),
+                ("id", "!=", line.id), ("move_id", "!=", line.move_id.id),
+                ("product_id", "=", product.id),
                 ("move_id.move_type", "=", "in_invoice"),
                 ("move_id.state", "=", "posted"),
                 ("company_id", "=", line.company_id.id),
@@ -482,9 +488,14 @@ class AccountMoveLine(models.Model):
                     last_price = previous_real_price * current_rate
                 line.primetech_last_price = line.currency_id.round(last_price)
                 line.primetech_last_real_price = previous_real_price
+                # The field is deliberately sourced from the *final cost* of
+                # the latest posted supplier bill, not from the supplier unit
+                # price nor from either automatic cost proposal.
+                line.primetech_last_final_purchase_cost = previous.primetech_final_cost or 0.0
             else:
                 line.primetech_last_price = 0.0
                 line.primetech_last_real_price = 0.0
+                line.primetech_last_final_purchase_cost = 0.0
             # invoice_currency_rate is the number of supplier-currency units
             # for one company-currency unit. Example: 1 FCFA = 30 NGN.
             # The real price is therefore always expressed in the company
