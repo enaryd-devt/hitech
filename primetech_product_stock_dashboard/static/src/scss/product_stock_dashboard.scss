@@ -110,6 +110,22 @@
         letter-spacing: .01em;
         padding: 5px 9px;
     }
+
+    .pt-stock-list-image {
+        display: inline-flex;
+        height: 38px;
+        overflow: hidden;
+        vertical-align: middle;
+        width: 38px;
+
+        img {
+            border: 1px solid #e4ebf4;
+            border-radius: 7px;
+            height: 38px;
+            object-fit: contain;
+            width: 38px;
+        }
+    }
 }
 
 @media (max-width: 575.98px) {

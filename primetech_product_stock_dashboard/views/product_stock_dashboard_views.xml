@@ -27,6 +27,9 @@
                 <attribute name="decoration-warning">primetech_stock_level == 'warning'</attribute>
                 <attribute name="decoration-success">primetech_stock_level == 'healthy'</attribute>
             </xpath>
+            <xpath expr="//list/field[1]" position="before">
+                <field name="image_128" widget="image" class="pt-stock-list-image" optional="show"/>
+            </xpath>
             <xpath expr="//field[@name='default_code']" position="after">
                 <field name="primetech_stock_level" widget="badge" optional="show"/>
                 <field name="primetech_stock_alert_qty" optional="show"/>
