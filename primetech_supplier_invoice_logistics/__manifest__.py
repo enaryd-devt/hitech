@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Primetech - Factures fournisseurs & réceptions",
-    "summary": "Coûts logistiques et réception automatique depuis les factures fournisseurs",
-    "version": "18.0.1.0.2",
+    "name": "Primetech - Facturation logistique, réceptions et livraisons",
+    "summary": "Factures, coûts logistiques, réceptions, livraisons, retours et avoirs liés",
+    "version": "18.0.1.1.0",
     "category": "Accounting/Inventory",
     "author": "Primetech",
     "license": "LGPL-3",
