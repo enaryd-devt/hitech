@@ -575,7 +575,7 @@ class AccountMove(models.Model):
         if editable:
             picking = editable
             if picking.state == "assigned":
-                picking.action_unreserve()
+                picking.move_ids_without_package._do_unreserve()
             picking.write({
                 "picking_type_id": picking_type.id,
                 "location_id": source.id,
