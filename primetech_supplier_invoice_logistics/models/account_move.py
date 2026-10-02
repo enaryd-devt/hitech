@@ -549,6 +549,74 @@ class AccountMove(models.Model):
             self.primetech_delivery_picking_ids = [(4, picking.id)]
         return picking
 
+    def _primetech_update_open_adjustment(self, transfer_kind, picking_type, source, destination, lines, suffix):
+        """Update one open adjustment in place, or create it only when needed."""
+        self.ensure_one()
+        linked_pickings = (
+            self.primetech_receipt_picking_ids if transfer_kind == "receipt"
+            else self.primetech_delivery_picking_ids
+        )
+        candidates = linked_pickings.filtered(
+            lambda picking: picking.state not in ("done", "cancel")
+            and picking.location_id == source
+            and picking.location_dest_id == destination
+        )
+        if not lines:
+            # Preserve the numbered document for audit purposes.  A transfer
+            # that is no longer required is cancelled, never deleted, so its
+            # sequence and history remain fully traceable.
+            for picking in candidates:
+                if picking.state == "assigned":
+                    picking.move_ids_without_package._do_unreserve()
+                picking.action_cancel()
+            return self.env["stock.picking"]
+        if not candidates:
+            return self._primetech_create_stock_adjustment(
+                transfer_kind, picking_type, source, destination, lines, suffix,
+            )
+        picking = candidates[:1]
+        if picking.state == "assigned":
+            picking.move_ids_without_package._do_unreserve()
+        picking.write({
+            "picking_type_id": picking_type.id,
+            "location_id": source.id,
+            "location_dest_id": destination.id,
+            "scheduled_date": self.invoice_date or fields.Datetime.now(),
+            "origin": "%s — %s" % (self.name or self.ref, suffix),
+        })
+        moves_by_product = {}
+        for stock_move in picking.move_ids_without_package.filtered(lambda move: move.state != "cancel"):
+            moves_by_product.setdefault(stock_move.product_id.id, self.env["stock.move"])
+            moves_by_product[stock_move.product_id.id] |= stock_move
+        for product_id, item in lines.items():
+            moves = moves_by_product.pop(product_id, self.env["stock.move"])
+            if moves:
+                main_move, extra_moves = moves[:1], moves[1:]
+                main_move.write({
+                    "name": item["name"], "product_uom_qty": item["quantity"],
+                    "product_uom": item["uom"].id, "location_id": source.id,
+                    "location_dest_id": destination.id,
+                })
+                if extra_moves:
+                    extra_moves._action_cancel()
+            else:
+                self.env["stock.move"].create({
+                    "name": item["name"], "product_id": item["product"].id,
+                    "product_uom_qty": item["quantity"], "product_uom": item["uom"].id,
+                    "picking_id": picking.id, "location_id": source.id,
+                    "location_dest_id": destination.id, "company_id": self.company_id.id,
+                })
+        for moves in moves_by_product.values():
+            moves._action_cancel()
+        picking.action_confirm()
+        # Keep any stale duplicate in the audit trail; never delete a numbered
+        # stock document as that would create an unexplained sequence gap.
+        for duplicate in candidates[1:]:
+            if duplicate.state == "assigned":
+                duplicate.move_ids_without_package._do_unreserve()
+            duplicate.action_cancel()
+        return picking
+
     def _primetech_sync_linked_pickings(self, transfer_kind):
         """Synchronise editable pickings; create delta or return pickings after validation."""
         self.ensure_one()
@@ -622,16 +690,6 @@ class AccountMove(models.Model):
             picking.action_confirm()
             return picking
 
-        # Once a first transfer is done, an open complementary transfer must
-        # never be rewritten with all invoice quantities.  Cancel its pending
-        # moves and rebuild only the fresh product-by-product differences below.
-        for picking in pickings.filtered(lambda item: item.state not in ("done", "cancel")):
-            if picking.state == "assigned":
-                picking.move_ids_without_package._do_unreserve()
-            picking.move_ids_without_package.filtered(
-                lambda stock_move: stock_move.state != "cancel"
-            )._action_cancel()
-
         actual = {}
         for picking in done_pickings:
             sign = 1 if (
@@ -659,8 +717,13 @@ class AccountMove(models.Model):
             item["quantity"] = abs(delta)
             (additions if delta > 0 else returns)[product_id] = item
         if additions:
-            self._primetech_create_stock_adjustment(
+            self._primetech_update_open_adjustment(
                 transfer_kind, picking_type, source, destination, additions,
+                _("Complément de facture"),
+            )
+        else:
+            self._primetech_update_open_adjustment(
+                transfer_kind, picking_type, source, destination, {},
                 _("Complément de facture"),
             )
         if returns:
@@ -670,10 +733,20 @@ class AccountMove(models.Model):
             ], limit=1)
             if not return_type:
                 raise UserError(_("Aucun type d'opération de retour n'est configuré."))
-            self._primetech_create_stock_adjustment(
+            self._primetech_update_open_adjustment(
                 transfer_kind, return_type, destination, source, returns,
                 _("Retour suite à modification de facture"),
             )
+        else:
+            reverse_code = "outgoing" if is_receipt else "incoming"
+            return_type = self.env["stock.picking.type"].search([
+                ("code", "=", reverse_code), ("company_id", "=", self.company_id.id),
+            ], limit=1)
+            if return_type:
+                self._primetech_update_open_adjustment(
+                    transfer_kind, return_type, destination, source, {},
+                    _("Retour suite à modification de facture"),
+                )
         return pickings
 
     def action_create_primetech_receipt(self):
