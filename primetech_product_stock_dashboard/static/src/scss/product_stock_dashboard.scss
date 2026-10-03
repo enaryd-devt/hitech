@@ -28,6 +28,9 @@
 .pt-stock-card--critical { border-color: #f4c5cf; }
 .pt-stock-card--warning { border-color: #f3d8ae; }
 .pt-stock-card--healthy { border-color: #c6ecd9; }
+.pt-stock-card--untracked { border-color: #dfe6f0; }
+.pt-stock-card--service { --pt-stock-accent: #6d55d9; --pt-stock-soft: #f1eeff; --pt-stock-track: #ddd7fb; }
+.pt-stock-card--consu { --pt-stock-accent: #1684a7; --pt-stock-soft: #e9f8fc; --pt-stock-track: #d3edf4; }
 
 .pt-stock-card__top { display: flex; gap: 8px; min-height: 84px; padding: 9px 9px 4px; }
 .pt-stock-card__image { align-items: center; display: flex; flex: 0 0 96px; justify-content: center; }
@@ -44,6 +47,32 @@
 .pt-stock-card__prices span { color: #7890b7; display: block; font-size: 11px; }
 .pt-stock-card__prices strong { color: #00a968; display: block; font-size: 13px; white-space: nowrap; }
 .pt-stock-card__prices .pt-stock-card__cost { color: #415a86; }
+.pt-stock-card__untracked {
+    align-items: center;
+    background: var(--pt-stock-soft);
+    border-top: 1px solid rgba(78, 108, 154, .08);
+    color: #415a86;
+    display: flex;
+    gap: 8px;
+    margin: 0 8px 8px;
+    min-height: 47px;
+    padding: 7px 8px;
+}
+.pt-stock-card__untracked-icon {
+    align-items: center;
+    background: #fff;
+    border-radius: 9px;
+    color: var(--pt-stock-accent);
+    display: inline-flex;
+    flex: 0 0 31px;
+    font-size: 15px;
+    height: 31px;
+    justify-content: center;
+}
+.pt-stock-card__untracked strong { color: #304c7b; display: block; font-size: 11px; font-weight: 700; }
+.pt-stock-card__untracked small { color: #7184a2; display: block; font-size: 10px; line-height: 1.25; margin-top: 1px; }
+.pt-stock-card--service .pt-stock-card__untracked { background: linear-gradient(100deg, #f4f1ff, #fbfaff); }
+.pt-stock-card--consu .pt-stock-card__untracked { background: linear-gradient(100deg, #ecf9fc, #fbfeff); }
 .pt-stock-card__stocks { display: grid; gap: 5px; grid-template-columns: 1fr 1fr; padding: 0 8px 8px; }
 .pt-stock-meter { background: var(--pt-stock-soft); border-radius: 7px; padding: 6px 7px; }
 .pt-stock-meter__label { color: var(--pt-stock-accent); font-size: 11px; font-weight: 500; white-space: nowrap; }

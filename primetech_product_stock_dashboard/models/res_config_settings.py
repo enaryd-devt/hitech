@@ -19,14 +19,16 @@ class ResConfigSettings(models.TransientModel):
         alert_qty = self.primetech_default_alert_qty
         optimal_qty = self.primetech_default_optimal_qty
         result = super().set_values()
-        ProductTemplate = self.env["product.template"].with_context(
+        product_templates = self.env["product.template"].with_context(
             active_test=False,
             primetech_stock_global_update=True,
         )
-        ProductTemplate.search([
+        product_templates.search([
+            ("is_storable", "=", True),
             ("primetech_stock_alert_qty_is_manual", "=", False),
         ]).write({"primetech_stock_alert_qty": alert_qty})
-        ProductTemplate.search([
+        product_templates.search([
+            ("is_storable", "=", True),
             ("primetech_optimal_stock_qty_is_manual", "=", False),
         ]).write({"primetech_optimal_stock_qty": optimal_qty})
         return result

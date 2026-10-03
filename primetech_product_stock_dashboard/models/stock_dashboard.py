@@ -41,7 +41,10 @@ class ProductTemplate(models.Model):
         company_domain = [("company_id", "=", selected_company.id)] if selected_company else []
 
         Product = self.env["product.product"].with_context(active_test=True, **warehouse_context)
-        products = Product.search([("type", "!=", "service")])
+        # Only articles explicitly configured with inventory tracking belong
+        # to the stock dashboard. Services and non-stocked consumables are
+        # deliberately excluded from quantities and threshold alerts.
+        products = Product.search([("is_storable", "=", True)])
         templates = products.mapped("product_tmpl_id")
         currency = self.env.company.currency_id
         available_qty = sum(products.mapped("qty_available"))
@@ -106,7 +109,7 @@ class ProductTemplate(models.Model):
             group["cards"].append(card)
 
         moves = self.env["stock.move"].search([
-            ("state", "=", "done"), ("product_id.type", "!=", "service"),
+            ("state", "=", "done"), ("product_id.is_storable", "=", True),
         ] + company_domain + warehouse_domain, order="date desc, id desc", limit=8)
         recent_moves = [{
             "id": move.id,

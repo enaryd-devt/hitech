@@ -58,9 +58,22 @@ class ProductTemplate(models.Model):
                 vals["primetech_optimal_stock_qty_is_manual"] = True
         return super().write(vals)
 
-    @api.depends("qty_available", "virtual_available", "primetech_stock_alert_qty", "primetech_optimal_stock_qty")
+    @api.depends(
+        "is_storable",
+        "qty_available",
+        "virtual_available",
+        "primetech_stock_alert_qty",
+        "primetech_optimal_stock_qty",
+    )
     def _compute_primetech_stock_indicators(self):
         for product in self:
+            # Services and consumables that do not track inventory must never
+            # be classified as low stock simply because their quantity is 0.
+            if not product.is_storable:
+                product.primetech_stock_level = False
+                product.primetech_stock_ratio = 0.0
+                product.primetech_forecast_ratio = 0.0
+                continue
             available = product.qty_available or 0.0
             optimal = product.primetech_optimal_stock_qty or 0.0
             alert = product.primetech_stock_alert_qty or 0.0
