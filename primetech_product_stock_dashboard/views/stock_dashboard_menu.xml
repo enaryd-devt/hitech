@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Le catalogue des applications s'appuie sur ir.module.module, et non
+         sur le menu racine. Cette écriture est rejouée à chaque mise à jour
+         de ce module après le chargement du manifeste natif de stock. -->
+    <function model="ir.module.module" name="write">
+        <function model="ir.module.module" name="search">
+            <value eval="[('name', '=', 'stock')]"/>
+        </function>
+        <value eval="{'shortdesc': 'Gestion de stock'}"/>
+    </function>
+
     <!-- Le menu racine natif est celui affiché dans le sélecteur d'applications. -->
     <record id="stock.menu_stock_root" model="ir.ui.menu">
         <field name="name">Gestion de stock</field>
