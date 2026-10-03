@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Primetech - Tableau de stock des articles",
+    "name": "Gestion de stock",
     "summary": "Cartes Kanban de stock, seuils d'alerte et quantités optimales",
     "version": "18.0.1.0.0",
     "category": "Inventory/Inventory",
