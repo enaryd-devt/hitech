@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Le tableau de stock PrimeTech devient la page d'entrée d'Inventaire. -->
+    <record id="stock.menu_stock_root" model="ir.ui.menu">
+        <field name="action" ref="action_primetech_stock_dashboard"/>
+    </record>
+
+    <!-- Masque l'aperçu Kanban natif au profit du tableau de bord dédié. -->
+    <record id="stock.stock_picking_type_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_primetech_product_invoice_history_list" model="ir.ui.view">
+        <field name="name">account.move.line.primetech.product.invoice.history.list</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" class="pt-product-invoice-history">
+                <field name="move_id" string="N° facture" readonly="1"/>
+                <field name="date" string="Date" readonly="1"/>
+                <field name="partner_id" string="Client / Fournisseur" readonly="1"/>
+                <field name="quantity" string="Qté commandée" readonly="1"/>
+                <field name="primetech_quantity_received" string="Qté reçue" readonly="1" optional="hide"/>
+                <field name="primetech_quantity_delivered" string="Qté livrée" readonly="1" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="price_unit" string="Prix unitaire" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                <field name="price_subtotal" string="Total" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_primetech_product_sale_history_list" model="ir.ui.view">
+        <field name="name">primetech.product.sale.history.list</field>
+        <field name="model">primetech.product.sale.history</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" class="pt-product-invoice-history">
+                <field name="source" string="Origine" readonly="1"/>
+                <field name="reference" string="Référence" readonly="1"/>
+                <field name="invoice_id" string="Facture client" readonly="1" optional="show"/>
+                <field name="pos_order_id" string="Commande PdV" readonly="1" optional="show"/>
+                <field name="date" string="Date" readonly="1"/>
+                <field name="partner_id" string="Client" readonly="1"/>
+                <field name="quantity" string="Qté commandée" readonly="1"/>
+                <field name="quantity_delivered" string="Qté livrée" readonly="1"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="price_unit" string="Prix unitaire" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                <field name="subtotal" string="Total" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
     <record id="view_product_category_form_primetech_logistics" model="ir.ui.view">
         <field name="name">product.category.form.primetech.logistics</field>
         <field name="model">product.category</field>
@@ -47,20 +85,29 @@
     <record id="view_product_template_purchase_history_invoice" model="ir.ui.view">
         <field name="name">product.template.purchase.history.invoice</field>
         <field name="model">product.template</field>
+        <field name="active" eval="False"/>
         <field name="inherit_id" ref="purchase.view_product_supplier_inherit"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='purchase']/group[@name='purchase']" position="after">
                 <group string="Historique des factures fournisseurs" groups="purchase.group_purchase_user">
-                    <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1">
+                    <group col="3" class="pt-product-history-totals">
+                        <field name="primetech_purchase_invoice_qty" string="Total commandé" readonly="1"/>
+                        <field name="primetech_purchase_invoice_received_qty" string="Total reçu" readonly="1"/>
+                        <field name="primetech_purchase_invoice_total" string="Total" widget="monetary" options="{'currency_field': 'primetech_history_currency_id'}" readonly="1"/>
+                    </group>
+                    <field name="primetech_history_currency_id" invisible="1"/>
+                    <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1" class="pt-product-invoice-history">
                         <list create="0" edit="0" delete="0">
-                            <field name="move_id" string="N° facture" readonly="1"/>
+                            <field name="move_id" string="N° facture fournisseur" readonly="1"/>
+                            <field name="date" string="Date" readonly="1"/>
                             <field name="partner_id" string="Fournisseur" readonly="1"/>
-                            <field name="quantity" string="Quantité" readonly="1"/>
+                            <field name="quantity" string="Qté commandée" readonly="1"/>
+                            <field name="primetech_quantity_received" string="Qté reçue" readonly="1"/>
                             <field name="currency_id" column_invisible="1"/>
-                            <field name="price_unit" string="Prix unitaire" widget="monetary"
+                            <field name="price_unit" string="Prix unitaire en devise" widget="monetary"
                                    options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <button name="action_open_primetech_supplier_invoice" type="object"
-                                    string="Ouvrir" icon="fa-external-link"/>
+                            <field name="price_subtotal" string="Total en devise" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}" readonly="1"/>
                         </list>
                     </field>
                 </group>
@@ -71,24 +118,211 @@
     <record id="view_product_variant_purchase_history_invoice" model="ir.ui.view">
         <field name="name">product.product.purchase.history.invoice</field>
         <field name="model">product.product</field>
+        <field name="active" eval="False"/>
         <field name="inherit_id" ref="purchase.view_product_product_supplier_inherit"/>
         <field name="arch" type="xml">
             <field name="seller_ids" position="after">
                 <group string="Historique des factures fournisseurs" groups="purchase.group_purchase_user">
-                    <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1">
+                    <group col="3" class="pt-product-history-totals">
+                        <field name="primetech_purchase_invoice_qty" string="Total commandé" readonly="1"/>
+                        <field name="primetech_purchase_invoice_received_qty" string="Total reçu" readonly="1"/>
+                        <field name="primetech_purchase_invoice_total" string="Total" widget="monetary" options="{'currency_field': 'primetech_history_currency_id'}" readonly="1"/>
+                    </group>
+                    <field name="primetech_history_currency_id" invisible="1"/>
+                    <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1" class="pt-product-invoice-history">
                         <list create="0" edit="0" delete="0">
-                            <field name="move_id" string="N° facture" readonly="1"/>
+                            <field name="move_id" string="N° facture fournisseur" readonly="1"/>
+                            <field name="date" string="Date" readonly="1"/>
                             <field name="partner_id" string="Fournisseur" readonly="1"/>
-                            <field name="quantity" string="Quantité" readonly="1"/>
+                            <field name="quantity" string="Qté commandée" readonly="1"/>
+                            <field name="primetech_quantity_received" string="Qté reçue" readonly="1"/>
                             <field name="currency_id" column_invisible="1"/>
-                            <field name="price_unit" string="Prix unitaire" widget="monetary"
+                            <field name="price_unit" string="Prix unitaire en devise" widget="monetary"
                                    options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <button name="action_open_primetech_supplier_invoice" type="object"
-                                    string="Ouvrir" icon="fa-external-link"/>
+                            <field name="price_subtotal" string="Total en devise" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}" readonly="1"/>
                         </list>
                     </field>
                 </group>
             </field>
         </field>
     </record>
+
+    <record id="view_product_template_sale_history_invoice" model="ir.ui.view">
+        <field name="name">product.template.sale.history.invoice</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sale.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales']" position="inside">
+                <group string="Historique des factures clients">
+                    <group col="3" class="pt-product-history-totals">
+                        <field name="primetech_sale_invoice_qty" string="Total commandé" readonly="1"/>
+                        <field name="primetech_sale_invoice_delivered_qty" string="Total livré" readonly="1"/>
+                        <field name="primetech_sale_invoice_total" string="Total" widget="monetary" options="{'currency_field': 'primetech_history_currency_id'}" readonly="1"/>
+                    </group>
+                    <field name="primetech_history_currency_id" invisible="1"/>
+                    <field name="primetech_customer_invoice_history_ids" nolabel="1" readonly="1" class="pt-product-invoice-history">
+                        <list create="0" edit="0" delete="0">
+                            <field name="move_id" string="N° facture client" readonly="1"/>
+                            <field name="date" string="Date" readonly="1"/>
+                            <field name="partner_id" string="Client" readonly="1"/>
+                            <field name="quantity" string="Qté commandée" readonly="1"/>
+                            <field name="primetech_quantity_delivered" string="Qté livrée" readonly="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="price_unit" string="Prix unitaire" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="price_subtotal" string="Total" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_primetech_history_buttons" model="ir.ui.view">
+        <field name="name">product.template.primetech.history.buttons</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sale.product_template_form_view_sale_order_button"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_sales']" position="replace">
+                <button class="oe_stat_button" name="action_open_primetech_sale_invoice_history" type="object" icon="fa-signal">
+                    <div class="o_field_widget o_stat_info"><span class="o_stat_value d-flex gap-1"><field name="primetech_total_sales_qty" widget="statinfo" nolabel="1" class="oe_inline"/><field name="uom_name" class="oe_inline" groups="uom.group_uom"/></span><span class="o_stat_text">Vendu</span></div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_primetech_history_buttons" model="ir.ui.view">
+        <field name="name">product.product.primetech.history.buttons</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="sale.product_form_view_sale_order_button"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_sales']" position="replace">
+                <button class="oe_stat_button" name="action_open_primetech_sale_invoice_history" type="object" icon="fa-signal">
+                    <div class="o_field_widget o_stat_info"><span class="o_stat_value d-flex gap-1"><field name="primetech_total_sales_qty" widget="statinfo" nolabel="1" class="oe_inline"/><field name="uom_name" class="oe_inline" groups="uom.group_uom"/></span><span class="o_stat_text">Vendu</span></div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_primetech_purchase_history_button" model="ir.ui.view">
+        <field name="name">product.template.primetech.purchase.history.button</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="purchase.view_product_template_purchase_buttons_from"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_po']" position="replace">
+                <button class="oe_stat_button" name="action_open_primetech_purchase_invoice_history" type="object" icon="fa-credit-card">
+                    <div class="o_field_widget o_stat_info"><span class="o_stat_value d-flex gap-1"><field name="primetech_purchase_invoice_qty" widget="statinfo" nolabel="1" class="oe_inline"/><field name="uom_name" class="oe_inline" groups="uom.group_uom"/></span><span class="o_stat_text">Acheté</span></div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_primetech_purchase_history_button" model="ir.ui.view">
+        <field name="name">product.product.primetech.purchase.history.button</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="purchase.product_normal_form_view_inherit_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_po']" position="replace">
+                <button class="oe_stat_button" name="action_open_primetech_purchase_invoice_history" type="object" icon="fa-credit-card">
+                    <div class="o_field_widget o_stat_info"><span class="o_stat_value d-flex gap-1"><field name="primetech_purchase_invoice_qty" widget="statinfo" nolabel="1" class="oe_inline"/><field name="uom_name" class="oe_inline" groups="uom.group_uom"/></span><span class="o_stat_text">Acheté</span></div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_primetech_purchase_invoice_tab" model="ir.ui.view">
+        <field name="name">product.template.primetech.purchase.invoice.tab</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='purchase']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Achats" name="primetech_purchase_invoice_history">
+                    <group string="Historique des factures fournisseurs">
+                        <group col="3" class="pt-product-history-totals">
+                            <field name="primetech_purchase_invoice_qty" string="Total commandé" readonly="1"/>
+                            <field name="primetech_purchase_invoice_received_qty" string="Total reçu" readonly="1"/>
+                            <field name="primetech_purchase_invoice_total" string="Total" widget="monetary" options="{'currency_field': 'primetech_history_currency_id'}" readonly="1"/>
+                        </group>
+                        <field name="primetech_history_currency_id" invisible="1"/>
+                        <field name="primetech_supplier_invoice_history_ids" nolabel="1" readonly="1" class="pt-product-invoice-history">
+                            <list create="0" edit="0" delete="0">
+                                <field name="move_id" string="N° facture fournisseur" readonly="1"/>
+                                <field name="date" string="Date" readonly="1"/>
+                                <field name="partner_id" string="Fournisseur" readonly="1"/>
+                                <field name="quantity" string="Qté commandée" readonly="1"/>
+                                <field name="primetech_quantity_received" string="Qté reçue" readonly="1"/>
+                                <field name="currency_id" column_invisible="1"/>
+                                <field name="price_unit" string="Prix unitaire en devise" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                <field name="price_subtotal" string="Total en devise" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_primetech_pos_sale_history" model="ir.ui.view">
+        <field name="name">product.template.primetech.pos.sale.history</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='pos']" position="inside">
+                <group string="Historique des ventes PdV">
+                    <group col="2" class="pt-product-history-totals">
+                        <field name="primetech_pos_sale_qty" string="Total commandé" readonly="1"/>
+                        <field name="primetech_pos_sale_total" string="Total" widget="monetary" options="{'currency_field': 'primetech_history_currency_id'}" readonly="1"/>
+                    </group>
+                    <field name="primetech_history_currency_id" invisible="1"/>
+                    <field name="primetech_pos_sale_history_ids" nolabel="1" readonly="1" class="pt-product-invoice-history">
+                        <list create="0" edit="0" delete="0">
+                            <field name="reference" string="N° commande PdV" readonly="1"/>
+                            <field name="date" string="Date" readonly="1"/>
+                            <field name="partner_id" string="Client" readonly="1"/>
+                            <field name="quantity" string="Qté commandée" readonly="1"/>
+                            <field name="quantity_delivered" string="Qté livrée" readonly="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="price_unit" string="Prix unitaire" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="subtotal" string="Total" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="pos_order_id" string="Commande" readonly="1"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_primetech_hide_native_purchase_tab" model="ir.ui.view">
+        <field name="name">product.template.primetech.hide.native.purchase.tab</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="purchase.view_product_supplier_inherit"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='purchase']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Kept inactive on upgrade to neutralize the two former duplicate tabs. -->
+    <record id="view_product_variant_sale_history_invoice" model="ir.ui.view">
+        <field name="name">product.product.sale.history.invoice.legacy</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="sale.product_form_view_sale_order_button"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml"><xpath expr="//notebook" position="inside"><separator invisible="1"/></xpath></field>
+    </record>
+
+    <record id="view_product_variant_primetech_purchase_invoice_tab" model="ir.ui.view">
+        <field name="name">product.product.primetech.purchase.invoice.tab.legacy</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml"><xpath expr="//notebook" position="inside"><separator invisible="1"/></xpath></field>
+    </record>
+
 </odoo>

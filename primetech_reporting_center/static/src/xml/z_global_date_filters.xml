@@ -16,7 +16,7 @@
     <t t-inherit="primetech_reporting_center.SalesOverviewDashboard" t-inherit-mode="extension" owl="1">
         <xpath expr="//section[contains(@class, 'pt-sales-filters')]" position="replace">
             <section class="pt-sales-filters">
-                <label>Société<select><option>Toutes les sociétés</option></select></label>
+                <label>Entrepôt<select t-att-value="state.warehouseId" t-on-change="onWarehouseChange"><option value="">Tous les entrepôts</option><t t-foreach="state.data.warehouse_options" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id"><t t-esc="warehouse.name"/></option></t></select></label>
                 <label>Période<select t-att-value="state.period" t-on-change="onGlobalPeriodChange"><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option><option value="year">Cette année</option><option value="custom">Période</option></select></label>
                 <t t-if="state.period === 'custom'"><label>Date de début<input type="date" t-att-value="state.dateFrom" t-att-max="state.dateTo || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateFrom', ev)"/></label><label>Date de fin<input type="date" t-att-value="state.dateTo" t-att-min="state.dateFrom || undefined" t-on-change="(ev) => this.onGlobalDateChange('dateTo', ev)"/></label></t>
                 <label>Comparaison<select><option>Période précédente</option></select></label>

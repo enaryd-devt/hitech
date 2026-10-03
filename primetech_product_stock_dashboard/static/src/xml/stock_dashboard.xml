@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="primetech_product_stock_dashboard.StockDashboard">
+        <div class="pt-stock-dashboard" t-if="!state.loading and state.data">
+            <div class="pt-stock-dashboard__header">
+                <div><h1>Vue d’ensemble du stock</h1><p>Suivez vos articles, mouvements et opérations logistiques en temps réel.</p></div>
+                <section class="pt-stock-dashboard__filters">
+                <label><i class="fa fa-building-o"/> Société<select t-on-change="onCompanyChange"><option value="all" t-att-selected="state.companyId === 'all'">Toutes les sociétés</option><t t-foreach="state.data.company_options" t-as="company" t-key="company.id"><option t-att-value="company.id" t-att-selected="company.id.toString() === state.companyId"><t t-esc="company.name"/></option></t></select></label>
+                <label><i class="fa fa-industry"/> Entrepôt<select t-on-change="onWarehouseChange"><option value="all" t-att-selected="state.warehouseId === 'all'">Tous les entrepôts</option><t t-foreach="state.data.warehouse_options" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id" t-att-selected="warehouse.id.toString() === state.warehouseId"><t t-esc="warehouse.name"/></option></t></select></label>
+                </section>
+            </div>
+            <section class="pt-stock-dashboard__kpis">
+                <t t-foreach="state.data.kpis" t-as="kpi" t-key="kpi.label">
+                    <article t-att-class="'pt-stock-kpi pt-stock-kpi--' + kpi.tone + ((kpi.value &amp;&amp; (kpi.tone === 'orange' || kpi.tone === 'violet' || kpi.tone === 'red')) ? ' pt-stock-kpi--attention' : '')" t-on-click="() => this.openKpi(kpi)">
+                        <span class="pt-stock-kpi__icon"><i t-attf-class="fa #{kpi.icon}"/></span>
+                        <div><span class="pt-stock-kpi__label" t-esc="kpi.label"/><strong t-esc="kpi.monetary ? formatMoney(kpi.value) : formatNumber(kpi.value)"/><small t-esc="kpi.detail"/></div>
+                    </article>
+                </t>
+            </section>
+            <section class="pt-stock-dashboard__operations">
+                <t t-foreach="state.data.operation_groups" t-as="warehouse" t-key="warehouse.name">
+                    <header class="pt-stock-warehouse-title"><i class="fa fa-building-o"/> Entrepôt : <strong t-esc="warehouse.name"/><span t-esc="warehouse.cards.length"/> type(s) d’opération</header>
+                    <div class="pt-stock-warehouse-cards">
+                    <t t-foreach="warehouse.cards" t-as="operation" t-key="operation.id">
+                    <article t-attf-class="pt-stock-operation pt-stock-operation--#{operation.color}">
+                        <header><span><i t-attf-class="fa #{operation.icon}"/> <t t-esc="operation.name"/></span><em t-if="operation.late"><t t-esc="operation.late"/> en retard</em></header>
+                        <div class="pt-stock-operation__metric"><strong t-esc="operation.pending"/><span>à traiter</span></div>
+                        <button t-on-click="() => this.openOperation(operation)"><t t-esc="operation.action"/> <i class="fa fa-arrow-right"/></button>
+                    </article>
+                    </t>
+                    </div>
+                </t>
+            </section>
+            <section class="pt-stock-dashboard__grid">
+                <article class="pt-stock-panel pt-stock-panel--moves">
+                    <header><h2><i class="fa fa-refresh"/> Mouvements récents</h2></header>
+                    <div class="table-responsive"><table><thead><tr><th>Date</th><th>Opération</th><th>Référence</th><th>Article</th><th>Qté</th></tr></thead>
+                    <tbody><tr t-foreach="state.data.recent_moves" t-as="move" t-key="move.id" t-on-click="() => this.openMove(move)"><td t-esc="move.date"/><td><span t-attf-class="pt-stock-tag pt-stock-tag--#{move.type}" t-esc="move.operation"/></td><td t-esc="move.name"/><td t-esc="move.product"/><td t-esc="formatNumber(move.quantity)"/></tr></tbody></table></div>
+                </article>
+                <article class="pt-stock-panel pt-stock-panel--shortage">
+                    <header><h2><i class="fa fa-exclamation-triangle"/> Articles à réapprovisionner</h2><button t-on-click="openProducts">Voir les produits</button></header>
+                    <div class="pt-stock-shortage-list"><div class="pt-stock-shortage" t-foreach="state.data.low_products" t-as="product" t-key="product.id" t-on-click="() => this.openProduct(product)"><img t-att-src="product.image"/><div><strong t-esc="product.name"/><small t-esc="product.reference"/></div><span t-attf-class="pt-stock-shortage__qty pt-stock-shortage__qty--#{product.level}" t-esc="formatNumber(product.available)"/></div><p t-if="!state.data.low_products.length" class="pt-stock-empty">Aucun article à réapprovisionner.</p></div>
+                </article>
+                <article class="pt-stock-panel pt-stock-panel--categories">
+                    <header><h2><i class="fa fa-bar-chart"/> Stock par catégorie</h2></header>
+                    <div class="pt-stock-bars"><div t-foreach="state.data.categories" t-as="category" t-key="category.id" class="pt-stock-bar" t-on-click="() => this.openCategory(category)"><div class="pt-stock-bar__track"><span t-attf-style="height: #{category.ratio}%"/></div><strong t-esc="formatNumber(category.quantity)"/><small t-esc="category.name"/></div></div>
+                </article>
+                <article class="pt-stock-panel pt-stock-panel--value">
+                    <header><h2><i class="fa fa-exclamation-circle"/> Alertes de stock par catégorie</h2></header>
+                    <div t-foreach="state.data.alert_categories" t-as="category" t-key="category.id" class="pt-stock-value" t-on-click="() => this.openCategory(category, true)"><span t-esc="category.name"/><div><i t-attf-style="width: #{category.ratio}%"/></div><strong><t t-esc="category.count"/> article(s)</strong></div>
+                    <p t-if="!state.data.alert_categories.length" class="pt-stock-empty">Aucune alerte de stock.</p>
+                </article>
+            </section>
+        </div>
+        <div class="pt-stock-dashboard pt-stock-dashboard--loading" t-else=""><i class="fa fa-spinner fa-spin"/> Chargement du tableau de bord…</div>
+    </t>
+    <t t-inherit="primetech_product_stock_dashboard.StockDashboard" t-inherit-mode="extension" owl="1">
+        <xpath expr="//section[contains(@class, 'pt-stock-dashboard__operations')]" position="replace">
+            <section class="pt-stock-dashboard__operations">
+                <t t-foreach="state.data.operation_groups" t-as="warehouse" t-key="warehouse.name">
+                    <header class="pt-stock-warehouse-title"><i class="fa fa-building-o"/> Entrepôt : <strong t-esc="warehouse.name"/><span t-esc="warehouse.cards.length"/> type(s) d’opération</header>
+                    <div class="pt-stock-warehouse-cards">
+                <t t-foreach="warehouse.cards" t-as="operation" t-key="operation.id">
+                    <article t-attf-class="pt-stock-operation pt-stock-operation--#{operation.color}">
+                        <header>
+                            <span><i t-attf-class="fa #{operation.icon}"/> <t t-esc="operation.name"/><small class="pt-stock-operation__warehouse">Entrepôt : <t t-esc="operation.warehouse_name"/></small></span>
+                            <span class="pt-stock-operation__late" t-if="operation.late"><t t-esc="operation.late"/> en retard</span>
+                        </header>
+                        <div class="pt-stock-operation__summary">
+                            <strong><t t-esc="formatNumber(operation.pending)"/> <small>à traiter</small></strong>
+                            <span><small>Opérations</small><b t-esc="formatNumber(operation.pending)"/></span>
+                        </div>
+                        <div class="pt-stock-operation__chart" aria-label="Évolution hebdomadaire">
+                            <div class="pt-stock-operation__day" t-foreach="operation.days" t-as="day" t-key="day.label">
+                                <div class="pt-stock-operation__bars">
+                                    <i class="pt-stock-operation__bar pt-stock-operation__bar--on-time" t-attf-style="height: #{operationBarHeight(operation, day, 'on_time')}"/>
+                                    <i t-if="day.late" class="pt-stock-operation__bar pt-stock-operation__bar--late" t-attf-style="height: #{operationBarHeight(operation, day, 'late')}"/>
+                                </div>
+                                <small t-esc="day.label"/>
+                            </div>
+                        </div>
+                        <div class="pt-stock-operation__legend"><span><i/> À temps</span><span><i/> En retard</span></div>
+                        <button t-on-click="() => this.openOperation(operation)"><t t-esc="operation.action"/> <i class="fa fa-arrow-right"/></button>
+                    </article>
+                </t>
+                    </div>
+                </t>
+            </section>
+        </xpath>
+    </t>
+</templates>

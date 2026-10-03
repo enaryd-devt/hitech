@@ -6,8 +6,9 @@
     "category": "Accounting/Inventory",
     "author": "Primetech",
     "license": "LGPL-3",
-    "depends": ["account", "stock", "purchase", "om_account_asset"],
+    "depends": ["account", "stock", "sale", "purchase", "point_of_sale", "om_account_asset"],
     "data": [
+        "security/ir.model.access.csv",
         "views/product_category_views.xml",
         "views/account_move_views.xml",
         "views/stock_picking_views.xml",
@@ -18,6 +19,7 @@
             "primetech_supplier_invoice_logistics/static/src/js/supplier_invoice_article_tooltip.js",
             "primetech_supplier_invoice_logistics/static/src/scss/chatter_bottom.scss",
             "primetech_supplier_invoice_logistics/static/src/scss/supplier_invoice_lines.scss",
+            "primetech_supplier_invoice_logistics/static/src/scss/product_invoice_history.scss",
         ],
     },
     "installable": True,

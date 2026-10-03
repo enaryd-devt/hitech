@@ -16,6 +16,12 @@
                 <i t-att-class="hitechDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"/>
             </button>
         </xpath>
+        <xpath expr="//div[contains(@class, 'status-buttons')]/Input" position="after">
+            <button t-if="pos.showSearchButton()" class="primetech-reload-products" t-att-class="{'is-loading': hitechCatalogReloading}" t-att-disabled="hitechCatalogReloading" t-on-click="reloadProductCatalog" title="Recharger la liste des articles" aria-label="Recharger la liste des articles">
+                <i t-att-class="hitechCatalogReloading ? 'fa fa-refresh fa-spin' : 'fa fa-refresh'"/>
+                <span class="d-none d-xl-inline">Recharger</span>
+            </button>
+        </xpath>
         <xpath expr="//div[contains(@class, 'pos-centerheader')]" position="inside">
             <button class="primetech-active-orders" t-on-click="() => this.pos.showScreen('TicketScreen')" title="Afficher les commandes actives">
                 <i class="fa fa-shopping-bag"/>

@@ -1,13 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
+  <delete id="primetech_reporting_center.menu_logistics_command_center" model="ir.ui.menu"/>
+  <delete id="primetech_reporting_center.action_logistics_command_center" model="ir.actions.client"/>
   <!-- ===================================================== -->
   <!-- VUE D'ENSEMBLE -->
   <!-- ===================================================== -->
   <menuitem id="menu_stock_dashboard" name="Vue d'Ensemble" parent="menu_primetech_reporting_stock" action="action_stock_dashboard" sequence="10"/>
-  <!-- ===================================================== -->
-  <!-- CENTRE DE COMMANDEMENT LOGISTIQUE (Supply Chain Manager) -->
-  <!-- ===================================================== -->
-  <menuitem id="menu_logistics_command_center" name="Centre de Commandement Logistique" parent="menu_primetech_reporting_stock" action="primetech_reporting_center.action_logistics_command_center" groups="primetech_reporting_center.group_reporting_manager" sequence="15"/>
   <!-- ===================================================== -->
   <!-- ANALYSE -->
   <!-- ===================================================== -->

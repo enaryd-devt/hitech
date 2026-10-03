@@ -39,6 +39,7 @@ de configuration, d'utilisation, de sécurité, de mise à jour et de désinstal
         "purchase",
         "purchase_stock",
         "stock",
+        "primetech_product_stock_dashboard",
         "point_of_sale",
         "hr",
         "hr_attendance",
@@ -252,7 +253,6 @@ de configuration, d'utilisation, de sécurité, de mise à jour et de désinstal
         # Dashboard
         "views/stock/stock_dashboard_template.xml",
         "views/stock/stock_dashboard_action.xml",
-        "views/logistics/logistics_command_center_action.xml",
 
         # HR
         "views/hr/hr_dashboard_action.xml",

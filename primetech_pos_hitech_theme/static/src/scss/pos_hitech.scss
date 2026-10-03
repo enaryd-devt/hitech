@@ -72,6 +72,28 @@
     .status-buttons .input-container { padding: 0 .65rem !important; }
     .status-buttons .input-container i { color: #0b55d4; font-size: .9rem !important; }
 
+    .primetech-reload-products {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .38rem;
+        min-width: 40px;
+        min-height: 40px;
+        padding: 0 .72rem;
+        border: 1px solid #bdd1ff !important;
+        border-radius: 22px !important;
+        background: #f4f7fc !important;
+        color: #0b55d4 !important;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+    .primetech-reload-products:hover:not(:disabled) {
+        border-color: #8eb4ff !important;
+        background: #eaf2ff !important;
+        color: #0637ad !important;
+    }
+    .primetech-reload-products:disabled { cursor: wait; opacity: .7; }
+
     .status-buttons .btn {
         border: 0;
         border-radius: 12px;

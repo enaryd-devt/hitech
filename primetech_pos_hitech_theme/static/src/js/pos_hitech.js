@@ -48,6 +48,12 @@ patch(PosStore.prototype, {
         const uniqueIds = [...new Set(productIds.filter(Boolean))];
         await Promise.all(
             uniqueIds.map(async (productId) => {
+                const product = this.models["product.product"].get(productId);
+                // Les services et consommables ne sont pas soumis au suivi
+                // d'inventaire du point de vente.
+                if (!product?.is_storable) {
+                    return;
+                }
                 const availability = await this.data
                     .silentCall(
                         "product.product",
@@ -55,12 +61,30 @@ patch(PosStore.prototype, {
                         [productId, this.config.id, false]
                     )
                     .catch(() => false);
-                const product = this.models["product.product"].get(productId);
                 if (product && availability && availability.available_quantity !== false) {
                     product.update({ qty_available: availability.available_quantity });
                 }
             })
         );
+    },
+
+    async primetechReloadProductCatalog() {
+        if (this._primetechReloadingProductCatalog) {
+            return 0;
+        }
+        this._primetechReloadingProductCatalog = true;
+        try {
+            const products = await this.data.call(
+                "product.product",
+                "primetech_pos_reload_catalog",
+                [this.config.id]
+            );
+            const data = await this.data.missingRecursive({ "product.product": products || [] });
+            this.models.loadData(data);
+            return (products || []).length;
+        } finally {
+            this._primetechReloadingProductCatalog = false;
+        }
     },
 
     async primetechAuthorizeCurrentOrder(operation) {
@@ -125,7 +149,26 @@ patch(PosStore.prototype, {
     },
 
     async addLineToCurrentOrder(vals) {
-        if (outOfStock(this, vals.product_id, vals.qty || 1)) {
+        const product =
+            typeof vals.product_id === "number"
+                ? this.data.models["product.product"].get(vals.product_id)
+                : vals.product_id;
+        const order = this.get_order();
+        if (product?.type === "service" && order) {
+            const existingLine = (order.lines || []).find(
+                (line) => line.product_id?.id === product.id && line.get_quantity() > 0
+            );
+            if (existingLine) {
+                order.select_orderline(existingLine);
+                this.env.services.notification.add(
+                    "Ce service est déjà présent dans la commande et reste limité à une unité.",
+                    { type: "warning" }
+                );
+                return existingLine;
+            }
+            vals = { ...vals, qty: 1 };
+        }
+        if (outOfStock(this, product, vals.qty || 1)) {
             this.env.services.notification.add(
                 "Cet article est en rupture de stock et ne peut pas être vendu.",
                 { type: "danger" }
@@ -215,6 +258,7 @@ patch(Navbar.prototype, {
         const storageKey = "primetech_pos_hitech_dark_mode";
         const darkMode = window.localStorage.getItem(storageKey) === "true";
         this.hitechThemeState = useState({ darkMode });
+        this.hitechCatalogState = useState({ reloading: false });
         document.documentElement.classList.toggle("primetech-pos-dark", darkMode);
     },
 
@@ -232,6 +276,32 @@ patch(Navbar.prototype, {
             "primetech_pos_hitech_dark_mode",
             `${this.hitechThemeState.darkMode}`
         );
+    },
+
+    get hitechCatalogReloading() {
+        return this.hitechCatalogState.reloading;
+    },
+
+    async reloadProductCatalog() {
+        if (this.hitechCatalogState.reloading) {
+            return;
+        }
+        this.hitechCatalogState.reloading = true;
+        try {
+            const count = await this.pos.primetechReloadProductCatalog();
+            this.notification.add(
+                `${count} article(s) ont été rechargés depuis le serveur.`,
+                { type: "success" }
+            );
+        } catch (error) {
+            console.error("Impossible de recharger le catalogue du point de vente.", error);
+            this.notification.add(
+                "Le catalogue n'a pas pu être rechargé. Vérifiez votre connexion puis réessayez.",
+                { type: "danger" }
+            );
+        } finally {
+            this.hitechCatalogState.reloading = false;
+        }
     },
 });
 
@@ -275,6 +345,18 @@ patch(PosOrderline.prototype, {
         const requestedQuantity =
             typeof quantity === "number" ? quantity : parseFloat(`${quantity || 0}`);
         const product = this.product_id;
+        if (product?.type === "service" && requestedQuantity > 1) {
+            const result = super.set_quantity(1, keep_price);
+            window.dispatchEvent(
+                new CustomEvent("primetech-pos-reservation-changed", {
+                    detail: { order: this.order_id, line: this },
+                })
+            );
+            return {
+                title: "Service limité à une unité",
+                body: "Un service ne peut être ajouté qu'une seule fois à cette commande.",
+            };
+        }
         if (
             product?.is_storable &&
             typeof product.qty_available === "number" &&

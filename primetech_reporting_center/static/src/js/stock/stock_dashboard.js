@@ -9,7 +9,7 @@ import { getDefaultCustomDateRange, getGlobalDateFilter, globalDateFilterPayload
 export class StockDashboard extends Component {
     setup() {
         this.action = useService("action");
-        this.state = useState({ loading: true, ...getGlobalDateFilter(), warehouseSort: "value_desc", data: {} });
+        this.state = useState({ loading: true, ...getGlobalDateFilter(), warehouseId: "", warehouseSort: "value_desc", data: {} });
         onWillStart(async () => this.loadDashboard());
         onMounted(() => {
             this._unsubscribeGlobalDateFilter = subscribeToGlobalDateFilter((filter) => {
@@ -22,7 +22,10 @@ export class StockDashboard extends Component {
 
     async loadDashboard() {
         this.state.loading = true;
-        this.state.data = await rpc("/primetech/stock/dashboard", globalDateFilterPayload(this.state));
+        this.state.data = await rpc("/primetech/stock/dashboard", {
+            ...globalDateFilterPayload(this.state),
+            warehouse_id: this.state.warehouseId || false,
+        });
         this.state.loading = false;
         setTimeout(() => this.renderCharts(), 0);
     }
@@ -72,7 +75,34 @@ export class StockDashboard extends Component {
     }
 
     get dashboardClass() {
-        return `pt-stock-overview pt-kpi-${this.theme.theme_kpi_style || "cards"}`;
+        return "pt-stock-reference";
+    }
+
+    async onWarehouseChange(ev) {
+        this.state.warehouseId = ev.target.value || "";
+        await this.loadDashboard();
+    }
+
+    get incomingPending() {
+        return (this.state.data.operation_cards || []).filter((row) => row.code === "incoming").reduce((sum, row) => sum + (row.pending || 0), 0);
+    }
+
+    get outgoingPending() {
+        return (this.state.data.operation_cards || []).filter((row) => row.code === "outgoing").reduce((sum, row) => sum + (row.pending || 0), 0);
+    }
+
+    openStockLevel(level) {
+        if (level.tone === "red") {
+            return this.openProducts([["qty_available", "<=", 0]]);
+        }
+        if (level.tone === "orange") {
+            return this.openProducts([["id", "in", this.state.data.below_min_product_ids || []]]);
+        }
+        return this.openProducts([["qty_available", ">", 0]]);
+    }
+
+    openCategory(category) {
+        return this.openProducts([["categ_id", "=", category.id]]);
     }
 
     onWarehouseSortChange(ev) {

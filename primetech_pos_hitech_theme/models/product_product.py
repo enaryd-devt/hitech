@@ -36,3 +36,28 @@ class ProductProduct(models.Model):
             "available_quantity": max(0.0, stock - reserved),
             "reserved_quantity": reserved,
         }
+
+    @api.model
+    def primetech_pos_reload_catalog(self, config_id):
+        """Return the POS catalogue without reloading the whole POS session.
+
+        ``pos.session.load_data`` also requires draft orders and their lines.
+        Calling it only for products therefore fails during an open session.
+        This lightweight endpoint uses exactly the POS product domain and can
+        safely be called from the refresh button.
+        """
+        config = self.env["pos.config"].browse(config_id).exists()
+        if not config:
+            return []
+
+        fields_to_load = self._load_pos_data_fields(config.id)
+        if config.get_limited_product_count():
+            products = config.with_context(display_default_code=False).get_limited_products_loading(
+                fields_to_load
+            )
+        else:
+            products = self._load_product_with_domain(
+                config._get_available_product_domain(), config.id
+            )
+        self._process_pos_ui_product_product(products, config)
+        return products

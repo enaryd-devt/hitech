@@ -1,0 +1,35 @@
+.o_form_view .pt-product-history-totals {
+    background: #f7f9fc;
+    border: 1px solid #e3eaf4;
+    border-radius: 8px;
+    margin: 0 0 10px;
+    padding: 9px 12px;
+
+    .o_field_widget { font-weight: 700; }
+    .o_form_label { color: #64748b; font-size: 11px; }
+}
+
+.o_form_view .pt-product-invoice-history {
+    .o_field_x2many_list {
+        border: 1px solid #e3eaf4;
+        border-radius: 8px;
+        max-height: 218px;
+        overflow: auto;
+        scrollbar-color: #b8c9df transparent;
+        scrollbar-width: thin;
+    }
+
+    .o_list_table thead th {
+        background: #f4f7fb;
+        color: #536b8d;
+        font-size: 11px;
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .o_list_table tbody tr { transition: background .18s ease; }
+    .o_list_table tbody tr:hover { background: #f5f9ff; }
+    .o_list_table td { white-space: nowrap; }
+}
