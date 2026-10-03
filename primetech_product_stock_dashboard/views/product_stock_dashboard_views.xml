@@ -97,13 +97,13 @@
                                 <div><strong>Article consommable</strong><small>Article non suivi dans l’inventaire.</small></div>
                             </t>
                         </div>
-                        <div class="pt-stock-card__stocks" t-if="record.is_storable.raw_value">
-                            <div class="pt-stock-meter pt-stock-meter--available">
+                        <div t-attf-class="pt-stock-card__stocks pt-stock-card__stocks--#{record.primetech_stock_level.raw_value}" t-if="record.is_storable.raw_value">
+                            <div t-attf-class="pt-stock-meter pt-stock-meter--available pt-stock-meter--#{record.primetech_stock_level.raw_value}">
                                 <div class="pt-stock-meter__label"><i class="fa fa-cube"/> Stock disponible</div>
                                 <div class="pt-stock-meter__quantity"><field name="qty_available"/></div>
                                 <div class="pt-stock-meter__track"><span t-attf-style="width: #{record.primetech_stock_ratio.raw_value}%"/></div>
                             </div>
-                            <div class="pt-stock-meter pt-stock-meter--forecast">
+                            <div t-attf-class="pt-stock-meter pt-stock-meter--forecast pt-stock-meter--#{record.primetech_stock_level.raw_value}">
                                 <div class="pt-stock-meter__label"><i class="fa fa-cubes"/> Stock prévu</div>
                                 <div class="pt-stock-meter__quantity"><field name="virtual_available"/></div>
                                 <div class="pt-stock-meter__track"><span t-attf-style="width: #{record.primetech_forecast_ratio.raw_value}%"/></div>
