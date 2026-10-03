@@ -68,6 +68,29 @@
         </field>
     </record>
 
+    <!-- Harmonise le libellé métier du coût sur les fiches articles. -->
+    <record id="view_product_template_form_cost_of_return" model="ir.ui.view">
+        <field name="name">product.template.form.cost.of.return</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_standard_price']//field[@name='standard_price']" position="attributes">
+                <attribute name="string">Coût de revient</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_list_cost_of_return" model="ir.ui.view">
+        <field name="name">product.template.list.cost.of.return</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="string">Coût de revient</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_product_variant_form_primetech_precision" model="ir.ui.view">
         <field name="name">product.product.form.primetech.precision</field>
         <field name="model">product.product</field>
@@ -78,6 +101,28 @@
             </xpath>
             <xpath expr="//field[@name='volume']" position="attributes">
                 <attribute name="digits">[16, 6]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_form_cost_of_return" model="ir.ui.view">
+        <field name="name">product.product.form.cost.of.return</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="string">Coût de revient</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_list_cost_of_return" model="ir.ui.view">
+        <field name="name">product.product.list.cost.of.return</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="string">Coût de revient</attribute>
             </xpath>
         </field>
     </record>
