@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_primetech_module_display_name_list" model="ir.ui.view">
+        <field name="name">primetech.module.display.name.list</field>
+        <field name="model">primetech.module.display.name</field>
+        <field name="arch" type="xml">
+            <list string="Noms des modules" delete="0">
+                <field name="module_id"/>
+                <field name="technical_name" optional="hide"/>
+                <field name="current_name"/>
+                <field name="custom_name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_primetech_module_display_name_form" model="ir.ui.view">
+        <field name="name">primetech.module.display.name.form</field>
+        <field name="model">primetech.module.display.name</field>
+        <field name="arch" type="xml">
+            <form string="Nom affiché du module">
+                <header>
+                    <button name="action_apply" type="object" string="Appliquer" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="module_id" options="{'no_create': True}"/>
+                            <field name="technical_name"/>
+                            <field name="current_name"/>
+                        </group>
+                        <group>
+                            <field name="custom_name"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Le nom est appliqué au catalogue des applications et au menu racine du module, dans toutes les langues actives.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_primetech_module_display_name" model="ir.actions.act_window">
+        <field name="name">Noms des modules</field>
+        <field name="res_model">primetech.module.display.name</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Personnalisez le nom affiché d'un module.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_primetech_module_display_name"
+              name="Noms des modules"
+              parent="base.menu_administration"
+              action="action_primetech_module_display_name"
+              sequence="95"
+              groups="base.group_system"/>
+</odoo>
