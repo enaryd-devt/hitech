@@ -9,9 +9,11 @@
     "depends": ["account", "stock", "sale", "purchase", "point_of_sale", "om_account_asset"],
     "data": [
         "security/ir.model.access.csv",
+        "data/primetech_invoice_sequences.xml",
         "views/product_category_views.xml",
         "views/account_move_views.xml",
         "views/stock_picking_views.xml",
+        "reports/primetech_invoice_reports.xml",
     ],
     "assets": {
         "web.assets_backend": [

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_primetech_invoice" model="report.paperformat">
+        <field name="name">Facture Primetech A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">20</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">8</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_primetech_customer_invoice" model="ir.actions.report">
+        <field name="name">Facture client</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_supplier_invoice_logistics.report_primetech_customer_invoice</field>
+        <field name="report_file">primetech_supplier_invoice_logistics.report_primetech_customer_invoice</field>
+        <field name="print_report_name">('Facture proforma - %s - %s' if object.state == 'draft' else 'Facture client - %s - %s') % (object._primetech_document_reference(), object.partner_id.name or 'Sans client')</field>
+        <field name="paperformat_id" ref="paperformat_primetech_invoice"/>
+    </record>
+
+    <record id="action_report_primetech_supplier_invoice" model="ir.actions.report">
+        <field name="name">Facture fournisseur</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_supplier_invoice_logistics.report_primetech_supplier_invoice</field>
+        <field name="report_file">primetech_supplier_invoice_logistics.report_primetech_supplier_invoice</field>
+        <field name="print_report_name">('Cotation fournisseur - %s - %s' if object.state == 'draft' else 'Facture fournisseur - %s - %s') % (object._primetech_document_reference(), object.partner_id.name or 'Sans fournisseur')</field>
+        <field name="paperformat_id" ref="paperformat_primetech_invoice"/>
+    </record>
+
+    <template id="report_primetech_invoice_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page pt-pro-invoice">
+                        <style type="text/css">
+                            /* L'en-tête externe reste en haut ; le contenu démarre volontairement
+                               plus bas pour lui laisser une respiration nette. */
+                            .pt-pro-invoice { color:#172b55; font-family:Arial, sans-serif; font-size:13px; padding-top:28mm; }
+                            .pt-pro-invoice .pt-title { background:#084a93; border-radius:5px; color:#fff; display:inline-block; font-size:18px; font-weight:700; margin:0 0 14px; padding:9px 15px; white-space:nowrap; }
+                            .pt-pro-invoice .pt-title .pt-number { color:#ff8500; }
+                            .pt-pro-invoice .pt-document-date { clear:both; color:#1f3f68; font-size:14px; font-style:italic; font-weight:600; margin:7px 3px 11px 0; text-align:right; }
+                            .pt-pro-invoice .pt-separator { border-top:2px solid #0c5da7; clear:both; margin:0; opacity:.72; }
+                            .pt-pro-invoice .pt-grid { display:table; width:100%; table-layout:fixed; }
+                            .pt-pro-invoice .pt-col { display:table-cell; vertical-align:top; width:50%; }
+                            .pt-pro-invoice .pt-col + .pt-col { padding-left:10px; }
+                            .pt-pro-invoice .pt-card { background:#f3f7fd; border-radius:4px; min-height:118px; padding:13px 15px; }
+                            .pt-pro-invoice .pt-label { color:#1671c1; font-size:11px; font-weight:700; text-transform:uppercase; }
+                            .pt-pro-invoice .pt-partner { color:#122a53; font-size:15px; font-weight:700; margin:5px 0; text-transform:uppercase; }
+                            .pt-pro-invoice .pt-meta { border-collapse:collapse; width:100%; }
+                            .pt-pro-invoice .pt-meta td { padding:3px 0; }
+                            .pt-pro-invoice .pt-meta td:first-child { color:#536c92; width:48%; }
+                            .pt-pro-invoice .pt-status { border-radius:12px; display:inline-block; font-size:9px; font-weight:700; padding:3px 8px; }
+                            .pt-pro-invoice .pt-status--paid { background:#daf7e8; color:#07834e; }
+                            .pt-pro-invoice .pt-status--open { background:#fff0d8; color:#bc6400; }
+                            .pt-pro-invoice .pt-traceability { background:#f2f5f9; border:1px solid #183f73 !important; clear:both; margin:12px 0 13px; padding:0; }
+                            .pt-pro-invoice .pt-traceability table { border-collapse:collapse; table-layout:fixed; width:100%; }
+                            .pt-pro-invoice .pt-traceability table, .pt-pro-invoice .pt-traceability tr, .pt-pro-invoice .pt-traceability td { border:none !important; }
+                            .pt-pro-invoice .pt-traceability td { color:#4c6384; font-size:12px; padding:6px 9px; vertical-align:middle; width:25%; }
+                            .pt-pro-invoice .pt-traceability tr + tr td { border-top:1px solid #d6dee8 !important; }
+                            .pt-pro-invoice .pt-traceability strong { color:#183f73; font-size:12px; font-weight:700; }
+                            .pt-pro-invoice .pt-lines { border-collapse:collapse; margin-top:11px; width:100%; }
+                            .pt-pro-invoice .pt-lines th { background:#084a93; border:1px solid #c5d7ed; color:#fff; font-size:11px; padding:9px 7px; text-align:center; }
+                            .pt-pro-invoice .pt-lines td { border:1px solid #d5e1f0; padding:9px 7px; vertical-align:top; }
+                            .pt-pro-invoice .pt-lines .pt-right { text-align:right; }
+                            .pt-pro-invoice .pt-lines .pt-center { text-align:center; }
+                            .pt-pro-invoice .pt-summary { margin-top:10px; }
+                            .pt-pro-invoice .pt-summary table { border-collapse:collapse; float:right; width:43%; }
+                            .pt-pro-invoice .pt-summary td { border:1px solid #d5e1f0; padding:5px 8px; }
+                            .pt-pro-invoice .pt-summary td:last-child { text-align:right; }
+                            .pt-pro-invoice .pt-summary .pt-total td { background:#dcecff; color:#063d7e; font-size:13px; font-weight:700; }
+                            .pt-pro-invoice .pt-summary .pt-balance td { background:#ff8500; color:#fff; font-size:13px; font-weight:700; }
+                            .pt-pro-invoice .pt-details { margin-top:11px; min-height:93px; width:52%; }
+                            .pt-pro-invoice .pt-details p { margin:3px 0; }
+                            .pt-pro-invoice .pt-details h4 { color:#084a93; font-size:11px; margin:0 0 6px; text-transform:uppercase; }
+                            .pt-pro-invoice .pt-note { background:#dcedff; clear:both; font-style:italic; margin-top:13px; padding:9px 12px; }
+                            .pt-pro-invoice .pt-payments { clear:both; margin-top:13px; }
+                            .pt-pro-invoice .pt-payments h4 { color:#084a93; font-size:11px; margin:0 0 4px; }
+                            .pt-pro-invoice .pt-payments table { border-collapse:collapse; width:100%; }
+                            .pt-pro-invoice .pt-payments td, .pt-pro-invoice .pt-payments th { border-bottom:1px solid #d5e1f0; padding:4px; text-align:left; }
+                            .pt-pro-invoice .pt-terms { border-top:2px solid #1681d4; color:#405b80; font-size:10px; margin-top:15px; padding-top:9px; }
+                            .pt-pro-invoice .pt-signatures { display:table; margin-top:18px; width:100%; }
+                            .pt-pro-invoice .pt-signature { display:table-cell; text-align:center; width:50%; }
+                            .pt-pro-invoice .pt-sign-box { border:1px solid #d5e1f0; height:94px; margin-top:7px; width:94%; }
+                        </style>
+
+                        <t t-set="is_customer" t-value="o.move_type == 'out_invoice'"/>
+                        <t t-set="is_draft" t-value="o.state == 'draft'"/>
+                        <t t-set="invoice_lines" t-value="o._primetech_report_invoice_lines()"/>
+                        <t t-set="columns" t-value="o._primetech_report_column_visibility()"/>
+                        <t t-set="trace" t-value="o._primetech_report_traceability()"/>
+                        <div class="pt-separator"/>
+                        <div class="pt-document-date" t-esc="o._primetech_report_date_in_words()"/>
+
+                        <div class="pt-grid">
+                            <div class="pt-col">
+                                <div class="pt-title">
+                                    <t t-if="is_draft and is_customer">FACTURE PROFORMA</t>
+                                    <t t-elif="is_draft">COTATION FOURNISSEUR</t>
+                                    <t t-elif="is_customer">FACTURE CLIENT</t>
+                                    <t t-else="">FACTURE FOURNISSEUR</t>
+                                    <span class="pt-number"> N° <span t-esc="o._primetech_document_reference()"/></span>
+                                </div>
+                            </div>
+                            <div class="pt-col">
+                                <div class="pt-card">
+                                    <div class="pt-label"><t t-if="is_customer">Client</t><t t-else="">Fournisseur</t></div>
+                                    <div class="pt-partner" t-field="o.partner_id.name"/>
+                                    <div t-field="o.primetech_customer_address"/>
+                                    <div t-if="o.partner_id.phone">Tél. : <span t-field="o.partner_id.phone"/></div>
+                                    <div t-if="o.partner_id.email">E-mail : <span t-field="o.partner_id.email"/></div>
+                                    <div t-if="o.partner_id.vat">NIU / TVA : <span t-field="o.partner_id.vat"/></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-traceability">
+                            <table>
+                                <tr>
+                                    <td><strong><t t-if="is_customer">Bon(s) de livraison :</t><t t-else="">Bon(s) de réception :</t></strong> <span t-esc="trace['pickings']"/></td>
+                                    <td><strong>Entrepôt de livraison :</strong> <span t-field="o.primetech_delivery_warehouse_id.name" t-if="is_customer and o.primetech_delivery_warehouse_id"/><span t-field="o.primetech_warehouse_id.name" t-if="not is_customer and o.primetech_warehouse_id"/><span t-if="(is_customer and not o.primetech_delivery_warehouse_id) or (not is_customer and not o.primetech_warehouse_id)">—</span></td>
+                                    <td><strong>Échéance :</strong> <span t-field="o.invoice_date_due"/></td>
+                                    <td><strong>Vendu par :</strong> <span t-esc="trace['seller']"/></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <table class="pt-lines">
+                            <thead><tr>
+                                <th style="width:5%">N°</th><th>Désignation</th><th style="width:11%">Quantité</th><th style="width:16%">Prix unitaire</th><th t-if="columns['discount']" style="width:10%">Remise</th><th style="width:17%">Montant HT</th>
+                            </tr></thead>
+                            <tbody>
+                                <t t-foreach="invoice_lines" t-as="line">
+                                    <tr>
+                                        <td class="pt-center"><span t-esc="line_index + 1"/></td>
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="pt-center"><span t-field="line.quantity"/> <span t-field="line.product_uom_id.name"/></td>
+                                        <td class="pt-right"><span t-field="line.price_unit" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                        <td class="pt-center" t-if="columns['discount']"><span t-field="line.discount"/> %</td>
+                                        <td class="pt-right"><span t-field="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="pt-summary">
+                            <table>
+                                <tr><td>Total HT</td><td><span t-field="o.amount_untaxed" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                                <tr t-if="o.primetech_apply_discount and o.primetech_discount_amount"><td>Réduction appliquée</td><td>- <span t-field="o.primetech_discount_amount" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                                <tr t-if="o.amount_tax"><td>TVA</td><td><span t-field="o.amount_tax" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                                <tr class="pt-total"><td>Total TTC</td><td><span t-field="o.amount_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                                <tr><td>Règlements enregistrés</td><td><span t-field="o.primetech_amount_paid" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                                <tr class="pt-balance"><td>Reste à payer</td><td><span t-field="o.amount_residual" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr>
+                            </table>
+                        </div>
+                        <div class="pt-details">
+                            <h4>Conditions et termes de paiement</h4>
+                            <p t-if="o.invoice_payment_term_id"><strong>Conditions :</strong> <span t-field="o.invoice_payment_term_id.name"/></p>
+                            <p t-if="o.preferred_payment_method_line_id"><strong>Mode de paiement :</strong> <span t-field="o.preferred_payment_method_line_id.name"/></p>
+                            <p t-if="o.payment_reference"><strong>Référence de paiement :</strong> <span t-field="o.payment_reference"/></p>
+                            <p t-if="o.partner_bank_id"><strong>Banque / compte :</strong> <span t-field="o.partner_bank_id.acc_number"/></p>
+                        </div>
+                        <div class="pt-note"><strong>Montant en lettres :</strong> <span t-esc="o.currency_id.amount_to_text(o.amount_total)"/></div>
+
+                        <t t-set="payments" t-value="o._primetech_payment_details()"/>
+                        <div class="pt-payments" t-if="payments">
+                            <h4>Règlements imputés à cette facture</h4>
+                            <table><thead><tr><th>Date</th><th>Référence</th><th>Journal</th><th>Encaissé par</th><th style="text-align:right">Montant</th></tr></thead>
+                                <tbody><tr t-foreach="payments" t-as="payment"><td t-esc="payment['date']"/><td t-esc="payment['reference']"/><td t-esc="payment['journal']"/><td t-esc="payment['collector']"/><td style="text-align:right"><span t-esc="payment['amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="pt-terms">
+                            <strong>Conditions générales :</strong> Tout règlement doit être effectué à l'échéance indiquée. En cas de retard, les conditions contractuelles et la réglementation applicable s'appliquent.
+                        </div>
+                        <div class="pt-signatures">
+                            <div class="pt-signature"><strong>LA DIRECTION</strong><div class="pt-sign-box"/></div>
+                            <div class="pt-signature"><strong>LE CLIENT</strong><div class="pt-sign-box"/></div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_primetech_customer_invoice"><t t-call="primetech_supplier_invoice_logistics.report_primetech_invoice_document"/></template>
+    <template id="report_primetech_supplier_invoice"><t t-call="primetech_supplier_invoice_logistics.report_primetech_invoice_document"/></template>
+</odoo>

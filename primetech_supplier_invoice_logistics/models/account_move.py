@@ -7,6 +7,170 @@ from odoo.exceptions import UserError, ValidationError
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    primetech_proforma_number = fields.Char(
+        string="N° proforma", readonly=True, copy=False, index=True,
+        help="Référence attribuée lors de la première impression d'une facture en brouillon.",
+    )
+    primetech_amount_paid = fields.Monetary(
+        string="Montant réglé", compute="_compute_primetech_amount_paid",
+        currency_field="currency_id", readonly=True,
+    )
+
+    @api.depends("amount_total", "amount_residual")
+    def _compute_primetech_amount_paid(self):
+        for move in self:
+            move.primetech_amount_paid = max(
+                abs(move.amount_total or 0.0) - abs(move.amount_residual or 0.0), 0.0,
+            )
+
+    def _primetech_document_reference(self):
+        """Return a stable proforma reference for draft invoices.
+
+        The sequence is allocated only once and stored on the invoice so
+        repeated printings always show the same proforma number.
+        """
+        self.ensure_one()
+        if self.state != "draft":
+            return self.name
+        if not self.primetech_proforma_number:
+            sequence_code = (
+                "primetech.customer.invoice.proforma"
+                if self.move_type == "out_invoice"
+                else "primetech.supplier.invoice.proforma"
+            )
+            self.primetech_proforma_number = self.env["ir.sequence"].next_by_code(sequence_code)
+        return self.primetech_proforma_number
+
+    def _primetech_payment_state_label(self):
+        self.ensure_one()
+        labels = {
+            "not_paid": _("Non réglée"),
+            "in_payment": _("Règlement en cours"),
+            "paid": _("Réglée"),
+            "partial": _("Partiellement réglée"),
+            "reversed": _("Extournée"),
+            "invoicing_legacy": _("À régulariser"),
+        }
+        return labels.get(self.payment_state, self.payment_state or _("Sans règlement"))
+
+    def _primetech_payment_details(self):
+        """Payment allocations displayed on the printed invoice."""
+        self.ensure_one()
+        if self.state != "posted":
+            return []
+        details = []
+        for partial in self.sudo()._get_all_reconciled_invoice_partials():
+            line = partial["aml"]
+            details.append({
+                "date": line.date,
+                "reference": line.move_id.name or line.name,
+                "journal": line.journal_id.name,
+                "collector": line.payment_id.create_uid.name if line.payment_id else line.move_id.create_uid.name,
+                "amount": abs(partial["amount"]),
+            })
+        return details
+
+    def _primetech_report_invoice_lines(self):
+        """Invoice article lines only (Odoo 18 uses ``product`` as type)."""
+        self.ensure_one()
+        return self.invoice_line_ids.filtered(lambda line: line.display_type == "product")
+
+    def _primetech_report_column_visibility(self):
+        """Keep the printed table compact by hiding empty optional columns."""
+        self.ensure_one()
+        lines = self._primetech_report_invoice_lines()
+        return {
+            "discount": any(line.discount for line in lines),
+        }
+
+    def _primetech_sync_global_tax(self):
+        """Apply the selected global tax to every article line in draft."""
+        for move in self.filtered(lambda item: item.state == "draft" and item.move_type in ("in_invoice", "out_invoice")):
+            previous_tax = move.primetech_global_tax_applied_id
+            target_tax = move.primetech_global_tax_id if move.primetech_apply_global_tax else self.env["account.tax"]
+            for line in move._primetech_report_invoice_lines():
+                taxes = line.tax_ids
+                if previous_tax:
+                    taxes -= previous_tax
+                if target_tax:
+                    taxes |= target_tax
+                line.tax_ids = [(6, 0, taxes.ids)]
+            move.with_context(primetech_skip_global_tax_sync=True).write({
+                "primetech_global_tax_applied_id": target_tax.id or False,
+            })
+
+    @api.onchange("primetech_apply_global_tax", "primetech_global_tax_id")
+    def _onchange_primetech_global_tax(self):
+        for move in self:
+            if move.state == "draft":
+                previous_tax = move.primetech_global_tax_applied_id
+                target_tax = move.primetech_global_tax_id if move.primetech_apply_global_tax else self.env["account.tax"]
+                for line in move._primetech_report_invoice_lines():
+                    taxes = line.tax_ids
+                    if previous_tax:
+                        taxes -= previous_tax
+                    if target_tax:
+                        taxes |= target_tax
+                    line.tax_ids = [(6, 0, taxes.ids)]
+                move.primetech_global_tax_applied_id = target_tax
+
+    def _primetech_report_date_in_words(self):
+        self.ensure_one()
+        date_value = fields.Date.to_date(self.invoice_date or self.date or fields.Date.context_today(self))
+        months = (
+            "janvier", "février", "mars", "avril", "mai", "juin",
+            "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+        )
+        city = self.company_id.city or "Douala"
+        return "%s, le %s %s %s" % (city, date_value.day, months[date_value.month - 1].capitalize(), date_value.year)
+
+    def _primetech_report_traceability(self):
+        """Readable audit trail for the invoice printout."""
+        self.ensure_one()
+        pickings = (
+            self.primetech_delivery_picking_ids
+            if self.move_type == "out_invoice"
+            else self.primetech_receipt_picking_ids
+        )
+        payment_references, payment_accounts, payment_authors = [], [], []
+        if self.state == "posted":
+            for partial in self.sudo()._get_all_reconciled_invoice_partials():
+                line = partial["aml"]
+                payment_references.append(line.payment_id.name or line.move_id.name)
+                payment_accounts.append(
+                    line.payment_id.journal_id.default_account_id.display_name
+                    if line.payment_id and line.payment_id.journal_id.default_account_id
+                    else line.account_id.display_name
+                )
+                if line.payment_id:
+                    payment_authors.append(line.payment_id.create_uid.name)
+        return {
+            "pickings": ", ".join(dict.fromkeys(pickings.mapped("name"))) or "—",
+            "payment_references": ", ".join(dict.fromkeys(payment_references)) or "—",
+            "payment_accounts": ", ".join(dict.fromkeys(payment_accounts)) or "—",
+            "payment_authors": ", ".join(dict.fromkeys(payment_authors)) or "—",
+            "seller": (self.invoice_user_id.name if self.invoice_user_id else self.create_uid.name) or "—",
+        }
+
+    def _primetech_print_invoice(self, expected_type, report_xmlid):
+        self.ensure_one()
+        if self.move_type != expected_type:
+            raise UserError(_("Cette impression n'est disponible que pour le type de facture concerné."))
+        self._primetech_document_reference()
+        return self.env.ref(report_xmlid).report_action(self)
+
+    def action_print_primetech_customer_invoice(self):
+        return self._primetech_print_invoice(
+            "out_invoice",
+            "primetech_supplier_invoice_logistics.action_report_primetech_customer_invoice",
+        )
+
+    def action_print_primetech_supplier_invoice(self):
+        return self._primetech_print_invoice(
+            "in_invoice",
+            "primetech_supplier_invoice_logistics.action_report_primetech_supplier_invoice",
+        )
+
     @api.model_create_multi
     def create(self, vals_list):
         """Always date supplier bills created from the standard form or API."""
@@ -39,6 +203,15 @@ class AccountMove(models.Model):
                 move.invoice_date = fields.Date.context_today(move)
 
     primetech_apply_discount = fields.Boolean(string="Appliquer réduction")
+    primetech_apply_global_tax = fields.Boolean(string="Appliquer une taxe globale")
+    primetech_global_tax_id = fields.Many2one(
+        "account.tax", string="Taxe globale", check_company=True,
+        domain="[('company_id', 'in', (False, company_id))]",
+        help="Cette taxe est appliquée à toutes les lignes d'article de la facture.",
+    )
+    primetech_global_tax_applied_id = fields.Many2one(
+        "account.tax", string="Taxe globale appliquée", copy=False, readonly=True,
+    )
     primetech_discount_account_id = fields.Many2one(
         "account.account", string="Compte réduction", check_company=True,
         domain="[('company_ids', 'in', company_id)]",
@@ -417,6 +590,7 @@ class AccountMove(models.Model):
                 move.invoice_currency_rate = rate
 
     def action_post(self):
+        self._primetech_sync_global_tax()
         result = super().action_post()
         for move in self.filtered(lambda item: item.move_type == "in_invoice"):
             move.sudo()._primetech_create_receipt_picking()
@@ -448,11 +622,17 @@ class AccountMove(models.Model):
             lambda item: item.move_type in ("in_refund", "out_refund") and item.state == "posted"
         ):
             move.sudo()._primetech_create_credit_note_return_picking()
+        moves._primetech_sync_global_tax()
         return moves
 
     def write(self, vals):
         """Cover every posting flow, including custom modules bypassing action_post."""
         result = super().write(vals)
+        if (
+            not self.env.context.get("primetech_skip_global_tax_sync")
+            and {"primetech_apply_global_tax", "primetech_global_tax_id"} & set(vals)
+        ):
+            self._primetech_sync_global_tax()
         if vals.get("state") == "posted":
             for move in self.filtered(lambda item: item.move_type == "in_invoice"):
                 move.sudo()._primetech_create_receipt_picking()

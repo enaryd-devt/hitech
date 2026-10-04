@@ -146,15 +146,18 @@ class ProductTemplate(models.Model):
             if product.primetech_stock_level in ("warning", "critical"):
                 category_alerts[category_id] += 1
         categories = sorted(category_quantities, key=category_quantities.get, reverse=True)[:6]
-        max_category_qty = max([category_quantities[category] for category in categories] or [1])
+        # All categories can legitimately be at zero (or negative after stock
+        # corrections).  A non-zero absolute scale keeps the dashboard usable
+        # instead of failing while calculating the visual bar ratios.
+        max_category_qty = max([abs(category_quantities[category]) for category in categories] or [1]) or 1
         category_data = [{
             "id": category,
             "name": category_names[category],
             "quantity": category_quantities[category],
-            "ratio": round(category_quantities[category] / max_category_qty * 100, 2),
+            "ratio": round(abs(category_quantities[category]) / max_category_qty * 100, 2),
         } for category in categories]
         alert_categories = sorted(category_alerts, key=category_alerts.get, reverse=True)[:6]
-        max_category_alerts = max([category_alerts[category] for category in alert_categories] or [1])
+        max_category_alerts = max([category_alerts[category] for category in alert_categories] or [1]) or 1
         alert_category_data = [{
             "id": category,
             "name": category_names[category],
