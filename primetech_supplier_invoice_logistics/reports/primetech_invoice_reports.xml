@@ -38,13 +38,19 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.external_layout">
-                    <div class="page pt-pro-invoice">
+                    <div t-attf-class="page pt-pro-invoice #{'pt-pro-invoice--proforma' if o.state == 'draft' and o.move_type == 'out_invoice' else 'pt-pro-invoice--quotation' if o.state == 'draft' else 'pt-pro-invoice--customer' if o.move_type == 'out_invoice' else 'pt-pro-invoice--supplier'}">
                         <style type="text/css">
                             /* L'en-tête externe reste en haut ; le contenu démarre volontairement
                                plus bas pour lui laisser une respiration nette. */
-                            .pt-pro-invoice { color:#172b55; font-family:Arial, sans-serif; font-size:13px; padding-top:28mm; }
-                            .pt-pro-invoice .pt-title { background:#084a93; border-radius:5px; color:#fff; display:inline-block; font-size:18px; font-weight:700; margin:0 0 14px; padding:9px 15px; white-space:nowrap; }
-                            .pt-pro-invoice .pt-title .pt-number { color:#ff8500; }
+                          .pt-pro-invoice { color:#172b55; font-family:Arial, sans-serif; font-size:13px; padding-top:28mm; }
+                          /* wkhtmltopdf ne prend pas fiablement en charge les variables CSS :
+                             chaque bande reçoit donc une couleur explicite et imprimable. */
+                          .pt-pro-invoice .pt-title { background:#0759a8 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:18px; font-weight:700; margin:0 0 14px; padding:9px 15px; white-space:nowrap; }
+                          .pt-pro-invoice--customer .pt-title { background:#0759a8 !important; }
+                          .pt-pro-invoice--proforma .pt-title { background:#6b49a8 !important; }
+                          .pt-pro-invoice--supplier .pt-title { background:#b84b08 !important; }
+                          .pt-pro-invoice--quotation .pt-title { background:#147d78 !important; }
+                          .pt-pro-invoice .pt-title .pt-number { color:#fff0c5 !important; }
                             .pt-pro-invoice .pt-document-date { clear:both; color:#1f3f68; font-size:14px; font-style:italic; font-weight:600; margin:7px 3px 11px 0; text-align:right; }
                             .pt-pro-invoice .pt-separator { border-top:2px solid #0c5da7; clear:both; margin:0; opacity:.72; }
                             .pt-pro-invoice .pt-grid { display:table; width:100%; table-layout:fixed; }
@@ -75,7 +81,9 @@
                             .pt-pro-invoice .pt-summary td { border:1px solid #d5e1f0; padding:5px 8px; }
                             .pt-pro-invoice .pt-summary td:last-child { text-align:right; }
                             .pt-pro-invoice .pt-summary .pt-total td { background:#dcecff; color:#063d7e; font-size:13px; font-weight:700; }
-                            .pt-pro-invoice .pt-summary .pt-balance td { background:#ff8500; color:#fff; font-size:13px; font-weight:700; }
+                          .pt-pro-invoice .pt-summary .pt-balance td { background:#ff8500 !important; color:#fff !important; font-size:13px; font-weight:700; }
+                          .pt-pro-invoice--supplier .pt-summary .pt-balance td { background:#b84b08 !important; color:#fff !important; }
+                          .pt-pro-invoice--quotation .pt-summary .pt-balance td { background:#147d78 !important; color:#fff !important; }
                             .pt-pro-invoice .pt-details { margin-top:11px; min-height:93px; width:52%; }
                             .pt-pro-invoice .pt-details p { margin:3px 0; }
                             .pt-pro-invoice .pt-details h4 { color:#084a93; font-size:11px; margin:0 0 6px; text-transform:uppercase; }
@@ -124,9 +132,9 @@
                             <table>
                                 <tr>
                                     <td><strong><t t-if="is_customer">Bon(s) de livraison :</t><t t-else="">Bon(s) de réception :</t></strong> <span t-esc="trace['pickings']"/></td>
-                                    <td><strong>Entrepôt de livraison :</strong> <span t-field="o.primetech_delivery_warehouse_id.name" t-if="is_customer and o.primetech_delivery_warehouse_id"/><span t-field="o.primetech_warehouse_id.name" t-if="not is_customer and o.primetech_warehouse_id"/><span t-if="(is_customer and not o.primetech_delivery_warehouse_id) or (not is_customer and not o.primetech_warehouse_id)">—</span></td>
+                                    <td><strong><t t-if="is_customer">Entrepôt de livraison :</t><t t-else="">Entrepôt de réception :</t></strong> <span t-field="o.primetech_delivery_warehouse_id.name" t-if="is_customer and o.primetech_delivery_warehouse_id"/><span t-field="o.primetech_warehouse_id.name" t-if="not is_customer and o.primetech_warehouse_id"/><span t-if="(is_customer and not o.primetech_delivery_warehouse_id) or (not is_customer and not o.primetech_warehouse_id)">—</span></td>
                                     <td><strong>Échéance :</strong> <span t-field="o.invoice_date_due"/></td>
-                                    <td><strong>Vendu par :</strong> <span t-esc="trace['seller']"/></td>
+                                    <td><strong><t t-if="is_customer">Vendu par :</t><t t-else="">Demandeur :</t></strong> <span t-esc="trace['seller']"/></td>
                                 </tr>
                             </table>
                         </div>
@@ -180,7 +188,7 @@
                         </div>
                         <div class="pt-signatures">
                             <div class="pt-signature"><strong>LA DIRECTION</strong><div class="pt-sign-box"/></div>
-                            <div class="pt-signature"><strong>LE CLIENT</strong><div class="pt-sign-box"/></div>
+                            <div class="pt-signature"><strong><t t-if="is_customer">LE CLIENT</t><t t-else="">LE FOURNISSEUR</t></strong><div class="pt-sign-box"/></div>
                         </div>
                     </div>
                 </t>

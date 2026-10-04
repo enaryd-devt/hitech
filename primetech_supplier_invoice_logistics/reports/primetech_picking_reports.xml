@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_primetech_receipt_note" model="ir.actions.report">
+        <field name="name">Bon de réception</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_supplier_invoice_logistics.report_primetech_receipt_note</field>
+        <field name="report_file">primetech_supplier_invoice_logistics.report_primetech_receipt_note</field>
+        <field name="print_report_name">'Bon de réception - %s' % object.name</field>
+    </record>
+    <record id="action_report_primetech_delivery_note" model="ir.actions.report">
+        <field name="name">Bon de livraison</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_supplier_invoice_logistics.report_primetech_delivery_note</field>
+        <field name="report_file">primetech_supplier_invoice_logistics.report_primetech_delivery_note</field>
+        <field name="print_report_name">'Bon de livraison - %s - %s' % (object.name, object.partner_id.name or 'Sans partenaire')</field>
+    </record>
+
+    <template id="report_primetech_picking_document">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o"><t t-call="web.external_layout">
+            <t t-set="is_receipt" t-value="o.picking_type_code == 'incoming'"/>
+            <div t-attf-class="page pt-picking-document #{'pt-picking-document--receipt' if is_receipt else 'pt-picking-document--delivery'}">
+                <style type="text/css">
+                  /* Les variables CSS ne sont pas rendues de façon fiable par wkhtmltopdf. */
+                  .pt-picking-document { color:#18375f; font-family:Arial,sans-serif; font-size:11px; padding-top:0; }
+                    .pt-picking-document__rule { border-top:2px solid #2267a7; margin-bottom:11px; }
+                  .pt-picking-document__title { background:#7651b5 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:21px; font-weight:700; padding:9px 15px; }
+                  .pt-picking-document--receipt .pt-picking-document__title { background:#17835d !important; }
+                  .pt-picking-document--delivery .pt-picking-document__title { background:#7651b5 !important; }
+                  .pt-picking-document__ref { color:#fff2a5 !important; }
+                  .pt-picking-document__partner-title { color:#fff !important; display:block; font-size:11px; font-weight:600; margin-top:4px; opacity:.95; text-transform:uppercase; }
+                    .pt-picking-document__grid { display:table; margin-top:13px; table-layout:fixed; width:100%; }
+                    .pt-picking-document__col { display:table-cell; vertical-align:top; width:50%; }
+                    .pt-picking-document__col + .pt-picking-document__col { padding-left:12px; }
+                    .pt-picking-document__card { background:#eef5ff; border-radius:4px; min-height:78px; padding:11px 13px; }
+                    .pt-picking-document__label { color:#2267a7; font-size:10px; font-weight:700; text-transform:uppercase; }
+                    .pt-picking-document__partner { font-size:14px; font-weight:700; margin:4px 0; }
+                    .pt-picking-document__meta { border-collapse:collapse; margin-top:12px; width:100%; }
+                    .pt-picking-document__meta td { background:#f8fafc; border:1px solid #d7e1ed; padding:6px 8px; }
+                    .pt-picking-document__meta strong { color:#2267a7; }
+                    .pt-picking-document__lines { border-collapse:collapse; margin-top:13px; width:100%; }
+                    .pt-picking-document__lines th { background:#2267a7; border:1px solid #cedbe9; color:#fff; padding:8px; text-align:left; }
+                    .pt-picking-document__lines td { border:1px solid #d7e1ed; padding:8px; }
+                    .pt-picking-document__right { text-align:right; }
+                    .pt-picking-document__signature { display:table; margin-top:24px; width:100%; }
+                    .pt-picking-document__signature > div { display:table-cell; text-align:center; width:50%; }
+                    .pt-picking-document__box { border:1px solid #cedbe9; height:70px; margin:7px auto 0; width:85%; }
+                </style>
+                <div class="pt-picking-document__rule"/>
+                <div class="pt-picking-document__title"><t t-if="is_receipt">BON DE RÉCEPTION</t><t t-else="">BON DE LIVRAISON</t> <span class="pt-picking-document__ref">N° <span t-field="o.name"/></span></div>
+                <div class="pt-picking-document__grid">
+                    <div class="pt-picking-document__col"><div class="pt-picking-document__card"><div class="pt-picking-document__label"><t t-if="is_receipt">Fournisseur</t><t t-else="">Client</t></div><div class="pt-picking-document__partner" t-field="o.partner_id.name"/><div t-field="o.partner_id.contact_address"/></div></div>
+                    <div class="pt-picking-document__col"><div class="pt-picking-document__card"><div><strong>Date prévue :</strong> <span t-field="o.scheduled_date"/></div><div><strong>Responsable :</strong> <span t-field="o.user_id.name"/></div><div><strong>État :</strong> <span t-field="o.state"/></div></div></div>
+                </div>
+                <table class="pt-picking-document__meta"><tr><td><strong>Origine :</strong> <span t-field="o.origin"/></td><td><strong>Emplacement source :</strong> <span t-field="o.location_id.complete_name"/></td><td><strong>Emplacement destination :</strong> <span t-field="o.location_dest_id.complete_name"/></td></tr></table>
+                <table class="pt-picking-document__lines"><thead><tr><th style="width:6%">N°</th><th>Article</th><th>Référence</th><th class="pt-picking-document__right">Quantité demandée</th><th class="pt-picking-document__right">Quantité traitée</th></tr></thead><tbody><tr t-foreach="o.move_ids_without_package" t-as="line"><td><span t-esc="line_index + 1"/></td><td><span t-field="line.product_id.display_name"/></td><td><span t-field="line.product_id.default_code"/></td><td class="pt-picking-document__right"><span t-field="line.product_uom_qty"/> <span t-field="line.product_uom.name"/></td><td class="pt-picking-document__right"><t t-if="is_receipt or o.state == 'done'"><span t-field="line.quantity"/></t><t t-else="">0</t> <span t-field="line.product_uom.name"/></td></tr></tbody></table>
+                <div class="pt-picking-document__signature"><div><strong><t t-if="is_receipt">RÉCEPTIONNÉ PAR</t><t t-else="">PRÉPARÉ PAR</t></strong><div class="pt-picking-document__box"/></div><div><strong><t t-if="is_receipt">LE FOURNISSEUR</t><t t-else="">LE CLIENT</t></strong><div class="pt-picking-document__box"/></div></div>
+            </div>
+        </t></t></t>
+    </template>
+    <template id="report_primetech_receipt_note"><t t-call="primetech_supplier_invoice_logistics.report_primetech_picking_document"/></template>
+    <template id="report_primetech_delivery_note"><t t-call="primetech_supplier_invoice_logistics.report_primetech_picking_document"/></template>
+</odoo>

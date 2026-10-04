@@ -12,8 +12,11 @@
         "data/primetech_invoice_sequences.xml",
         "views/product_category_views.xml",
         "views/account_move_views.xml",
+        "views/account_payment_views.xml",
         "views/stock_picking_views.xml",
         "reports/primetech_invoice_reports.xml",
+        "reports/primetech_payment_receipt_reports.xml",
+        "reports/primetech_picking_reports.xml",
     ],
     "assets": {
         "web.assets_backend": [

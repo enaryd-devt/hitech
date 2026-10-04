@@ -590,6 +590,27 @@ class AccountMove(models.Model):
                 move.invoice_currency_rate = rate
 
     def action_post(self):
+        for move in self.filtered(lambda item: item.move_type in ("in_invoice", "out_invoice")):
+            if move.move_type == "in_invoice":
+                missing = [
+                    label for field, label in (
+                        ("primetech_warehouse_id", "Branche / entrepôt"),
+                        ("primetech_picking_type_id", "Type de réception"),
+                        ("primetech_stock_location_id", "Emplacement de stock"),
+                    ) if not move[field]
+                ]
+            else:
+                missing = [
+                    label for field, label in (
+                        ("primetech_delivery_warehouse_id", "Branche / entrepôt"),
+                        ("primetech_delivery_picking_type_id", "Type de livraison"),
+                        ("primetech_delivery_stock_location_id", "Emplacement de stock"),
+                    ) if not move[field]
+                ]
+            if missing:
+                raise UserError(_(
+                    "Vous devez renseigner les informations logistiques avant de confirmer cette facture : %s."
+                ) % ", ".join(missing))
         self._primetech_sync_global_tax()
         result = super().action_post()
         for move in self.filtered(lambda item: item.move_type == "in_invoice"):

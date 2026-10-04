@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- UTF-8 est volontairement déclaré avant les ressources : wkhtmltopdf Windows
+         ne doit jamais interpréter le reçu en Windows-1252. -->
+    <template id="report_payment_receipt_minimal_layout">
+        &lt;!DOCTYPE html&gt;
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+                <base t-att-href="base_url"/>
+                <t t-call-assets="web.report_assets_pdf" t-js="false"/>
+                <t t-call-assets="web.report_assets_common" t-js="false"/>
+            </head>
+            <body><t t-out="body"/></body>
+        </html>
+    </template>
+
+    <record id="paperformat_primetech_payment_receipt" model="report.paperformat">
+        <field name="name">Reçu de paiement compact A4</field>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">5</field>
+        <field name="margin_bottom">5</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_primetech_payment_receipt" model="ir.actions.report">
+        <field name="name">Reçu de paiement</field>
+        <field name="model">account.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_supplier_invoice_logistics.report_primetech_payment_receipt</field>
+        <field name="report_file">primetech_supplier_invoice_logistics.report_primetech_payment_receipt</field>
+        <field name="paperformat_id" ref="paperformat_primetech_payment_receipt"/>
+        <field name="print_report_name">'Reçu de paiement - %s - %s' % (object.name, object.partner_id.name or 'Sans partenaire')</field>
+    </record>
+
+    <template id="report_primetech_payment_receipt">
+        <!-- basic_layout ajoute le conteneur article : il permet à Odoo d'utiliser
+             le gabarit PDF UTF-8 dédié pendant la conversion wkhtmltopdf. -->
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                    <!-- Le texte du reçu reste en UTF-8 source et n'utilise pas d'ancienne traduction stockée. -->
+                    <div class="page pt-payment-receipt" t-translation="off">
+                        <style type="text/css">
+                            /* Reçu volontairement compact : la zone utile reste dans le tiers supérieur d'un A4. */
+                            /* En-tête autonome : aucun external layout, donc aucun pied de page Odoo. */
+                            .pt-payment-receipt { color:#152d52; font-family:Arial,sans-serif; font-size:10px; margin:0; padding:0; }
+                            .pt-payment-receipt__company-header { display:table; height:29mm; table-layout:fixed; width:100%; }
+                            .pt-payment-receipt__company-logo, .pt-payment-receipt__company-info { display:table-cell; vertical-align:middle; }
+                            .pt-payment-receipt__company-logo { width:25%; }
+                            .pt-payment-receipt__company-logo img { max-height:27mm; max-width:48mm; }
+                            .pt-payment-receipt__company-info { color:#172b55; font-size:11px; font-weight:600; line-height:1.45; padding-left:5mm; width:75%; }
+                            .pt-payment-receipt__company-info * { font-size:11px !important; }
+                            .pt-payment-receipt__company-info p { margin:0; }
+                            .pt-payment-receipt__rule { border-top:2px solid #0c5da7; margin:2mm 0 3mm; }
+                            .pt-payment-receipt__head { display:table; width:100%; }
+                            .pt-payment-receipt__title, .pt-payment-receipt__reference { display:table-cell; vertical-align:middle; }
+                            .pt-payment-receipt__title { background:#087f5b !important; border-radius:4px; color:#fff !important; font-size:15px; font-weight:700; padding:9px 12px; width:68%; }
+                            .pt-payment-receipt__reference { color:#496789; font-size:10px; font-weight:700; padding-left:12px; text-align:right; }
+                            .pt-payment-receipt__payment-date { color:#087f5b; font-size:13px; font-weight:700; text-transform:uppercase; }
+                            .pt-payment-receipt__partner { background:#f1f6fd; border-left:4px solid #087f5b; margin-top:6px; padding:7px 11px; }
+                            .pt-payment-receipt__label { color:#1671c1; font-size:9px; font-weight:700; text-transform:uppercase; }
+                            .pt-payment-receipt__partner-name { color:#152d52; font-size:13px; font-weight:700; margin:2px 0; text-transform:uppercase; }
+                            .pt-payment-receipt__details { border-collapse:collapse; margin-top:6px; table-layout:fixed; width:100%; }
+                            .pt-payment-receipt__details th { background:#eaf2fc; border:1px solid #d5e1f0; color:#557294; font-size:9px; padding:5px 8px; text-align:left; text-transform:uppercase; }
+                            .pt-payment-receipt__details td { border:1px solid #d5e1f0; padding:6px 8px; width:33.33%; }
+                            .pt-payment-receipt__amount { background:#087f5b !important; border-radius:4px; color:#fff !important; margin-top:6px; padding:9px 12px; }
+                            .pt-payment-receipt__amount { display:table; table-layout:fixed; width:100%; }
+                            .pt-payment-receipt__amount-label, .pt-payment-receipt__amount-value { display:table-cell; vertical-align:middle; }
+                            .pt-payment-receipt__amount-label { font-size:10px; font-weight:700; text-transform:uppercase; }
+                            .pt-payment-receipt__amount-value { font-size:20px; font-weight:700; text-align:right; }
+                            .pt-payment-receipt__memo { background:#f7faff; border-left:3px solid #8aaed9; color:#4f6687; margin-top:5px; padding:5px 8px; }
+                            .pt-payment-receipt__balance { background:#eef4fb; border:1px solid #d5e1f0; margin-top:6px; padding:7px 10px; text-align:right; }
+                            .pt-payment-receipt__balance strong { font-size:13px; }
+                            .pt-payment-receipt__balance--negative { background:#fff1f1; border-color:#f2b9b9; color:#a11f2b; }
+                            .pt-payment-receipt__balance--negative strong { color:#c82432; }
+                            .pt-payment-receipt__balance--positive { background:#eef5ff; border-color:#bed4f3; color:#165b9b; }
+                            .pt-payment-receipt__balance--positive strong { color:#0759a8; }
+                            .pt-payment-receipt__balance--zero { color:#47705a; }
+                            .pt-payment-receipt__signatures { display:table; margin-top:9px; table-layout:fixed; width:100%; }
+                            .pt-payment-receipt__signature { display:table-cell; text-align:center; width:50%; }
+                            .pt-payment-receipt__signature-label { color:#175886; font-size:10px; font-weight:700; text-transform:uppercase; }
+                            .pt-payment-receipt__signature-box { border:1px solid #cbdced; height:20mm; margin:5px auto 0; width:84%; }
+                        </style>
+                        <div class="pt-payment-receipt__company-header">
+                            <div class="pt-payment-receipt__company-logo"><img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="Logo"/></div>
+                            <div class="pt-payment-receipt__company-info">
+                                <t t-if="o.company_id.is_company_details_empty">
+                                    <span t-field="o.company_id.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'/>
+                                </t>
+                                <t t-else="">
+                                    <span t-field="o.company_id.company_details"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="pt-payment-receipt__rule"/>
+                        <div class="pt-payment-receipt__head">
+                            <div class="pt-payment-receipt__title">REÇU DE PAIEMENT N° <span t-field="o.name"/></div>
+                            <div class="pt-payment-receipt__reference"><span class="pt-payment-receipt__payment-date">Encaissé le <span t-esc="o._primetech_receipt_payment_date()"/></span></div>
+                        </div>
+                        <div class="pt-payment-receipt__partner">
+                            <div class="pt-payment-receipt__label">Adresse du partenaire</div>
+                            <div class="pt-payment-receipt__partner-name" t-field="o.partner_id.name"/>
+                            <div t-if="o.partner_id.street"><span t-field="o.partner_id.street"/><t t-if="o.partner_id.street2">, <span t-field="o.partner_id.street2"/></t></div>
+                            <div><span t-field="o.partner_id.zip"/> <span t-field="o.partner_id.city"/><t t-if="o.partner_id.country_id">, <span t-field="o.partner_id.country_id.name"/></t></div>
+                        </div>
+                        <table class="pt-payment-receipt__details">
+                            <thead><tr><th>Facture(s) liée(s) / Référence</th><th>Journal</th><th>Encaissé par</th></tr></thead>
+                            <tbody><tr><td><span t-esc="o._primetech_linked_document_references()"/></td><td><span t-field="o.journal_id.name"/></td><td><span t-field="o.create_uid.name"/></td></tr></tbody>
+                        </table>
+                        <div class="pt-payment-receipt__amount"><span class="pt-payment-receipt__amount-label">Montant encaissé</span><span class="pt-payment-receipt__amount-value" t-field="o.amount" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></div>
+                        <div t-if="o.memo" class="pt-payment-receipt__memo"><strong>Mémo :</strong> <span t-field="o.memo"/></div>
+                        <div t-attf-class="pt-payment-receipt__balance #{'pt-payment-receipt__balance--negative' if o.primetech_partner_balance_after_payment &lt; 0 else 'pt-payment-receipt__balance--positive' if o.primetech_partner_balance_after_payment &gt; 0 else 'pt-payment-receipt__balance--zero'}"><span t-field="o.primetech_partner_balance_message"/> : <strong t-field="o.primetech_partner_balance_after_payment" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></div>
+                        <div class="pt-payment-receipt__signatures">
+                            <div class="pt-payment-receipt__signature"><div class="pt-payment-receipt__signature-label">La caisse</div><div class="pt-payment-receipt__signature-box"/></div>
+                            <div class="pt-payment-receipt__signature"><div class="pt-payment-receipt__signature-label">Le client</div><div class="pt-payment-receipt__signature-box"/></div>
+                        </div>
+                    </div>
+            </t>
+        </t>
+    </template>
+</odoo>

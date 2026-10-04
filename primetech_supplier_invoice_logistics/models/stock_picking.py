@@ -7,6 +7,34 @@ from odoo.exceptions import UserError
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
+    def button_validate(self):
+        """A delivery created from an invoice can only leave after its validation."""
+        for picking in self.filtered(lambda item: item.picking_type_code == "outgoing"):
+            linked_invoices = picking.primetech_customer_invoice_ids.filtered(
+                lambda move: move.move_type == "out_invoice"
+            )
+            if linked_invoices and any(invoice.state != "posted" for invoice in linked_invoices):
+                raise UserError(_(
+                    "La facture client liée doit être confirmée avant de valider ce bon de livraison."
+                ))
+        return super().button_validate()
+
+    def _primetech_print_stock_document(self, expected_code, report_xmlid):
+        self.ensure_one()
+        if self.picking_type_code != expected_code:
+            raise UserError(_("Ce document ne correspond pas au type de mouvement sélectionné."))
+        return self.env.ref(report_xmlid).report_action(self)
+
+    def action_print_primetech_receipt_note(self):
+        return self._primetech_print_stock_document(
+            "incoming", "primetech_supplier_invoice_logistics.action_report_primetech_receipt_note",
+        )
+
+    def action_print_primetech_delivery_note(self):
+        return self._primetech_print_stock_document(
+            "outgoing", "primetech_supplier_invoice_logistics.action_report_primetech_delivery_note",
+        )
+
     primetech_supplier_invoice_ids = fields.Many2many(
         "account.move", "primetech_invoice_receipt_rel", "picking_id", "move_id",
         string="Factures fournisseurs liées", readonly=True,
@@ -73,8 +101,10 @@ class StockPicking(models.Model):
                 "res_model": "account.move",
                 "res_id": self.primetech_customer_invoice_ids.id,
                 "view_mode": "form",
-                "views": [(False, "form")],
+                # Force the invoice form, instead of the journal/action default view.
+                "views": [(self.env.ref("account.view_move_form").id, "form")],
                 "target": "current",
+                "context": {"default_move_type": "out_invoice", "create": False},
             }
         action = self.env["ir.actions.actions"]._for_xml_id("account.action_move_out_invoice_type")
         action["domain"] = [("id", "in", self.primetech_customer_invoice_ids.ids)]
