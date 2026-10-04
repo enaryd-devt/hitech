@@ -9,6 +9,14 @@
         </function>
         <value eval="{'shortdesc': 'Gestion de stock'}"/>
     </function>
+    <!-- La base dispose déjà d'une traduction française « Inventaire » ; elle
+         doit être remplacée explicitement, sinon elle masque le nom ci-dessus. -->
+    <function model="ir.module.module" name="write" context="{'lang': 'fr_FR'}">
+        <function model="ir.module.module" name="search">
+            <value eval="[('name', '=', 'stock')]"/>
+        </function>
+        <value eval="{'shortdesc': 'Gestion de stock'}"/>
+    </function>
 
     <!-- Le menu racine natif est celui affiché dans le sélecteur d'applications. -->
     <record id="stock.menu_stock_root" model="ir.ui.menu">
