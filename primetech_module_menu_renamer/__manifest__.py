@@ -9,6 +9,7 @@
     "depends": ["base"],
     "data": [
         "security/ir.model.access.csv",
+        "data/default_module_names.xml",
         "views/primetech_module_display_name_views.xml",
     ],
     "installable": True,

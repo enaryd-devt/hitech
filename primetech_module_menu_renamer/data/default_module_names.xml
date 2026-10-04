@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Libellés métiers appliqués et maintenus à chaque mise à jour. -->
+    <record id="primetech_account_module_display_name" model="primetech.module.display.name">
+        <field name="module_id" ref="base.module_account"/>
+        <field name="custom_name">Facturation</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="primetech_stock_module_display_name" model="primetech.module.display.name">
+        <field name="module_id" ref="base.module_stock"/>
+        <field name="custom_name">Gestion des stock</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>
