@@ -1,9 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-  <!-- ===================================================== -->
-  <!-- VUE D'ENSEMBLE -->
-  <!-- ===================================================== -->
-  <menuitem name="Vue d'Ensemble" id="menu_sales_dashboard" parent="menu_primetech_reporting_sales" action="primetech_reporting_center.action_sales_overview_dashboard" sequence="10"/>
+  <!-- La vue d'ensemble des ventes est retirée du menu. -->
+  <delete id="menu_sales_dashboard" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- ANALYSE -->
   <!-- ===================================================== -->

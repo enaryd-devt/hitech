@@ -1,9 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-  <!-- ===================================================== -->
-  <!-- VUE D'ENSEMBLE -->
-  <!-- ===================================================== -->
-  <menuitem id="menu_accounting_dashboard" name="Vue d'ensemble" parent="primetech_reporting_center.menu_primetech_reporting_accounting" action="primetech_reporting_center.action_accounting_dashboard" sequence="10"/>
+  <!-- La vue d'ensemble comptable est retirée du menu. -->
+  <delete id="menu_accounting_dashboard" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- COMPTABILITÉ GÉNÉRALE -->
   <!-- ===================================================== -->

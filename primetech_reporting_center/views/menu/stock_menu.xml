@@ -2,10 +2,8 @@
 <odoo>
   <delete id="primetech_reporting_center.menu_logistics_command_center" model="ir.ui.menu"/>
   <delete id="primetech_reporting_center.action_logistics_command_center" model="ir.actions.client"/>
-  <!-- ===================================================== -->
-  <!-- VUE D'ENSEMBLE -->
-  <!-- ===================================================== -->
-  <menuitem id="menu_stock_dashboard" name="Vue d'Ensemble" parent="menu_primetech_reporting_stock" action="action_stock_dashboard" sequence="10"/>
+  <!-- La vue d'ensemble du stock est retirée du menu. -->
+  <delete id="menu_stock_dashboard" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- ANALYSE -->
   <!-- ===================================================== -->

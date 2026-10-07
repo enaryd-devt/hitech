@@ -1,9 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-  <!-- ===================================================== -->
-  <!-- VUE D'ENSEMBLE -->
-  <!-- ===================================================== -->
-  <menuitem id="menu_purchase_overview" name="Vue d'Ensemble" parent="menu_primetech_reporting_purchase" action="action_purchase_overview_dashboard" sequence="1"/>
+  <!-- La vue d'ensemble des achats est retirée du menu. -->
+  <delete id="menu_purchase_overview" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- ANALYSE -->
   <!-- ===================================================== -->

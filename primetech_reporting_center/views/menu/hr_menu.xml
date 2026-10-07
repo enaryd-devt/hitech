@@ -1,9 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-  <!-- ===================================================== -->
-  <!-- VUE D'ENSEMBLE -->
-  <!-- ===================================================== -->
-  <menuitem id="menu_hr_dashboard" name="Vue d'Ensemble" parent="menu_primetech_reporting_hr" action="primetech_reporting_center.action_hr_overview_dashboard" sequence="10"/>
+  <!-- La vue d'ensemble RH est retirée du menu. -->
+  <delete id="menu_hr_dashboard" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- EFFECTIFS -->
   <!-- ===================================================== -->
