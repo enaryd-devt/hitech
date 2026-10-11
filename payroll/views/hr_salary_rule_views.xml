@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_salary_rule_view_tree_children" model="ir.ui.view">
+        <field name="name">hr.salary.rule.list</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" optional="hide" />
+                <field name="name" />
+                <field name="code" decoration-bf="1" />
+                <field name="category_id" widget="badge" />
+                <field name="sequence" column_invisible="1" />
+                <field name="register_id" />
+            </list>
+        </field>
+    </record>
+    <record id="hr_salary_rule_view_kanban" model="ir.ui.view">
+        <field name="name">hr.salary.rule.kanban</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                            <div class="row">
+                                <div class="col-8">
+                                    <strong>
+                                        <field name="name" />
+                                    </strong>
+                                </div>
+                                <div class="col-4">
+                                    <span class="float-right">
+                                        <field name="category_id" widget="badge" />
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <span>
+                                        Code:
+                                        <field name="code" />
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="hr_salary_rule_view_tree" model="ir.ui.view">
+        <field name="name">hr.salary.rule.list</field>
+        <field name="model">hr.salary.rule</field>
+        <field eval="20" name="priority" />
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="code" />
+                <field name="category_id" column_invisible="True" />
+                <field
+                    name="company_id"
+                    groups="base.group_multi_company"
+                    options="{'no_create': True}"
+                />
+            </list>
+        </field>
+    </record>
+    <record id="hr_salary_rule_view_form" model="ir.ui.view">
+        <field name="name">hr.salary.rule.form</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="arch" type="xml">
+            <form string="Salary Rules">
+                <field name="require_code_and_category" invisible="1" />
+                <div
+                    class="alert alert-info oe_edit_only"
+                    role="alert"
+                    invisible="amount_select != 'code'"
+                >
+                    <p>
+                If you have doubts about coding salary rules, check the "Help" tab in this form.
+            </p>
+                </div>
+                <sheet>
+                    <label for="name" class="oe_edit_only" />
+                    <h1>
+                        <field name="name" />
+                    </h1>
+                    <label for="category_id" class="oe_edit_only" />
+                    <h2>
+                        <field
+                            name="category_id"
+                            required="require_code_and_category"
+                        />
+                    </h2>
+                    <group name="principal">
+                        <group>
+                            <field name="code" required="require_code_and_category" />
+                            <field name="sequence" />
+                            <field name="register_id" />
+                            <field
+                                name="company_id"
+                                options="{'no_create': True}"
+                                groups="base.group_multi_company"
+                            />
+                        </group>
+                        <group>
+                            <field name="active" widget="boolean_toggle" />
+                            <field name="appears_on_payslip" widget="boolean_toggle" />
+                            <field name="report_section" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rule Configuration">
+                            <separator string="Notes" />
+                            <field
+                                name="note"
+                                placeholder="Write salary rule notes or observations here..."
+                            />
+                            <group>
+                                <group string="Conditions" name="conditions">
+                                    <field
+                                        name="condition_select"
+                                        widget="selection_badge"
+                                        decoration-info="1"
+                                        decoration-bf="1"
+                                        nolabel="1"
+                                        colspan="2"
+                                    />
+                                    <field
+                                        name="condition_python"
+                                        invisible="condition_select != 'python'"
+                                        required="condition_select == 'python'"
+                                        colspan="2"
+                                        widget="ace"
+                                        options="{'mode': 'python'}"
+                                        id="condition_python"
+                                        nolabel="1"
+                                    />
+                                    <field
+                                        name="condition_range"
+                                        invisible="condition_select != 'range'"
+                                        required="condition_select == 'range'"
+                                    />
+                                    <label
+                                        string="Condition Range"
+                                        invisible="condition_select != 'range'"
+                                        required="condition_select == 'range'"
+                                        for="condition_range_min"
+                                    />
+                                    <div
+                                        invisible="condition_select != 'range'"
+                                        required="condition_select == 'range'"
+                                    >
+                                        <strong>Between </strong>
+                                        <field
+                                            name="condition_range_min"
+                                            class="oe_inline"
+                                            invisible="condition_select != 'range'"
+                                            required="condition_select == 'range'"
+                                        />
+                                        <strong> and </strong>
+                                        <field
+                                            name="condition_range_max"
+                                            class="oe_inline"
+                                            invisible="condition_select != 'range'"
+                                            required="condition_select == 'range'"
+                                        />
+                                    </div>
+                                </group>
+                                <group string="Computation" name="computation">
+                                    <field
+                                        name="amount_select"
+                                        widget="selection_badge"
+                                        decoration-info="1"
+                                        decoration-bf="1"
+                                        nolabel="1"
+                                        colspan="2"
+                                    />
+                                    <field
+                                        name="percentage_base_source"
+                                        string="Pourcentage basé sur"
+                                        invisible="amount_select != 'percentage'"
+                                        required="amount_select == 'percentage'"
+                                    />
+                                    <field
+                                        name="amount_percentage_base"
+                                        string="Expression personnalisée"
+                                        invisible="amount_select != 'percentage' or percentage_base_source != 'custom'"
+                                        required="amount_select == 'percentage' and percentage_base_source == 'custom'"
+                                    />
+                                    <field
+                                        name="quantity"
+                                        invisible="amount_select == 'code'"
+                                        required="amount_select != 'code'"
+                                    />
+                                    <field
+                                        name="amount_fix"
+                                        invisible="amount_select != 'fix'"
+                                        required="amount_select == 'fix'"
+                                    />
+                                    <field
+                                        colspan="2"
+                                        name="amount_python_compute"
+                                        invisible="amount_select != 'code'"
+                                        required="amount_select == 'code'"
+                                        widget="ace"
+                                        options="{'mode': 'python'}"
+                                        id="amount_python_compute"
+                                        nolabel="1"
+                                    />
+                                    <field
+                                        name="amount_percentage"
+                                        invisible="amount_select != 'percentage'"
+                                        required="amount_select == 'percentage'"
+                                    />
+                                </group>
+                            </group>
+                        </page>
+                        <page name="rules" string="Règles enfants">
+                            <div class="alert alert-info" role="alert">
+                                <p>
+                                    Les règles enfants permettent de calculer certaines règles avant leur règle parente. <br
+                                />
+                                    Toutes les règles déclarées comme enfants sont ajoutées au calcul lorsque leur règle parente appartient
+                                    à la structure salariale. Une règle enfant n’est donc calculée que si sa règle parente l’est également. <br />
+                                    Cette fonction convient aux calculs auxiliaires nécessaires à une règle parente, notamment aux calculs
+                                    fiscaux complexes qui exploitent des données provenant de plusieurs modules.
+                                </p>
+                            </div>
+                            <field name="parent_rule_id" />
+                            <separator string="Définition des règles enfants" />
+                            <field name="child_ids" />
+                        </page>
+                        <page name="inputs" string="Entrées" >
+                            <field name="input_ids" mode="list">
+                                <list editable="bottom">
+                                    <field name="code" />
+                                    <field name="name" />
+                                </list>
+                            </field>
+                        </page>
+                        <page name="help" string="Aide">
+                            <div style="margin-top: 4px;">
+                                <h3>Définition des formules salariales (Python)</h3>
+                                <p>
+                                    La définition Python d’une règle salariale accepte les opérations mathématiques
+                                    et fonctions Python nécessaires au calcul.
+                                </p>
+                                <p>
+                                    Les objets et variables suivants sont disponibles dans les calculs des règles salariales.
+                                </p>
+                                <ul>
+                                    <li>
+                                        <code
+                                    >payslip:</code> contient le bulletin courant (hr.payslip)
+                                    </li>
+                                    <li>
+                                        <code
+                                    >payslips:</code> contient les données des bulletins (objet consultable)
+                                    </li>
+                                    <li>
+                                        <code
+                                    >employee:</code> contient les données du salarié courant (hr.employee)
+                                    </li>
+                                    <li>
+                                        <code
+                                    >contract:</code> contient les données du contrat courant (hr.contract)
+                                    </li>
+                                    <li>
+                                        <code
+                                    >rules:</code> contient les règles déjà calculées, indexées par code
+                                    </li>
+                                    <li>
+                                        <code
+                                    >categories:</code> contient le cumul des règles appartenant à chaque catégorie
+                                    </li>
+                                    <li>
+                                        <code
+                                    >worked_days:</code> contient les données calculées des jours travaillés
+                                    </li>
+                                    <li>
+                                        <code
+                                    >inputs:</code> contient les données des entrées calculées
+                                    </li>
+                                    <li>
+                                        <code
+                                    >payroll:</code> contient les valeurs complémentaires liées à la paie
+                                    </li>
+                                    <li>
+                                        <code
+                                    >current_contract:</code> contient les valeurs calculées du contrat courant
+                                    </li>
+                                    <li>
+                                        <code
+                                    >result_rules:</code> contient les valeurs des lignes déjà calculées (quantité, taux, montant, total)
+                                    </li>
+                                    <li>
+                                        <code
+                                    >tools:</code> contient les outils et bibliothèques utiles aux opérations mathématiques
+                                    </li>
+                                </ul>
+                                <p>
+                                    Effectuez les calculs avec les objets et variables ci-dessus, puis affectez les
+                                    résultats aux variables de calcul ci-dessous.
+                                </p>
+                                <ul>
+                                    <li>
+                                        <code
+                                    >result:</code> valeur calculée correspondant à la colonne « Montant »
+                                    </li>
+                                    <li>
+                                        <code
+                                    >result_rate:</code> taux à appliquer à <code>result</code>
+                                    </li>
+                                    <li>
+                                        <code
+                                    >result_qty:</code> quantité d’unités multipliée par <code>result</code>
+                                    </li>
+                                    <li>
+                                        <code
+                                    >result_name:</code> remplace le libellé de la règle afin de produire un nom dynamique
+                                    </li>
+                                </ul>
+                                <h3>Exemples</h3>
+                                <ul>
+                                    <li>
+                                        <code>result = contract.wage * 0.10</code>
+                                    </li>
+                                    <li>
+                                        <code>
+                                            result = contract.wage
+                                            result_qty = worked_days.WORK100.number_of_days
+                                        </code>
+                                    </li>
+                                    <li>
+                                        <code>
+                                            result = contract.wage
+                                            result_rate = 10.0
+                                        </code>
+                                    </li>
+                                </ul>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="hr_salary_rule_view_search" model="ir.ui.view">
+        <field name="name">hr.salary.rule.select</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="arch" type="xml">
+            <search string="Search Salary Rule">
+                <field
+                    name="name"
+                    string="Salary Rules"
+                    filter_domain="['|',('name','ilike',self),('code','ilike',self)]"
+                />
+                <field name="category_id" />
+                <field name="condition_range_min" />
+                <group col="8" colspan="4" expand="0" string="Group By">
+                    <filter
+                        string="Category"
+                        name="head"
+                        context="{'group_by':'category_id'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_salary_rule_form" model="ir.actions.act_window">
+        <field name="name">Salary Rules</field>
+        <field name="res_model">hr.salary.rule</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('parent_rule_id','=',False)]</field>
+        <field name="search_view_id" ref="hr_salary_rule_view_search" />
+    </record>
+    <menuitem
+        id="menu_action_hr_salary_rule_form"
+        action="action_salary_rule_form"
+        parent="payroll_menu_configuration"
+        sequence="12"
+    />
+    <record id="act_children_salary_rules" model="ir.actions.act_window">
+        <field name="name">All Children Rules</field>
+        <field name="res_model">hr.salary.rule</field>
+        <field name="domain">[('parent_rule_id', '=', active_id)]</field>
+        <field name="view_id" ref="hr_salary_rule_view_tree_children" />
+    </record>
+</odoo>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="action_payroll_dashboard" model="ir.actions.client">
+        <field name="name">Tableau de bord</field>
+        <field name="tag">payroll_dashboard</field>
+    </record>
+
+    <menuitem
+        id="menu_payroll_dashboard"
+        name="Tableau de bord"
+        parent="payroll_menu_root"
+        action="action_payroll_dashboard"
+        sequence="1"
+        groups="payroll.group_payroll_user"
+    />
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="hr_contract_view_form" model="ir.ui.view">
+        <field name="name">hr.contract.view.form.payroll</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='salary']" position="inside">
+                <field name="schedule_pay" />
+                <field name="payroll_payment_day" />
+                <field name="struct_ids" widget="many2many_tags" required="1" options="{'no_create_edit': True}" />
+                <field name="struct_id" invisible="1" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <field name="currency_id" invisible="1" />
+            </xpath>
+            <xpath expr="//div[@name='wage']" position="replace">
+                <div name="wage" class="border rounded bg-success-subtle px-3 py-2 w-100">
+                    <div class="text-success small fw-semibold mb-1">Montant net mensuel convenu</div>
+                    <field name="wage" class="fw-bold fs-4 text-success" nolabel="1" string="Salaire net négocié"/>
+                </div>
+            </xpath>
+            <xpath expr="//label[@for='wage']" position="attributes">
+                <attribute name="string">Salaire net négocié</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

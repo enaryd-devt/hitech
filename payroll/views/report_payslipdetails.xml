@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Les deux actions d'impression partagent le même bulletin professionnel. -->
+    <template id="report_payslipdetails">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="payroll.payslip_professional_document"/>
+            </t>
+        </t>
+    </template>
+</odoo>

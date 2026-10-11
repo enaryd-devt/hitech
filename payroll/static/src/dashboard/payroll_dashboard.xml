@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="payroll.PayrollDashboard">
+        <main class="o_payroll_dashboard">
+            <div class="o_payroll_loading" t-if="state.loading">
+                <div class="o_payroll_loader"><i class="fa fa-spinner fa-spin"/><span>Actualisation des données de paie…</span></div>
+            </div>
+
+            <header class="o_payroll_header">
+                <div>
+                    <h1>Tableau de bord</h1>
+                </div>
+                <div class="o_payroll_filters">
+                    <label>
+                        <span>Période</span>
+                        <select t-att-value="state.period" t-on-change="onPeriodChange">
+                            <option value="quarter">Ce trimestre</option>
+                            <option value="semester">Ce semestre</option>
+                            <option value="year">Cette année</option>
+                            <option value="custom">Période personnalisée</option>
+                        </select>
+                    </label>
+                    <label t-if="state.period === 'custom'">
+                        <span>Du</span>
+                        <input type="date" t-att-value="state.dateFrom" t-on-change="(event) =&gt; this.onDateChange('dateFrom', event)"/>
+                    </label>
+                    <label t-if="state.period === 'custom'">
+                        <span>Au</span>
+                        <input type="date" t-att-value="state.dateTo" t-on-change="(event) =&gt; this.onDateChange('dateTo', event)"/>
+                    </label>
+                </div>
+            </header>
+
+            <t t-if="state.data">
+                <section class="o_payroll_kpis">
+                    <button class="o_payroll_kpi tone-primary" t-on-click="openAll">
+                        <span class="o_payroll_kpi_icon"><i class="fa fa-file-text-o"/></span>
+                        <span class="o_payroll_kpi_body"><small>Bulletins de la période</small><strong t-esc="formatNumber(state.data.kpis.payslips)"/><em><t t-esc="state.data.kpis.validated"/> validé(s)</em></span>
+                        <i class="fa fa-arrow-right o_payroll_arrow"/>
+                    </button>
+                    <button class="o_payroll_kpi tone-success" t-on-click="openValidated">
+                        <span class="o_payroll_kpi_icon"><i class="fa fa-money"/></span>
+                        <span class="o_payroll_kpi_body"><small>Net à payer</small><strong t-esc="formatMoney(state.data.kpis.net)"/><em>Moyenne : <t t-esc="formatMoney(state.data.kpis.average_net)"/></em></span>
+                        <i class="fa fa-arrow-right o_payroll_arrow"/>
+                    </button>
+                    <button class="o_payroll_kpi tone-info" t-on-click="openValidated">
+                        <span class="o_payroll_kpi_icon"><i class="fa fa-line-chart"/></span>
+                        <span class="o_payroll_kpi_body"><small>Masse salariale brute</small><strong t-esc="formatMoney(state.data.kpis.gross)"/><em><t t-esc="formatNumber(state.data.kpis.employees)"/> salarié(s)</em></span>
+                        <i class="fa fa-arrow-right o_payroll_arrow"/>
+                    </button>
+                    <button class="o_payroll_kpi tone-warning" t-on-click="openValidated">
+                        <span class="o_payroll_kpi_icon"><i class="fa fa-balance-scale"/></span>
+                        <span class="o_payroll_kpi_body"><small>Retenues et charges</small><strong t-esc="formatMoney(state.data.kpis.deductions + state.data.kpis.employer)"/><em>Patronales : <t t-esc="formatMoney(state.data.kpis.employer)"/></em></span>
+                        <i class="fa fa-arrow-right o_payroll_arrow"/>
+                    </button>
+                </section>
+
+                <section class="o_payroll_grid o_payroll_grid_main">
+                    <article class="o_payroll_card o_payroll_evolution">
+                        <div class="o_payroll_card_header">
+                            <div><h2>Évolution de la masse salariale</h2><p>Brut et net par période</p></div>
+                            <div class="o_payroll_legend"><span class="gross">Brut</span><span class="net">Net</span></div>
+                        </div>
+                        <div class="o_payroll_chart_scroller">
+                            <div class="o_payroll_bars" t-att-style="'--points:' + Math.max(state.data.evolution.length, 6)">
+                                <button class="o_payroll_bar_group" t-foreach="state.data.evolution" t-as="point" t-key="point.date_from" t-on-click="() =&gt; this.openEvolution(point)" t-att-title="point.label + ' · Brut ' + formatMoney(point.gross) + ' · Net ' + formatMoney(point.net)">
+                                    <span class="o_payroll_bar_values"><i class="gross" t-att-style="'height:' + point.gross_height + '%'"/><i class="net" t-att-style="'height:' + point.net_height + '%'"/></span>
+                                    <span class="o_payroll_bar_label" t-esc="point.label"/>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="o_payroll_card_link" t-on-click="openValidated">Voir les bulletins validés <i class="fa fa-arrow-right"/></button>
+                    </article>
+
+                    <article class="o_payroll_card o_payroll_status">
+                        <div class="o_payroll_card_header"><div><h2>État des bulletins</h2><p>Suivi du traitement</p></div></div>
+                        <div class="o_payroll_status_body">
+                            <button class="o_payroll_donut" t-att-style="donutStyle" t-on-click="openAll" title="Voir tous les bulletins">
+                                <span><strong t-esc="state.data.kpis.payslips"/><small>Total</small></span>
+                            </button>
+                            <div class="o_payroll_status_list">
+                                <button t-foreach="state.data.statuses" t-as="item" t-key="item.key" t-on-click="() =&gt; this.openState(item.key, item.label)">
+                                    <i t-att-style="'background:' + item.color"/><span><b t-esc="item.label"/><small><t t-esc="item.percent"/> %</small></span><strong t-esc="item.count"/>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="o_payroll_grid o_payroll_grid_detail">
+                    <article class="o_payroll_card">
+                        <div class="o_payroll_card_header"><div><h2>Répartition par département</h2><p>Net à payer par équipe</p></div></div>
+                        <div class="o_payroll_rank_list">
+                            <button t-foreach="state.data.departments" t-as="department" t-key="department.id" t-on-click="() =&gt; this.openDepartment(department)">
+                                <span class="o_payroll_rank_head"><b t-esc="department.name"/><strong t-esc="formatMoney(department.total)"/></span>
+                                <span class="o_payroll_rank_bar"><i t-att-style="'width:' + department.percent + '%'"/></span>
+                                <small><t t-esc="department.employees"/> salarié(s) · <t t-esc="department.count"/> bulletin(s)</small>
+                            </button>
+                            <div class="o_payroll_empty" t-if="!state.data.departments.length">Aucune donnée sur cette période.</div>
+                        </div>
+                    </article>
+
+                    <article class="o_payroll_card">
+                        <div class="o_payroll_card_header"><div><h2>Principaux nets à payer</h2><p>Classement des salariés</p></div><button class="o_payroll_icon_link" t-on-click="openEmployees" title="Voir les salariés"><i class="fa fa-users"/></button></div>
+                        <div class="o_payroll_employee_list">
+                            <button t-foreach="state.data.top_employees" t-as="employee" t-key="employee.id" t-on-click="() =&gt; this.openEmployee(employee)">
+                                <span class="o_payroll_avatar"><t t-esc="employee.name.charAt(0).toUpperCase()"/></span>
+                                <span class="o_payroll_employee_name"><b t-esc="employee.name"/><small><t t-esc="employee.job"/> · <t t-esc="employee.department"/></small><i><u t-att-style="'width:' + employee.percent + '%'"/></i></span>
+                                <span class="o_payroll_employee_value"><strong t-esc="formatMoney(employee.net)"/><small><t t-esc="employee.count"/> bulletin(s)</small></span>
+                            </button>
+                            <div class="o_payroll_empty" t-if="!state.data.top_employees.length">Aucun bulletin validé.</div>
+                        </div>
+                    </article>
+
+                    <article class="o_payroll_card">
+                        <div class="o_payroll_card_header"><div><h2>Bulletins récents</h2><p>Dernières opérations de la période</p></div><button class="o_payroll_icon_link" t-on-click="openAll" title="Voir tous les bulletins"><i class="fa fa-list"/></button></div>
+                        <div class="o_payroll_recent_list">
+                            <button t-foreach="state.data.recent" t-as="item" t-key="item.id" t-on-click="() =&gt; this.openPayslip(item)">
+                                <span><b t-esc="item.employee"/><small><t t-esc="item.name"/> · <t t-esc="formatDate(item.date)"/></small></span>
+                                <span><strong t-esc="formatMoney(item.net)"/><em t-att-class="'state-' + item.state" t-esc="item.state_label"/></span>
+                            </button>
+                            <div class="o_payroll_empty" t-if="!state.data.recent.length">Aucun bulletin sur cette période.</div>
+                        </div>
+                    </article>
+                </section>
+            </t>
+        </main>
+    </t>
+</templates>
