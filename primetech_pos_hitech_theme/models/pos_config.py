@@ -5,17 +5,13 @@ from odoo.exceptions import ValidationError
 class PosConfig(models.Model):
     _inherit = "pos.config"
 
-    primetech_authorization_code = fields.Char(
-        string="Code d'autorisation des baisses de prix",
-        help="Code demandé pour vendre un article sous son prix de vente dans le POS.",
-    )
     primetech_authorized_employee_ids = fields.Many2many(
         "hr.employee",
         "primetech_pos_authorized_employee_rel",
         "config_id",
         "employee_id",
-        string="Employés autorisés sans code",
-        help="Ces employés peuvent vendre sous le prix de vente sans saisir le code.",
+        string="Employés autorisés à modifier les prix",
+        help="Seuls ces employés peuvent modifier le prix d'une ligne de commande au POS.",
     )
     primetech_stock_warning_level = fields.Float(
         string="Seuil d'alerte de stock",
@@ -26,6 +22,18 @@ class PosConfig(models.Model):
         string="Seuil critique de stock",
         default=3.0,
         help="Le badge passe en rouge lorsque le stock disponible est inférieur ou égal à ce seuil.",
+    )
+    primetech_allow_negative_stock_sale = fields.Boolean(
+        string="Autoriser la vente en stock négatif",
+        default=False,
+        help="Autorise uniquement les employés désignés à vendre au-delà du stock disponible de l'entrepôt du POS.",
+    )
+    primetech_negative_stock_authorized_employee_ids = fields.Many2many(
+        "hr.employee",
+        "primetech_pos_negative_stock_employee_rel",
+        "config_id",
+        "employee_id",
+        string="Employés autorisés à vendre en négatif",
     )
     primetech_order_reference_prefix = fields.Char(
         string="Préfixe des commandes POS",
@@ -63,6 +71,4 @@ class PosConfig(models.Model):
         # Loading the complete configuration is safe here: it is one record
         # and keeps the POS bootstrap resilient to the installed extensions.
         fields_list = list(self._fields)
-        if "primetech_authorization_code" not in fields_list:
-            fields_list.append("primetech_authorization_code")
         return fields_list

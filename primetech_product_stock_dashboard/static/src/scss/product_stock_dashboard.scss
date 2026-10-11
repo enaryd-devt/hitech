@@ -99,6 +99,16 @@
 .pt-stock-meter__track span { background: var(--pt-stock-accent); border-radius: inherit; display: block; height: 100%; min-width: 3px; }
 .pt-stock-card__footer { border-top: 1px solid #edf1f7; color: #8291aa; display: flex; font-size: 10px; justify-content: space-between; padding: 5px 9px; }
 
+.pt_stock_availability_fields .o_field_html { width: 100%; }
+.pt-stock-availability { border: 1px solid #dce8f5; border-radius: 8px; max-height: 214px; overflow-y: auto; }
+.pt-stock-availability-row { align-items: center; border-bottom: 1px solid #edf2f7; display: flex; gap: 10px; justify-content: space-between; padding: 8px 10px; }
+.pt-stock-availability-row:last-child { border-bottom: 0; }
+.pt-stock-availability-place { min-width: 0; }
+.pt-stock-availability-place strong { color: #294a7a; display: block; font-size: 12px; }
+.pt-stock-availability-place small { color: #7285a2; display: block; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-stock-availability-qty { background: #eaf8f1; border-radius: 999px; color: #078657; flex: 0 0 auto; font-size: 12px; font-weight: 700; padding: 4px 8px; }
+.pt-stock-availability-empty { color: #7184a2; font-size: 12px; font-style: italic; padding: 8px 0; }
+
 // Vue liste des articles : indicateurs discrets, mais immédiatement lisibles.
 .pt-stock-product-list {
     border: 1px solid #e7edf5;

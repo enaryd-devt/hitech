@@ -4,15 +4,10 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
-    pos_primetech_authorization_code = fields.Char(
-        related="pos_config_id.primetech_authorization_code",
-        readonly=False,
-        string="Code d'autorisation des baisses de prix",
-    )
     pos_primetech_authorized_employee_ids = fields.Many2many(
         related="pos_config_id.primetech_authorized_employee_ids",
         readonly=False,
-        string="Employés autorisés sans code pour les baisses de prix",
+        string="Employés autorisés à modifier les prix",
     )
     pos_primetech_stock_warning_level = fields.Float(
         related="pos_config_id.primetech_stock_warning_level",
@@ -23,6 +18,16 @@ class ResConfigSettings(models.TransientModel):
         related="pos_config_id.primetech_stock_critical_level",
         readonly=False,
         string="Seuil critique",
+    )
+    pos_primetech_allow_negative_stock_sale = fields.Boolean(
+        related="pos_config_id.primetech_allow_negative_stock_sale",
+        readonly=False,
+        string="Autoriser la vente en stock négatif",
+    )
+    pos_primetech_negative_stock_authorized_employee_ids = fields.Many2many(
+        related="pos_config_id.primetech_negative_stock_authorized_employee_ids",
+        readonly=False,
+        string="Employés autorisés à vendre en négatif",
     )
     pos_primetech_order_reference_prefix = fields.Char(
         related="pos_config_id.primetech_order_reference_prefix",

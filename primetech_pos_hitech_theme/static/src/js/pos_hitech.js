@@ -10,8 +10,6 @@ import { CategorySelector } from "@point_of_sale/app/generic_components/category
 import { PosOrderline } from "@point_of_sale/app/models/pos_order_line";
 import { OrderSummary } from "@point_of_sale/app/screens/product_screen/order_summary/order_summary";
 import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment_screen";
-import { TextInputPopup } from "@point_of_sale/app/utils/input_popups/text_input_popup";
-import { makeAwaitable } from "@point_of_sale/app/store/make_awaitable_dialog";
 
 const availableQuantity = (pos, product) => {
     if (!product?.is_storable || typeof product.qty_available !== "number") {
@@ -24,8 +22,19 @@ const availableQuantity = (pos, product) => {
     return Math.max(0, product.qty_available - reserved);
 };
 
+const canSellNegativeStock = (pos) => {
+    if (!pos.config.primetech_allow_negative_stock_sale) {
+        return false;
+    }
+    const employeeId = pos.get_cashier()?.id;
+    const authorizedIds = (pos.config.primetech_negative_stock_authorized_employee_ids || []).map(
+        (employee) => employee.id || employee
+    );
+    return Boolean(employeeId && authorizedIds.includes(employeeId));
+};
+
 const outOfStock = (pos, product, quantity = 1) =>
-    product?.is_storable && availableQuantity(pos, product) < quantity;
+    product?.is_storable && !canSellNegativeStock(pos) && availableQuantity(pos, product) < quantity;
 
 patch(PosStore.prototype, {
     async primetechAssignOrderReference(order) {
@@ -87,44 +96,12 @@ patch(PosStore.prototype, {
         }
     },
 
-    async primetechAuthorizeCurrentOrder(operation) {
-        const order = this.get_order();
-        if (!order) {
-            return false;
-        }
-        if (order.uiState.primetechAuthorizationGranted) {
-            return true;
-        }
+    primetechCanModifyPrice() {
         const cashierId = this.get_cashier()?.id;
         const authorizedEmployeeIds = (this.config.primetech_authorized_employee_ids || []).map(
             (employee) => employee.id || employee
         );
-        if (cashierId && authorizedEmployeeIds.includes(cashierId)) {
-            return true;
-        }
-        const expectedCode = this.config.primetech_authorization_code;
-        if (!expectedCode) {
-            this.env.services.notification.add(
-                "Aucun code d'autorisation n'est configuré. Contactez le responsable du point de vente.",
-                { type: "warning" }
-            );
-            return false;
-        }
-        this.env.services.notification.add(
-            `Autorisation requise pour ${operation}. Saisissez le code ou demandez au responsable.`,
-            { type: "warning" }
-        );
-        const enteredCode = await makeAwaitable(this.dialog, TextInputPopup, {
-            title: `Autorisation requise : ${operation}`,
-            placeholder: "Saisissez le code d'autorisation",
-        });
-        if (`${enteredCode || ""}` !== `${expectedCode}`) {
-            this.env.services.notification.add("Code d'autorisation invalide.", { type: "danger" });
-            return false;
-        }
-        order.uiState.primetechAuthorizationGranted = true;
-        this.env.services.notification.add("Autorisation accordée pour cette commande.", { type: "success" });
-        return true;
+        return Boolean(cashierId && authorizedEmployeeIds.includes(cashierId));
     },
 
     async setup() {
@@ -144,6 +121,7 @@ patch(PosStore.prototype, {
 
     add_new_order(data = {}) {
         const order = super.add_new_order(...arguments);
+        order.uiState.primetechNegativeStockAllowed = canSellNegativeStock(this);
         this.primetechAssignOrderReference(order);
         return order;
     },
@@ -154,6 +132,9 @@ patch(PosStore.prototype, {
                 ? this.data.models["product.product"].get(vals.product_id)
                 : vals.product_id;
         const order = this.get_order();
+        if (order) {
+            order.uiState.primetechNegativeStockAllowed = canSellNegativeStock(this);
+        }
         if (product?.type === "service" && order) {
             const existingLine = (order.lines || []).find(
                 (line) => line.product_id?.id === product.id && line.get_quantity() > 0
@@ -314,14 +295,12 @@ patch(CategorySelector.prototype, {
 patch(OrderSummary.prototype, {
     async setLinePrice(line, price) {
         const newPrice = Number(price);
-        const referencePrice = line.product_id.get_price(
-            line.order_id.pricelist_id,
-            line.get_quantity(),
-            line.get_price_extra()
-        );
-        if (Number.isFinite(newPrice) && newPrice < referencePrice) {
-            const allowed = await this.pos.primetechAuthorizeCurrentOrder("baisse de prix");
-            if (!allowed) {
+        if (Number.isFinite(newPrice) && newPrice !== line.get_unit_price()) {
+            if (!this.pos.primetechCanModifyPrice()) {
+                this.env.services.notification.add(
+                    "Vous n'êtes pas autorisé à modifier le prix d'un article.",
+                    { type: "danger" }
+                );
                 return false;
             }
         }
@@ -359,6 +338,7 @@ patch(PosOrderline.prototype, {
         }
         if (
             product?.is_storable &&
+            !this.order_id?.uiState?.primetechNegativeStockAllowed &&
             typeof product.qty_available === "number" &&
             requestedQuantity > 0
         ) {

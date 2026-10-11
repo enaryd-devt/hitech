@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from markupsafe import Markup, escape
+
 from odoo import api, fields, models
 
 
@@ -44,6 +46,13 @@ class ProductTemplate(models.Model):
         compute="_compute_primetech_stock_indicators",
     )
 
+    primetech_stock_availability_html = fields.Html(
+        compute="_compute_primetech_stock_availability",
+        compute_sudo=True,
+        sanitize=False,
+        readonly=True,
+    )
+
     def write(self, vals):
         """Keep track of thresholds intentionally adjusted on an article.
 
@@ -86,3 +95,58 @@ class ProductTemplate(models.Model):
             product.primetech_stock_ratio = min(max((available / optimal * 100.0) if optimal else 0.0, 0.0), 100.0)
             forecast = product.virtual_available or 0.0
             product.primetech_forecast_ratio = min(max((forecast / optimal * 100.0) if optimal else 0.0, 0.0), 100.0)
+
+    @api.depends("is_storable", "qty_available", "product_variant_ids")
+    def _compute_primetech_stock_availability(self):
+        """Display stock on hand minus reserved stock for each internal location."""
+        quant_model = self.env["stock.quant"]
+        warehouses = self.env["stock.warehouse"].search([])
+        for product in self:
+            if not product.is_storable or not product.product_variant_ids:
+                product.primetech_stock_availability_html = Markup(
+                    '<div class="pt-stock-availability-empty">Aucun stock suivi pour cet article.</div>'
+                )
+                continue
+
+            groups = quant_model.read_group(
+                [
+                    ("product_id", "in", product.product_variant_ids.ids),
+                    ("location_id.usage", "=", "internal"),
+                ],
+                ["quantity:sum", "reserved_quantity:sum", "location_id"],
+                ["location_id"],
+                lazy=False,
+            )
+            location_ids = [group["location_id"][0] for group in groups if group.get("location_id")]
+            locations = {location.id: location for location in self.env["stock.location"].browse(location_ids)}
+            lines = []
+            for group in groups:
+                if not group.get("location_id"):
+                    continue
+                location = locations[group["location_id"][0]]
+                warehouse_name = "Sans entrepot"
+                for warehouse in warehouses:
+                    if location.parent_path.startswith(warehouse.view_location_id.parent_path):
+                        warehouse_name = warehouse.name
+                        break
+                quantity = (group.get("quantity", 0.0) or 0.0) - (group.get("reserved_quantity", 0.0) or 0.0)
+                lines.append((warehouse_name, location.complete_name, quantity))
+
+            if not lines:
+                product.primetech_stock_availability_html = Markup(
+                    '<div class="pt-stock-availability-empty">Aucune disponibilite dans les emplacements internes.</div>'
+                )
+                continue
+
+            lines.sort(key=lambda line: (line[0].lower(), line[1].lower()))
+            rendered_lines = "".join(
+                "<div class=\"pt-stock-availability-row\">"
+                "<span class=\"pt-stock-availability-place\"><strong>{}</strong><small>{}</small></span>"
+                "<span class=\"pt-stock-availability-qty\">{:g}</span></div>".format(
+                    escape(warehouse_name), escape(location_name), quantity
+                )
+                for warehouse_name, location_name, quantity in lines
+            )
+            product.primetech_stock_availability_html = Markup(
+                '<div class="pt-stock-availability">{}</div>'.format(rendered_lines)
+            )

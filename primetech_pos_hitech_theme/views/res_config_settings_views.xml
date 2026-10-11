@@ -6,10 +6,9 @@
         <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//setting[@id='manual_discount']" position="after">
-                <setting id="primetech_pos_authorization" string="Autorisation des baisses de prix" help="Définissez le code demandé au caissier pour vendre sous le prix de vente fixé.">
-                    <field name="pos_primetech_authorization_code" password="True" placeholder="Code d'autorisation"/>
-                    <div class="content-group mt16">
-                        <field name="pos_primetech_authorized_employee_ids" widget="many2many_tags" placeholder="Employés dispensés du code"/>
+                <setting id="primetech_pos_price_authorization" string="Modification des prix" help="Seuls les employés sélectionnés pourront modifier un prix dans le point de vente.">
+                    <div class="content-group">
+                        <field name="pos_primetech_authorized_employee_ids" widget="many2many_tags" placeholder="Sélectionnez les employés autorisés"/>
                     </div>
                 </setting>
                 <setting id="primetech_pos_stock_alerts" string="Niveaux d'alerte de stock au POS" help="Définissez les niveaux de couleur des quantités visibles sur les articles.">
@@ -22,6 +21,12 @@
                             <label for="pos_primetech_stock_critical_level" class="col-lg-4 o_light_label">Seuil critique (rouge)</label>
                             <field name="pos_primetech_stock_critical_level" class="col-lg-3"/>
                         </div>
+                    </div>
+                </setting>
+                <setting id="primetech_pos_negative_stock" string="Vente en stock négatif" help="Autorisez des employés précis à enregistrer une vente lorsque le stock de l'entrepôt de ce POS est insuffisant.">
+                    <field name="pos_primetech_allow_negative_stock_sale"/>
+                    <div class="content-group mt16" invisible="not pos_primetech_allow_negative_stock_sale">
+                        <field name="pos_primetech_negative_stock_authorized_employee_ids" widget="many2many_tags" placeholder="Sélectionnez les employés autorisés"/>
                     </div>
                 </setting>
                 <setting id="primetech_pos_order_sequence" string="Numérotation des commandes" help="Personnalisez le préfixe et le compteur quotidien de cette caisse. Utilisez un préfixe différent pour chaque caisse.">

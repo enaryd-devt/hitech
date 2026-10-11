@@ -13,6 +13,12 @@
                     <field name="primetech_stock_alert_qty_is_manual" invisible="1"/>
                     <field name="primetech_optimal_stock_qty_is_manual" invisible="1"/>
                 </group>
+                <group string="Disponibilite par entrepot et emplacement" class="pt_stock_availability_fields" invisible="not is_storable">
+                    <field name="primetech_stock_availability_html" widget="html" nolabel="1" readonly="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//form/sheet" position="after">
+                <xpath expr="//chatter" position="move"/>
             </xpath>
         </field>
     </record>

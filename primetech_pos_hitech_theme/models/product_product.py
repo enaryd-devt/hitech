@@ -4,6 +4,13 @@ from odoo import api, models
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
+    @api.model
+    def _primetech_pos_stock_context(self, config_id):
+        """Return the stock context of the POS delivery warehouse only."""
+        config = self.env["pos.config"].browse(config_id).exists()
+        warehouse = config.picking_type_id.warehouse_id or config.warehouse_id
+        return {"warehouse": warehouse.id} if warehouse else {}
+
     def _load_pos_data_fields(self, config_id):
         """Expose the on-hand quantity to the POS product cards."""
         fields = super()._load_pos_data_fields(config_id)
@@ -12,17 +19,39 @@ class ProductProduct(models.Model):
         return fields
 
     @api.model
+    def _load_product_with_domain(self, domain, config_id, load_archived=False):
+        """Load the product quantity from this POS delivery warehouse.
+
+        ``qty_available`` is a context-dependent product field.  Without the
+        warehouse context, Odoo returns the total over every warehouse, which
+        lets a cashier see stock that belongs to another POS.
+        """
+        fields = self._load_pos_data_fields(config_id)
+        context = {
+            **self.env.context,
+            "display_default_code": False,
+            "active_test": not load_archived,
+            **self._primetech_pos_stock_context(config_id),
+        }
+        return self.with_context(context).search_read(
+            domain,
+            fields,
+            order="sequence,default_code,name",
+            load=False,
+        )
+
+    @api.model
     def primetech_pos_available_stock(self, product_id, config_id, order_id=False):
         """Physical stock less reservations from the other synchronized carts."""
         product = self.browse(product_id).exists()
         config = self.env["pos.config"].browse(config_id).exists()
         if not product or not config or not product.is_storable:
             return {"available_quantity": False, "reserved_quantity": 0.0}
-        # The POS card is fed with ``qty_available``.  Use the exact same
-        # stock scope here, otherwise a global quantity displayed as 1 could
-        # be rejected after the click because a different warehouse context
-        # returned 0.
-        stock = product.qty_available
+        # Use precisely the same warehouse scope as the catalogue cards.
+        # This prevents a cashier from using stock from another warehouse.
+        stock = product.with_context(
+            **self._primetech_pos_stock_context(config.id)
+        ).qty_available
         domain = [
             ("order_id.config_id", "=", config.id),
             ("order_id.state", "=", "draft"),
