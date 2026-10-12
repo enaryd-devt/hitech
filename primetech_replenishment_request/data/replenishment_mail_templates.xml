@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_template_replenishment_state" model="mail.template">
+        <field name="name">Notification d’état du réapprovisionnement</field>
+        <field name="model_id" ref="model_replenishment_request"/>
+        <field name="subject">Réapprovisionnement ${object.name} : ${ctx.get('state_label') or object.state}</field>
+        <field name="email_to">${object.requester_id.email or ''}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Bonjour <t t-out="object.requester_id.name"/>,</p>
+                <p>Votre demande de réapprovisionnement <strong><t t-out="object.name"/></strong> est maintenant <strong><t t-out="ctx.get('state_label') or object.state"/></strong>.</p>
+            </div>
+        </field>
+    </record>
+</odoo>

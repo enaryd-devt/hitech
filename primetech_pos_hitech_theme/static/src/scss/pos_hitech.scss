@@ -318,3 +318,326 @@ html.primetech-pos-dark {
     .pos .product-screen { padding: .4rem; }
     .pos .product-list { grid-template-columns: repeat(auto-fill, minmax(142px, 1fr)) !important; }
 }
+
+// Receipt: compact, legible and suitable for a thermal printer.
+.primetech-hitech-receipt {
+    box-sizing: border-box;
+    width: 320px;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 16px 14px 18px !important;
+    background: #fff;
+    color: #102a5e;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+
+    .pos-receipt-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f58220;
+        text-align: center;
+        color: #153d80;
+    }
+    .pos-receipt-logo {
+        display: block;
+        max-width: 155px;
+        max-height: 72px;
+        margin: 0 auto 7px;
+        object-fit: contain;
+    }
+    .pos-receipt-contact {
+        margin: 2px 0;
+        color: #385787;
+        font-size: 10px;
+        line-height: 1.45;
+    }
+    .order-container {
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+    .orderline {
+        min-height: auto !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px solid #dce5f2;
+    }
+    .orderline .product-name {
+        padding-right: 8px;
+        color: #082d72;
+        font-size: 12px;
+        font-weight: 700 !important;
+        white-space: normal;
+    }
+    .orderline .product-price {
+        flex: 0 0 auto;
+        color: #082d72;
+        font-weight: 800 !important;
+        text-align: right;
+        white-space: nowrap;
+    }
+    .orderline .info-list {
+        margin: 1px 0 0 !important;
+        padding: 0 !important;
+        color: #4a638f;
+        font-size: 11px;
+        list-style: none;
+    }
+    .orderline .qty {
+        min-width: 27px;
+        border-color: #c8d7ec !important;
+        background: #f4f8fd !important;
+        color: #102a5e;
+        font-weight: 800 !important;
+        text-align: center;
+    }
+    .pos-receipt-taxes {
+        margin-top: 8px;
+        padding: 7px 0;
+        border-bottom: 1px solid #b9c9e0;
+        color: #49628d;
+        font-size: 11px;
+    }
+    .pos-receipt-taxes > .text-center,
+    > .text-center {
+        height: 0;
+        overflow: hidden;
+        color: transparent;
+    }
+    .receipt-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding: 10px 0 8px;
+        border-top: 2px solid #153d80;
+        border-bottom: 2px solid #153d80;
+        color: #082d72;
+        font-size: 15px;
+        font-weight: 800;
+    }
+    .pos-receipt-right-align {
+        margin-left: auto;
+        text-align: right;
+        white-space: nowrap;
+    }
+    .paymentlines,
+    .receipt-change,
+    .receipt-rounding,
+    .receipt-to-pay {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        color: #294b82;
+        font-size: 11px;
+    }
+    .paymentlines {
+        margin-top: 6px;
+        font-weight: 700;
+    }
+    .pos-receipt-center-align {
+        margin-top: 13px;
+        padding-top: 10px;
+        border-top: 1px solid #dce5f2;
+        color: #315385;
+        font-size: 10px;
+        line-height: 1.5;
+        text-align: center;
+    }
+    .pos-receipt-order-data {
+        margin-top: 7px;
+        color: #294b82;
+        font-size: 10px;
+        line-height: 1.5;
+        text-align: center;
+    }
+    .pos-receipt-order-data p {
+        margin: 0 0 5px;
+        color: #f06b17;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .04em;
+    }
+}
+
+// The customer-facing screen must remain branded by the company only.
+.pos-customer_facing_display .pos-odoo_logo_container {
+    display: none !important;
+}
+
+@media print {
+    .primetech-hitech-receipt {
+        width: 72mm;
+        padding: 4mm 3mm 5mm !important;
+        color: #000 !important;
+        font-size: 10pt;
+    }
+    .primetech-hitech-receipt .pos-receipt-header,
+    .primetech-hitech-receipt .receipt-total {
+        border-color: #000;
+        color: #000;
+    }
+    .primetech-hitech-receipt .orderline,
+    .primetech-hitech-receipt .pos-receipt-taxes,
+    .primetech-hitech-receipt .pos-receipt-center-align {
+        border-color: #000;
+    }
+    .primetech-hitech-receipt .orderline .product-name,
+    .primetech-hitech-receipt .orderline .product-price,
+    .primetech-hitech-receipt .orderline .info-list,
+    .primetech-hitech-receipt .paymentlines,
+    .primetech-hitech-receipt .pos-receipt-order-data,
+    .primetech-hitech-receipt .pos-receipt-contact,
+    .primetech-hitech-receipt .pos-receipt-order-data p {
+        color: #000 !important;
+    }
+    .primetech-hitech-receipt .orderline .qty {
+        border-color: #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+}
+
+// Structured sales ticket: deliberately monochrome for reliable paper printing.
+.primetech-hitech-receipt {
+    // Do not use CSS min() here: Odoo's LibSass tries to compare % and px.
+    width: 100%;
+    max-width: 700px;
+    padding: 22px 26px 20px !important;
+    color: #111 !important;
+    font-size: 13px;
+    line-height: 1.35;
+
+    .primetech-receipt-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #111;
+    }
+    .primetech-receipt-company,
+    .primetech-receipt-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .primetech-receipt-company { font-size: 11px; }
+    .primetech-receipt-company > strong { margin-top: 4px; font-size: 14px; }
+    .primetech-receipt-logo {
+        width: 190px;
+        max-width: 100%;
+        max-height: 85px;
+        margin: 0 0 3px;
+        object-fit: contain;
+        object-position: left center;
+        filter: grayscale(1) contrast(1.4);
+    }
+    .primetech-receipt-meta {
+        padding-left: 20px;
+        border-left: 1px solid #111;
+        font-size: 11px;
+    }
+    .primetech-receipt-meta h2 {
+        margin: 0 0 2px;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: .04em;
+    }
+    .primetech-receipt-meta > strong { font-size: 15px; }
+    .primetech-receipt-lines {
+        width: 100%;
+        margin: 18px 0 12px;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 12px;
+    }
+    .primetech-receipt-lines th {
+        padding: 9px 6px;
+        background: #111;
+        color: #fff !important;
+        font-size: 10px;
+        font-weight: 800;
+        text-align: right;
+    }
+    .primetech-receipt-lines th:first-child,
+    .primetech-receipt-lines td:first-child { width: 5%; text-align: center; }
+    .primetech-receipt-lines th:nth-child(2) { width: 43%; text-align: left; }
+    .primetech-receipt-lines th:nth-child(3) { width: 12%; }
+    .primetech-receipt-lines th:nth-child(4) { width: 18%; }
+    .primetech-receipt-lines th:nth-child(5) { width: 22%; }
+    .primetech-receipt-lines td {
+        padding: 9px 6px;
+        border-bottom: 1px dotted #777;
+        vertical-align: top;
+        text-align: right;
+    }
+    .primetech-receipt-lines td:nth-child(2) { text-align: left; }
+    .primetech-receipt-lines td small { display: block; margin-top: 2px; font-size: 10px; color: #333; }
+    .primetech-receipt-summary {
+        width: 42%;
+        margin: 0 0 14px auto;
+        font-size: 12px;
+    }
+    .primetech-receipt-summary > div,
+    .primetech-receipt-payment > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 2px 0;
+    }
+    .primetech-receipt-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border: 2px solid #111;
+        background: #f1f1f1;
+        font-size: 17px;
+        font-weight: 800;
+    }
+    .primetech-receipt-total strong { font-size: 20px; white-space: nowrap; }
+    .primetech-receipt-payment {
+        width: 42%;
+        margin-top: 18px;
+        padding: 10px 0;
+        border-top: 1px dotted #777;
+        border-bottom: 1px dotted #777;
+    }
+    .primetech-receipt-payment h3 {
+        margin: 0 0 6px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+    .primetech-receipt-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        margin-top: 22px;
+        padding-top: 13px;
+        border-top: 1px dotted #777;
+        font-size: 10px;
+        text-align: center;
+    }
+    .primetech-receipt-footer > strong { font-size: 13px; letter-spacing: .08em; }
+}
+
+@media print {
+    .primetech-hitech-receipt {
+        width: 100%;
+        max-width: 80mm;
+        padding: 3mm !important;
+        font-size: 9pt;
+    }
+    .primetech-hitech-receipt .primetech-receipt-header { gap: 3mm; padding-bottom: 3mm; }
+    .primetech-hitech-receipt .primetech-receipt-logo { width: 34mm; max-height: 18mm; }
+    .primetech-hitech-receipt .primetech-receipt-meta { padding-left: 3mm; }
+    .primetech-hitech-receipt .primetech-receipt-meta h2 { font-size: 11pt; }
+    .primetech-hitech-receipt .primetech-receipt-lines { margin: 4mm 0 3mm; font-size: 8pt; }
+    .primetech-hitech-receipt .primetech-receipt-lines th,
+    .primetech-hitech-receipt .primetech-receipt-lines td { padding: 1.5mm 1mm; }
+    .primetech-hitech-receipt .primetech-receipt-summary,
+    .primetech-hitech-receipt .primetech-receipt-payment { width: 52%; }
+    .primetech-hitech-receipt .primetech-receipt-total { padding: 2.5mm 3mm; font-size: 11pt; }
+    .primetech-hitech-receipt .primetech-receipt-total strong { font-size: 12pt; }
+}

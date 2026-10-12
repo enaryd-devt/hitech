@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_replenishment_request_list" model="ir.ui.view">
+        <field name="name">replenishment.request.list</field><field name="model">replenishment.request</field>
+        <field name="arch" type="xml"><list><field name="name"/><field name="date_request"/><field name="requester_id"/><field name="destination_location_id"/><field name="state" widget="badge"/><field name="picking_count"/></list></field>
+    </record>
+    <record id="view_replenishment_request_form" model="ir.ui.view">
+        <field name="name">replenishment.request.form</field><field name="model">replenishment.request</field>
+        <field name="arch" type="xml">
+            <form string="Demande de réapprovisionnement">
+                <header>
+                    <button name="%(action_report_replenishment_request)d" type="action" string="Imprimer la demande" class="btn-secondary"/>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve and Transfer" class="btn-primary" groups="primetech_replenishment_request.group_replenishment_manager,primetech_replenishment_request.group_replenishment_stockman" invisible="state != 'to_approve'"/>
+                    <button name="%(action_cancel_replenishment_request_wizard)d" type="action" string="Cancel" invisible="state in ('approved','cancelled')"/>
+                    <button name="action_reset_to_draft" type="object" string="Remettre en brouillon" groups="primetech_replenishment_request.group_replenishment_manager" invisible="state in ('draft', 'approved')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved" invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,cancelled" invisible="state != 'cancelled'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pickings" type="object" class="oe_stat_button" icon="fa-truck"><field name="picking_count" widget="statinfo" string="Transferts"/></button>
+                        <button name="action_view_history" type="object" class="oe_stat_button" icon="fa-history"><field name="history_count" widget="statinfo" string="Historique"/></button>
+                        <button name="action_view_attachments" type="object" class="oe_stat_button" icon="fa-paperclip"><field name="attachment_count" widget="statinfo" string="Pièces jointes"/></button>
+                    </div>
+                    <widget name="web_ribbon" title="Stock manquant" bg_color="text-bg-danger" invisible="not has_missing_stock or state == 'approved'"/>
+                    <h1><field name="name" readonly="1"/></h1>
+                    <group><group><field name="requester_id" readonly="state != 'draft'"/><field name="date_request" readonly="state != 'draft'"/><field name="destination_location_id" readonly="state != 'draft'"/><field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/></group><group><field name="warehouse_id" readonly="1"/><field name="has_missing_stock" invisible="1"/><field name="currency_id" invisible="1"/><field name="define_transfer_cost" readonly="state != 'draft'"/><field name="transfer_cost_amount" readonly="state != 'draft' or not define_transfer_cost" required="define_transfer_cost"/><field name="transfer_cost_allocation_method" readonly="state != 'draft' or not define_transfer_cost" required="define_transfer_cost"/></group></group>
+                    <notebook>
+                        <page string="Lines"><field name="line_ids" context="{'default_request_id': id}" readonly="state != 'draft'"><list editable="bottom"><field name="sequence" widget="handle"/><field name="product_id" string="Désignation"/><field name="product_uom_id" string="UDM" readonly="1"/><field name="quantity_requested" string="Qté demandé"/><field name="packaging_quantity" string="Qté Cdtment"/><field name="packaging_id" string="Cdtment" domain="[('product_id', '=', product_id)]"/><field name="quantity_found" string="Disponible" readonly="1"/><field name="candidate_source_location_ids" column_invisible="1"/><field name="source_location_id" string="Emplacement source" domain="[('id', 'in', candidate_source_location_ids)]"/><field name="status" string="Statut" widget="badge" readonly="1"/></list><form><group><field name="product_id" string="Désignation"/><field name="product_uom_id" string="UDM" readonly="1"/><field name="quantity_requested" string="Qté demandé"/><field name="packaging_quantity" string="Qté Cdtment"/><field name="packaging_id" string="Cdtment" domain="[('product_id', '=', product_id)]"/><field name="quantity_found" string="Disponible" readonly="1"/><field name="candidate_source_location_ids" invisible="1"/><field name="source_location_id" string="Emplacement source" domain="[('id', 'in', candidate_source_location_ids)]"/><field name="status" string="Statut" readonly="1"/></group><field name="allocation_ids"><list><field name="source_location_id"/><field name="quantity"/><field name="picking_id"/></list></field></form></field></page>
+                        <page string="Allocations"><field name="allocation_ids" readonly="1"><list><field name="line_id"/><field name="product_id"/><field name="source_location_id"/><field name="destination_location_id"/><field name="quantity"/><field name="picking_id"/></list></field></page>
+                        <page string="Commentaires"><field name="comments" readonly="state != 'draft'"/></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_replenishment_request" model="ir.actions.act_window"><field name="name">Appro boutique / demandes</field><field name="res_model">replenishment.request</field><field name="view_mode">list,kanban,form,activity</field><field name="search_view_id" ref="view_replenishment_request_search"/></record>
+</odoo>

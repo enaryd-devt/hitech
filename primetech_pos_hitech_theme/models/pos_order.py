@@ -9,6 +9,29 @@ from odoo.exceptions import UserError
 class PosOrder(models.Model):
     _inherit = "pos.order"
 
+    primetech_seller_name = fields.Char(string="Vendu par", readonly=True, copy=False)
+    primetech_cashier_name = fields.Char(string="Encaissé par", readonly=True, copy=False)
+
+    @api.model
+    def _load_pos_data_fields(self, config_id):
+        fields_to_load = super()._load_pos_data_fields(config_id)
+        for field_name in ("primetech_seller_name", "primetech_cashier_name"):
+            if field_name not in fields_to_load:
+                fields_to_load.append(field_name)
+        return fields_to_load
+
+    @api.model
+    def _process_order(self, order, existing_order):
+        """Keep the seller and the cashier separately on the POS order."""
+        if not existing_order:
+            order.setdefault("primetech_seller_name", self.env.user.name)
+        elif not existing_order.primetech_seller_name:
+            order["primetech_seller_name"] = existing_order.user_id.name
+
+        if order.get("state") == "paid":
+            order["primetech_cashier_name"] = self.env.user.name
+        return super()._process_order(order, existing_order)
+
     @api.model
     def sync_from_ui(self, orders):
         """A seller may submit a draft order, but cannot record a payment."""

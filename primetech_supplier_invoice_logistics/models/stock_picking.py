@@ -7,6 +7,21 @@ from odoo.exceptions import UserError
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
+    def primetech_auto_validate_if_fully_available(self):
+        """Validate a delivery only when all requested stock is reserved."""
+        deliveries = self.filtered(
+            lambda picking: picking.picking_type_code == "outgoing"
+            and picking.state not in ("done", "cancel")
+        )
+        if not deliveries:
+            return self.env["stock.picking"]
+
+        deliveries.action_assign()
+        ready_deliveries = deliveries.filtered(lambda picking: picking.state == "assigned")
+        if ready_deliveries:
+            ready_deliveries.button_validate()
+        return ready_deliveries
+
     def button_validate(self):
         """A delivery created from an invoice can only leave after its validation."""
         for picking in self.filtered(lambda item: item.picking_type_code == "outgoing"):

@@ -722,6 +722,7 @@ class AccountMove(models.Model):
                 "company_id": self.company_id.id,
             })
         picking.action_confirm()
+        picking.primetech_auto_validate_if_fully_available()
         self.primetech_receipt_picking_ids = [(4, picking.id)]
         return picking
 
@@ -794,6 +795,7 @@ class AccountMove(models.Model):
                 "company_id": self.company_id.id,
             })
         picking.action_confirm()
+        picking.primetech_auto_validate_if_fully_available()
         if transfer_kind == "receipt":
             self.primetech_receipt_picking_ids = [(4, picking.id)]
         else:
@@ -860,6 +862,7 @@ class AccountMove(models.Model):
         for moves in moves_by_product.values():
             moves._action_cancel()
         picking.action_confirm()
+        picking.primetech_auto_validate_if_fully_available()
         # Keep any stale duplicate in the audit trail; never delete a numbered
         # stock document as that would create an unexplained sequence gap.
         for duplicate in candidates[1:]:
@@ -939,6 +942,7 @@ class AccountMove(models.Model):
             for moves in moves_by_product.values():
                 moves._action_cancel()
             picking.action_confirm()
+            picking.primetech_auto_validate_if_fully_available()
             return picking
 
         actual = {}
@@ -1078,6 +1082,7 @@ class AccountMove(models.Model):
                 "company_id": self.company_id.id,
             })
         picking.action_confirm()
+        picking.primetech_auto_validate_if_fully_available()
         self.primetech_delivery_picking_ids = [(4, picking.id)]
         return picking
 
@@ -1160,6 +1165,7 @@ class AccountMove(models.Model):
                 "company_id": self.company_id.id,
             })
         picking.action_confirm()
+        picking.primetech_auto_validate_if_fully_available()
         self.primetech_return_picking_ids = [(4, picking.id)]
         return picking
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_replenishment_internal_transfers" model="ir.actions.act_window">
+        <field name="name">Transferts internes</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('picking_type_code', '=', 'internal')]</field>
+    </record>
+
+    <menuitem id="menu_replenishment_root" name="Appro boutique &amp; transferts internes" sequence="50" groups="primetech_replenishment_request.group_replenishment_user" web_icon="primetech_replenishment_request,static/description/icon.svg"/>
+    <menuitem id="menu_replenishment_requests" name="Appro boutique / demandes" parent="menu_replenishment_root" action="action_replenishment_request" sequence="10"/>
+    <menuitem id="menu_replenishment_internal_transfers" name="Transferts internes" parent="menu_replenishment_root" action="action_replenishment_internal_transfers" sequence="20"/>
+</odoo>

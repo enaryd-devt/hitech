@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_replenishment" model="ir.module.category">
+        <field name="name">Réapprovisionnement</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <record id="group_replenishment_user" model="res.groups">
+        <field name="name">Utilisateur</field>
+        <field name="category_id" ref="module_category_replenishment"/>
+    </record>
+    <record id="group_replenishment_manager" model="res.groups">
+        <field name="name">Responsable</field>
+        <field name="category_id" ref="module_category_replenishment"/>
+        <field name="implied_ids" eval="[(4, ref('group_replenishment_user'))]"/>
+    </record>
+    <record id="group_replenishment_stockman" model="res.groups">
+        <field name="name">Magasinier</field>
+        <field name="category_id" ref="module_category_replenishment"/>
+        <field name="implied_ids" eval="[(4, ref('group_replenishment_user')), (4, ref('stock.group_stock_user'))]"/>
+    </record>
+
+
+    <record id="rule_replenishment_system_all" model="ir.rule">
+        <field name="name">Les administrateurs gèrent toutes les demandes de réapprovisionnement</field>
+        <field name="model_id" ref="model_replenishment_request"/>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_replenishment_user_own" model="ir.rule">
+        <field name="name">Utilisateurs see their replenishment requests</field>
+        <field name="model_id" ref="model_replenishment_request"/>
+        <field name="groups" eval="[(4, ref('group_replenishment_user'))]"/>
+        <field name="domain_force">['|', ('requester_id', '=', user.id), ('message_partner_ids', 'in', [user.partner_id.id])]</field>
+    </record>
+    <record id="rule_replenishment_manager_warehouse" model="ir.rule">
+        <field name="name">Responsables see allowed warehouses</field>
+        <field name="model_id" ref="model_replenishment_request"/>
+        <field name="groups" eval="[(4, ref('group_replenishment_manager')), (4, ref('group_replenishment_stockman'))]"/>
+        <field name="domain_force">['|', ('warehouse_id', '=', False), '|', ('warehouse_id', 'in', user.replenishment_warehouse_ids.ids), ('requester_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_replenishment_line_system_all" model="ir.rule">
+        <field name="name">Les administrateurs gèrent toutes les lignes de réapprovisionnement</field>
+        <field name="model_id" ref="model_replenishment_request_line"/>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_replenishment_line_user" model="ir.rule">
+        <field name="name">L’accès aux lignes suit la demande</field>
+        <field name="model_id" ref="model_replenishment_request_line"/>
+        <field name="groups" eval="[(4, ref('group_replenishment_user'))]"/>
+        <field name="domain_force">[('request_id.requester_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_replenishment_allocation_system_all" model="ir.rule">
+        <field name="name">Les administrateurs gèrent toutes les allocations de réapprovisionnement</field>
+        <field name="model_id" ref="model_replenishment_allocation"/>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_replenishment_allocation_user" model="ir.rule">
+        <field name="name">L’accès aux allocations suit la demande</field>
+        <field name="model_id" ref="model_replenishment_allocation"/>
+        <field name="groups" eval="[(4, ref('group_replenishment_user'))]"/>
+        <field name="domain_force">[('request_id.requester_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_replenishment_line_manager_warehouse" model="ir.rule">
+        <field name="name">Responsables see warehouse lines</field>
+        <field name="model_id" ref="model_replenishment_request_line"/>
+        <field name="groups" eval="[(4, ref('group_replenishment_manager')), (4, ref('group_replenishment_stockman'))]"/>
+        <field name="domain_force">['|', ('request_id.warehouse_id', '=', False), '|', ('request_id.warehouse_id', 'in', user.replenishment_warehouse_ids.ids), ('request_id.requester_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_replenishment_allocation_manager_warehouse" model="ir.rule">
+        <field name="name">Responsables see warehouse allocations</field>
+        <field name="model_id" ref="model_replenishment_allocation"/>
+        <field name="groups" eval="[(4, ref('group_replenishment_manager')), (4, ref('group_replenishment_stockman'))]"/>
+        <field name="domain_force">['|', ('request_id.warehouse_id', '=', False), '|', ('request_id.warehouse_id', 'in', user.replenishment_warehouse_ids.ids), ('request_id.requester_id', '=', user.id)]</field>
+    </record>
+</odoo>

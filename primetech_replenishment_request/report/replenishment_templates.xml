@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_replenishment_request_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page replenishment-report">
+                        <style>
+                            .replenishment-report { font-size: 12px; color: #1f2933; }
+                            .replenishment-title { color: #17365d; font-weight: 700; margin-bottom: 4px; }
+                            .replenishment-subtitle { color: #52606d; margin-bottom: 18px; }
+                            .info-card { border: 1px solid #d9e2ec; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; min-height: 112px; }
+                            .info-card h4 { color: #17365d; font-size: 13px; font-weight: 700; margin: 0 0 8px 0; text-transform: uppercase; }
+                            .label { color: #52606d; font-weight: 700; }
+                            .execution-note { background: #f0f7ff; border-left: 4px solid #2f80ed; padding: 10px 12px; margin: 14px 0; }
+                            .table thead th { background: #17365d; color: white; border-color: #17365d; vertical-align: middle; }
+                            .table td { vertical-align: top; }
+                            .signature-box { border: 1px solid #b8c4d0; border-radius: 6px; padding: 10px; min-height: 118px; margin-top: 12px; }
+                            .signature-line { border-bottom: 1px solid #1f2933; height: 42px; margin-bottom: 8px; }
+                            .muted { color: #6b7c93; }
+                        </style>
+
+                        <div class="row">
+                            <div class="col-8">
+                                <h2 class="replenishment-title">Demande de réapprovisionnement interne</h2>
+                                <p class="replenishment-subtitle">
+                                    Fiche d’exécution pour le prélèvement, le contrôle, le transfert et la réception du stock demandé.
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <span t-field="o.name" t-options="{'widget': 'barcode', 'width': 300, 'height': 60}"/>
+                                <div class="mt4"><strong t-field="o.name"/></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="info-card">
+                                    <h4>Demande</h4>
+                                    <div><span class="label">Référence :</span> <span t-field="o.name"/></div>
+                                    <div><span class="label">État :</span> <span t-field="o.state"/></div>
+                                    <div><span class="label">Date de demande :</span> <span t-field="o.date_request"/></div>
+                                    <div><span class="label">Demandeur :</span> <span t-field="o.requester_id"/></div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="info-card">
+                                    <h4>Destination</h4>
+                                    <div><span class="label">Emplacement :</span> <span t-field="o.destination_location_id"/></div>
+                                    <div><span class="label">Entrepôt :</span> <span t-field="o.warehouse_id"/></div>
+                                    <div><span class="label">Transferts :</span> <span t-esc="len(o.picking_ids)"/></div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="info-card">
+                                    <h4>Résumé d’exécution</h4>
+                                    <div><span class="label">Lignes :</span> <span t-esc="len(o.line_ids)"/></div>
+                                    <div><span class="label">Stock manquant :</span> <span t-esc="'Oui' if o.has_missing_stock else 'Non'"/></div>
+                                    <div><span class="label">Imprimé par :</span> <span t-esc="user.name"/></div>
+                                    <div><span class="label">Dernière mise à jour :</span> <span t-field="o.write_date"/></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="execution-note">
+                            <strong>Consignes d’exécution :</strong>
+                            prélever les quantités dans les emplacements source ci-dessous, faire valider tout écart avant transfert,
+                            déplacer le stock vers l’emplacement de destination, puis compléter les zones de signature.
+                        </div>
+
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Désignation</th>
+                                    <th class="text-end">Qté demandé</th>
+                                    <th>Emplacement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="line">
+                                    <td><span t-esc="line_index + 1"/></td>
+                                    <td>
+                                        <strong t-field="line.product_id"/>
+                                        <div class="muted" t-if="line.product_id.default_code">
+                                            Code : <span t-field="line.product_id.default_code"/>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <strong t-esc="line._format_packaging_quantity(line.quantity_requested)"/>
+                                    </td>
+                                    <td>
+                                        <t t-if="line.allocation_ids">
+                                            <div t-foreach="line.allocation_ids" t-as="alloc">
+                                                <strong t-field="alloc.source_location_id"/>
+                                            </div>
+                                        </t>
+                                        <span t-else="" class="muted">Aucune source allouée</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt16">
+                            <div class="col-12">
+                                <div class="info-card">
+                                    <h4>Commentaires / consignes particulières</h4>
+                                    <p t-if="o.comments" t-field="o.comments"/>
+                                    <p t-else="" class="muted">Aucun commentaire renseigné.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt16">
+                            <div class="col-3">
+                                <div class="signature-box">
+                                    <strong>Demandé par</strong>
+                                    <div class="signature-line"/>
+                                    <div>Nom : <span t-field="o.requester_id"/></div>
+                                    <div>Date :</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="signature-box">
+                                    <strong>Préparé / prélevé par</strong>
+                                    <div class="signature-line"/>
+                                    <div>Nom :</div>
+                                    <div>Date :</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="signature-box">
+                                    <strong>Approuvé / contrôlé par</strong>
+                                    <div class="signature-line"/>
+                                    <div>Nom :</div>
+                                    <div>Date :</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="signature-box">
+                                    <strong>Réceptionné par</strong>
+                                    <div class="signature-line"/>
+                                    <div>Nom :</div>
+                                    <div>Date :</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

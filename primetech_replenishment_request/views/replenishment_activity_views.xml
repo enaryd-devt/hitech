@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><record id="view_replenishment_request_activity" model="ir.ui.view"><field name="name">replenishment.request.activity</field><field name="model">replenishment.request</field><field name="arch" type="xml"><activity string="Demande de réapprovisionnement"><field name="name"/><templates><div t-name="activity-box"><field name="name" display="full"/><field name="destination_location_id" muted="1"/></div></templates></activity></field></record></odoo>

@@ -8,8 +8,10 @@ import { PosStore } from "@point_of_sale/app/store/pos_store";
 import { ProductCard } from "@point_of_sale/app/generic_components/product_card/product_card";
 import { CategorySelector } from "@point_of_sale/app/generic_components/category_selector/category_selector";
 import { PosOrderline } from "@point_of_sale/app/models/pos_order_line";
+import { PosOrder } from "@point_of_sale/app/models/pos_order";
 import { OrderSummary } from "@point_of_sale/app/screens/product_screen/order_summary/order_summary";
 import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment_screen";
+import { OrderReceipt } from "@point_of_sale/app/screens/receipt_screen/receipt/order_receipt";
 
 const availableQuantity = (pos, product) => {
     if (!product?.is_storable || typeof product.qty_available !== "number") {
@@ -332,12 +334,34 @@ patch(OrderSummary.prototype, {
 
 patch(PaymentScreen.prototype, {
     async validateOrder() {
+        this.currentOrder.update({ primetech_cashier_name: this.pos.user.name });
         const soldProductIds = (this.currentOrder?.lines || []).map((line) => line.product_id?.id);
         const result = await super.validateOrder(...arguments);
         if (soldProductIds.length) {
             await this.pos.primetechRefreshProductsAvailability(soldProductIds);
         }
         return result;
+    },
+});
+
+patch(PosOrder.prototype, {
+    export_for_printing(baseUrl, headerData) {
+        const data = super.export_for_printing(...arguments);
+        data.seller_name = this.primetech_seller_name || this.getCashierName();
+        data.cashier_name = this.primetech_cashier_name || this.pos.user.name;
+        data.pos_config_name = this.config_id?.name || this.pos.config.name;
+        return data;
+    },
+});
+
+patch(OrderReceipt.prototype, {
+    primetechUnitPriceWithoutCurrency(value) {
+        // Owl templates do not support JavaScript regular-expression literals.
+        // Keep figures and their separators only; currency remains on totals.
+        return String(value || "")
+            .replace(/[^0-9\s,.'’-]/g, "")
+            .replace(/\s{2,}/g, " ")
+            .trim();
     },
 });
 

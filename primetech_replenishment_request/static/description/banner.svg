@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-label="Demandes de réapprovisionnement PrimeTech">
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171846"/><stop offset=".55" stop-color="#4b2bc1"/><stop offset="1" stop-color="#20a7e8"/></linearGradient>
+    <radialGradient id="glow" cx="80%" cy="20%" r="70%"><stop offset="0" stop-color="#ffffff" stop-opacity=".32"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1200" height="420" rx="46" fill="url(#b)"/>
+  <rect width="1200" height="420" rx="46" fill="url(#glow)"/>
+  <circle cx="980" cy="210" r="118" fill="#c7f3ff" opacity=".95" stroke="#191a50" stroke-width="18"/>
+  <path d="M1048 294l86 86" stroke="#5b2fd6" stroke-width="34" stroke-linecap="round"/>
+  <rect x="700" y="74" width="230" height="250" rx="26" fill="#fbfbff" stroke="#202250" stroke-width="9"/>
+  <path d="M742 154l18 18 36-46" fill="none" stroke="#0f70d7" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M742 224l18 18 36-46" fill="none" stroke="#0f70d7" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="124" y="190" width="116" height="104" rx="12" fill="#7b42e8"/>
+  <rect x="194" y="132" width="136" height="118" rx="12" fill="#9a62ff"/>
+  <path d="M320 257c-36 0-64 28-64 62 0 47 64 114 64 114s64-67 64-114c0-34-28-62-64-62z" fill="#6d31e6" stroke="#fff" stroke-width="10"/>
+  <text x="74" y="128" font-family="DejaVu Sans, Arial, sans-serif" font-size="54" font-weight="800" fill="#fff">Demandes de réapprovisionnement</text>
+  <text x="76" y="176" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="700" fill="#d7f2ff">PrimeTech Inventory Suite · Workflow interne moderne et professionnel</text>
+</svg>

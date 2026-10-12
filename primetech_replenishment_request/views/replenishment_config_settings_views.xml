@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_replenishment_config_settings" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.replenishment</field>
+        <field name="model">res.config.settings</field>
+        <field name="arch" type="xml">
+            <form string="Paramètres de réapprovisionnement">
+                <app string="Réapprovisionnement" name="primetech_replenishment_request" logo="/primetech_replenishment_request/static/description/icon.svg">
+                    <block title="Flux opérationnel" name="replenishment_workflow">
+                        <setting string="Destination par défaut" help="Emplacement interne proposé automatiquement lors de la création d'une demande.">
+                            <field name="replenishment_default_destination_location_id"/>
+                        </setting>
+                        <setting string="Transferts automatiques" help="Valide automatiquement les transferts internes générés à l'approbation.">
+                            <field name="replenishment_auto_validate_transfers"/>
+                        </setting>
+                    </block>
+                </app>
+            </form>
+        </field>
+    </record>
+    <record id="action_replenishment_config_settings" model="ir.actions.act_window">
+        <field name="name">Paramètres de réapprovisionnement</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'primetech_replenishment_request'}</field>
+    </record>
+</odoo>

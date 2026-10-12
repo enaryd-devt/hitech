@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><record id="view_replenishment_request_kanban" model="ir.ui.view"><field name="name">replenishment.request.kanban</field><field name="model">replenishment.request</field><field name="arch" type="xml"><kanban default_group_by="state"><templates><t t-name="card"><field name="name"/><div><field name="destination_location_id"/></div><div><field name="requester_id"/></div><field name="state" widget="badge"/></t></templates></kanban></field></record></odoo>

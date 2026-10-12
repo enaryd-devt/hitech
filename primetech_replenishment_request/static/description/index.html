@@ -1,0 +1,108 @@
+<section class="oe_container" style="font-family:Arial, sans-serif;color:#263238;">
+    <div class="text-center" style="padding:24px 0;">
+        <img src="banner.svg" alt="Demandes de réapprovisionnement interne PrimeTech" style="width:100%;max-width:1024px;border-radius:24px;"/>
+        <h1 style="color:#171846;margin-top:24px;">Demandes de réapprovisionnement interne PrimeTech</h1>
+        <p class="lead">Un workflow complet pour demander, contrôler, approuver et tracer les réapprovisionnements entre emplacements internes dans Odoo 18.</p>
+        <span class="badge badge-primary" style="padding:8px 14px;margin:4px;">Odoo 18 Community</span>
+        <span class="badge badge-info" style="padding:8px 14px;margin:4px;">Inventaire</span>
+        <span class="badge badge-success" style="padding:8px 14px;margin:4px;">LGPL-3</span>
+    </div>
+</section>
+
+<section class="oe_container" style="padding:20px 0;">
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-3"><div class="card h-100 shadow-sm"><div class="card-body"><h3>Demandes structurées</h3><p>Brouillon, soumission, approbation et annulation avec historique dans le chatter.</p></div></div></div>
+        <div class="col-lg-4 col-md-6 mb-3"><div class="card h-100 shadow-sm"><div class="card-body"><h3>Allocation du stock</h3><p>Recherche des quantités disponibles et répartition entre plusieurs emplacements sources internes.</p></div></div></div>
+        <div class="col-lg-4 col-md-6 mb-3"><div class="card h-100 shadow-sm"><div class="card-body"><h3>Transferts intégrés</h3><p>Création de transferts internes regroupés par emplacement source, avec validation automatique configurable.</p></div></div></div>
+        <div class="col-lg-4 col-md-6 mb-3"><div class="card h-100 shadow-sm"><div class="card-body"><h3>Coût logistique</h3><p>Répartition facultative d'un coût de transfert par quantité, poids, volume ou parts égales.</p></div></div></div>
+        <div class="col-lg-4 col-md-6 mb-3"><div class="card h-100 shadow-sm"><div class="card-body"><h3>Pilotage</h3><p>Tableau de bord, vues liste, kanban, activité, filtres, boutons intelligents et indicateurs.</p></div></div></div>
+        <div class="col-lg-4 col-md-6 mb-3"><div class="card h-100 shadow-sm"><div class="card-body"><h3>Documents et alertes</h3><p>Rapport PDF, code-barres, signatures, e-mails, activités et pièces jointes.</p></div></div></div>
+    </div>
+</section>
+
+<section class="oe_container" style="padding:24px 0;">
+    <h2 style="color:#171846;">Prérequis et installation</h2>
+    <div class="alert alert-info"><strong>Dépendances installées automatiquement :</strong> Base, Discuss/Mail, Inventaire, Comptabilité de stock, Produits et Web.</div>
+    <ol style="line-height:1.8;">
+        <li>Copiez le dossier <code>primetech_replenishment_request</code> dans un chemin déclaré dans <code>addons_path</code>. Le nom du dossier doit rester inchangé.</li>
+        <li>Redémarrez le service Odoo, activez le mode développeur puis ouvrez <strong>Apps &gt; Mettre à jour la liste des applications</strong>.</li>
+        <li>Retirez le filtre « Apps » si nécessaire, recherchez <strong>Demandes de réapprovisionnement interne PrimeTech</strong>, puis cliquez sur <strong>Installer</strong>.</li>
+        <li>Attribuez au moins un rôle Réapprovisionnement aux utilisateurs concernés avant la mise en production.</li>
+        <li>Ouvrez <strong>Réapprovisionnement &gt; Configuration</strong>, choisissez la destination par défaut et décidez si les transferts doivent être validés automatiquement.</li>
+    </ol>
+    <p><strong>Mise à jour :</strong> sauvegardez la base, remplacez les sources, redémarrez Odoo puis mettez le module à niveau avec <code>-u primetech_replenishment_request -d NOM_BASE</code>. Testez d'abord sur une copie de la base.</p>
+</section>
+
+<section class="oe_container" style="padding:24px 0;">
+    <h2 style="color:#171846;">Configuration initiale</h2>
+    <div class="table-responsive"><table class="table table-bordered table-striped">
+        <thead class="thead-dark"><tr><th>Réglage</th><th>Conseil</th><th>Effet</th></tr></thead>
+        <tbody>
+            <tr><td>Emplacement de destination par défaut</td><td>Sélectionnez un emplacement interne réellement utilisé par la boutique ou le service demandeur.</td><td>Il est proposé automatiquement à la création; l'utilisateur peut le modifier tant que la demande est en brouillon.</td></tr>
+            <tr><td>Validation automatique des transferts</td><td>Activez-la uniquement si l'approbation doit constater immédiatement le mouvement physique.</td><td>Activée : les quantités faites sont renseignées et les transferts sont validés. Désactivée : les transferts restent à traiter dans Inventaire.</td></tr>
+            <tr><td>Entrepôts autorisés</td><td>Limitez chaque responsable et magasinier à son périmètre opérationnel.</td><td>Les règles d'enregistrement filtrent les demandes, lignes et allocations accessibles.</td></tr>
+            <tr><td>Stock disponible</td><td>Renseignez correctement emplacements, unités, conditionnements, poids et volume des produits.</td><td>Ces données déterminent les sources proposées, les allocations et la répartition éventuelle du coût.</td></tr>
+        </tbody>
+    </table></div>
+</section>
+
+<section class="oe_container" style="padding:24px 0;">
+    <h2 style="color:#171846;">Rôles et droits</h2>
+    <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr><th>Rôle</th><th>Utilisation prévue</th><th>Droits principaux</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Utilisateur</strong></td><td>Demandeur boutique/service</td><td>Crée et soumet ses demandes, consulte celles dont il est demandeur ou abonné, et peut les annuler avant approbation.</td></tr>
+            <tr><td><strong>Responsable</strong></td><td>Validateur du besoin</td><td>Accède à son périmètre d'entrepôts, approuve et peut remettre une demande soumise ou annulée en brouillon pour correction.</td></tr>
+            <tr><td><strong>Magasinier</strong></td><td>Exécution logistique</td><td>Consulte les demandes autorisées et peut approuver/transférer; il ne peut pas remettre une demande en brouillon.</td></tr>
+            <tr><td><strong>Administrateur</strong></td><td>Paramétrage et maintenance</td><td>Configure le module et dispose des accès techniques complets.</td></tr>
+        </tbody>
+    </table></div>
+    <div class="alert alert-warning"><strong>Important :</strong> le retour en brouillon est refusé si un transfert est déjà lié à la demande. Cette protection évite qu'une correction documentaire ne désynchronise les mouvements de stock.</div>
+</section>
+
+<section class="oe_container" style="padding:24px 0;">
+    <h2 style="color:#171846;">Guide d'utilisation</h2>
+    <ol style="line-height:1.8;">
+        <li><strong>Créer :</strong> ouvrez <em>Appro boutique / demandes</em>, créez une demande et vérifiez la destination.</li>
+        <li><strong>Renseigner :</strong> ajoutez les produits, quantités, conditionnements et éventuellement un emplacement source. Le module calcule la disponibilité et les allocations.</li>
+        <li><strong>Contrôler :</strong> traitez les lignes signalées comme partielles ou indisponibles. Une approbation exige un stock suffisant.</li>
+        <li><strong>Coût facultatif :</strong> activez « Définir le coût de transfert », saisissez un montant positif et choisissez la méthode de répartition.</li>
+        <li><strong>Soumettre :</strong> la demande passe à « À approuver », ses données deviennent en lecture seule et les responsables reçoivent une activité.</li>
+        <li><strong>Corriger :</strong> un responsable utilise « Remettre en brouillon », effectue les ajustements puis soumet à nouveau.</li>
+        <li><strong>Approuver :</strong> le responsable ou le magasinier approuve. Odoo génère un transfert par emplacement source et applique le réglage de validation automatique.</li>
+        <li><strong>Suivre :</strong> utilisez les boutons Transferts, Historique et Pièces jointes, le tableau de bord et le rapport PDF.</li>
+        <li><strong>Annuler :</strong> indiquez obligatoirement un motif; il est conservé dans le chatter. L'état Annulée apparaît alors dans la barre d'état.</li>
+    </ol>
+</section>
+
+<section class="oe_container" style="padding:24px 0;">
+    <h2 style="color:#171846;">Impact sur les modules Odoo existants</h2>
+    <div class="table-responsive"><table class="table table-bordered table-hover">
+        <thead><tr><th>Module</th><th>Intégration</th><th>Impact opérationnel</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Inventaire (stock)</strong></td><td>Réutilise produits, unités, conditionnements, entrepôts, emplacements, quants, mouvements et transferts internes.</td><td>L'approbation crée de vrais <code>stock.picking</code> et <code>stock.move</code>. Si l'auto-validation est active, le stock disponible est déplacé immédiatement.</td></tr>
+            <tr><td><strong>Comptabilité de stock (stock_account)</strong></td><td>Crée, lorsque demandé, des couches de valorisation dédiées au coût logistique après réalisation des transferts.</td><td>Le coût saisi peut affecter la valorisation de stock. Validez la méthode comptable avec votre responsable financier avant activation.</td></tr>
+            <tr><td><strong>Produits (product)</strong></td><td>Lit les unités, conditionnements, poids et volume.</td><td>Aucune fiche produit n'est remplacée; la qualité de ces données influence les calculs d'allocation et de coût.</td></tr>
+            <tr><td><strong>Discuss/Mail</strong></td><td>Ajoute chatter, suivi des états, activités et notifications électroniques.</td><td>De nouveaux messages, activités et e-mails peuvent être créés selon le workflow.</td></tr>
+            <tr><td><strong>Web</strong></td><td>Ajoute menus, tableau de bord et vues de gestion.</td><td>Aucune interface standard n'est remplacée; le module ajoute ses propres entrées et liens vers les transferts.</td></tr>
+        </tbody>
+    </table></div>
+    <p>Le module ajoute des modèles dédiés et des champs de liaison aux objets de stock. Il ne remplace pas les flux Achat, Vente ou Réapprovisionnement standard et ne crée ni commande fournisseur ni ordre de fabrication.</p>
+</section>
+
+<section class="oe_container" style="padding:24px 0;">
+    <h2 style="color:#171846;">Précautions de production</h2>
+    <ul style="line-height:1.8;">
+        <li>Testez le workflow avec un produit et deux emplacements sur une base de recette.</li>
+        <li>Définissez clairement qui est autorisé à approuver, car l'approbation peut déplacer et valoriser le stock.</li>
+        <li>Désactivez la validation automatique si la préparation physique doit être confirmée séparément par le magasin.</li>
+        <li>Ne désinstallez pas le module sans sauvegarde : la désinstallation supprime les modèles et données propres au module, tandis que les transferts de stock déjà créés peuvent rester dans Inventaire.</li>
+        <li>Après une mise à jour, contrôlez les droits, paramètres, vues et modèles d'e-mail sur une base de test.</li>
+    </ul>
+</section>
+
+<section class="oe_container text-center" style="padding:32px 0;border-top:1px solid #dfe3e8;">
+    <h2 style="color:#171846;">Support et diagnostic</h2>
+    <p>Pour toute demande de support, préparez la version d'Odoo, la version du module, l'état de la demande, sa référence, les journaux serveur et les étapes de reproduction. Ne transmettez jamais une base de production sans anonymisation et accord préalable.</p>
+    <p><strong>Éditeur :</strong> PrimeTech &nbsp;•&nbsp; <strong>Licence :</strong> LGPL-3 &nbsp;•&nbsp; <strong>Version cible :</strong> Odoo 18</p>
+</section>

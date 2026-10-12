@@ -120,7 +120,7 @@
     <t t-inherit="point_of_sale.Chrome" t-inherit-mode="extension" owl="1">
         <xpath expr="//div[contains(@class, 'pos-content')]" position="after">
             <footer class="primetech-pos-footer">
-                <button class="primetech-new-order" t-on-click="() => pos.add_new_order()" title="Créer une nouvelle commande">
+                <button t-if="pos.mainScreen.component &amp;&amp; pos.mainScreen.component.name === 'ProductScreen'" class="primetech-new-order" t-on-click="() => pos.add_new_order()" title="Créer une nouvelle commande">
                     <i class="fa fa-plus"/>
                 </button>
                 <div class="primetech-open-orders">
@@ -141,6 +141,78 @@
                 <span class="primetech-footer-location"><i class="fa fa-cubes me-2"/><b>Entrepôt de déstockage :</b><t t-esc="pos.pickingType.primetech_warehouse_name || 'Non défini'"/></span>
                 <span class="primetech-footer-location"><i class="fa fa-building me-2"/><b>Point de vente :</b><t t-esc="pos.config.name"/></span>
             </footer>
+        </xpath>
+    </t>
+
+    <!-- Full-width, print-friendly receipt.  The sale data remains Odoo's standard data. -->
+    <t t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'pos-receipt')]" position="replace">
+            <div class="pos-receipt primetech-hitech-receipt">
+                <t t-set="company" t-value="props.data.headerData.company"/>
+                <t t-set="taxTotals" t-value="props.data.taxTotals"/>
+
+                <header class="primetech-receipt-header">
+                    <div class="primetech-receipt-company">
+                        <img t-attf-src="/web/image?model=res.company&amp;id={{company.id}}&amp;field=logo" alt="Logo" class="primetech-receipt-logo"/>
+                        <strong t-if="company.name" t-esc="company.name"/>
+                        <span t-if="company.street" t-esc="company.street"/>
+                        <span t-if="company.city" t-esc="company.city"/>
+                        <span t-if="company.phone">Tél. : <t t-esc="company.phone"/></span>
+                        <span t-if="company.email" t-esc="company.email"/>
+                    </div>
+                    <div class="primetech-receipt-meta">
+                        <h2>TICKET DE VENTE</h2>
+                        <strong>N° : <t t-esc="props.data.headerData.trackingNumber or props.data.name"/></strong>
+                        <span t-esc="props.data.date"/>
+                        <span>Vendu par : <t t-esc="props.data.seller_name"/></span>
+                        <span>Encaissé par : <t t-esc="props.data.cashier_name"/></span>
+                        <span>Caisse : <t t-esc="props.data.pos_config_name"/></span>
+                        <span>Référence : <t t-esc="props.data.name"/></span>
+                    </div>
+                </header>
+
+                <table class="primetech-receipt-lines" t-if="props.data.orderlines?.length">
+                    <thead>
+                        <tr><th>#</th><th>DÉSIGNATION</th><th>QTÉ</th><th>P.U</th><th>MONTANT</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="props.data.orderlines" t-as="line" t-key="line_index">
+                            <td t-esc="line_index + 1"/>
+                            <td><strong t-esc="line.productName"/><small t-if="line.unit" t-esc="line.unit"/></td>
+                            <td t-esc="line.qty"/>
+                            <td t-esc="primetechUnitPriceWithoutCurrency(line.unitPrice)"/>
+                            <td><strong t-esc="line.price"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <section class="primetech-receipt-summary">
+                    <div><span>Sous-total</span><strong t-esc="props.formatCurrency(taxTotals.order_sign * taxTotals.order_total)"/></div>
+                    <div t-if="props.data.total_discount"><span>Remise</span><strong t-esc="props.formatCurrency(props.data.total_discount)"/></div>
+                    <div t-if="taxTotals.has_tax_groups"><span>TVA</span><strong t-esc="props.formatCurrency(props.data.amount_tax)"/></div>
+                </section>
+
+                <section class="primetech-receipt-total">
+                    <span t-if="props.data.is_paid">TOTAL PAYÉ</span>
+                    <span t-elif="props.data.amount_due and props.data.amount_due &gt; 0">RESTE À PAYER</span>
+                    <span t-else="">TOTAL À PAYER</span>
+                    <strong t-esc="props.formatCurrency(taxTotals.order_sign * taxTotals.order_total)"/>
+                </section>
+
+                <section class="primetech-receipt-payment" t-if="props.data.paymentlines?.length">
+                    <h3>MODE DE PAIEMENT</h3>
+                    <div t-foreach="props.data.paymentlines" t-as="line" t-key="line_index">
+                        <span t-esc="line.name"/><strong t-esc="props.formatCurrency(line.amount)"/>
+                    </div>
+                </section>
+
+                <footer class="primetech-receipt-footer">
+                    <strong>MERCI POUR VOTRE VISITE</strong>
+                    <span t-if="props.data.footer" t-esc="props.data.footer"/>
+                    <span t-esc="props.data.name"/>
+                    <span t-esc="props.data.date"/>
+                </footer>
+            </div>
         </xpath>
     </t>
 
