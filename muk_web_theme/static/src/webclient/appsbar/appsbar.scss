@@ -131,6 +131,27 @@
     --mk-sidebar-width: 180px;
 }
 
+// MuK AppsBar collapses a "large" sidebar to icons only at the Bootstrap md
+// breakpoint.  This leaves enough room for labels and avoids an unexplained
+// change of navigation at intermediate desktop widths.
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .mk_sidebar_type_large {
+        --mk-sidebar-width: 180px;
+
+        .mk_apps_sidebar_name {
+            display: inline !important;
+        }
+
+        .mk_apps_sidebar_icon {
+            margin-right: 10px !important;
+        }
+
+        .mk_apps_sidebar_logo {
+            display: block !important;
+        }
+    }
+}
+
 @keyframes mk-appbar-item-in {
     from { opacity: 0; transform: translateX(-7px); }
     to { opacity: 1; transform: translateX(0); }
