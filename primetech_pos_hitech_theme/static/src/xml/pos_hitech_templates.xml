@@ -23,7 +23,7 @@
             </button>
         </xpath>
         <xpath expr="//div[contains(@class, 'pos-centerheader')]" position="inside">
-            <button class="primetech-active-orders" t-on-click="() => this.pos.showScreen('TicketScreen')" title="Afficher les commandes actives">
+            <button t-if="!pos.primetechIsSeller()" class="primetech-active-orders" t-on-click="() => this.pos.showScreen('TicketScreen')" title="Afficher les commandes actives">
                 <i class="fa fa-shopping-bag"/>
                 <span>Commandes actives</span>
                 <b t-esc="orderCount"/>

@@ -25,6 +25,9 @@ const availableQuantity = (pos, product) => {
 };
 
 const canSellNegativeStock = (pos) => {
+    if (pos.primetechEmployeePermissions) {
+        return pos.primetechEmployeePermissions.can_sell_negative;
+    }
     if (!pos.config.primetech_allow_negative_stock_sale) {
         return false;
     }
@@ -39,6 +42,39 @@ const outOfStock = (pos, product, quantity = 1) =>
     product?.is_storable && !canSellNegativeStock(pos) && availableQuantity(pos, product) < quantity;
 
 patch(PosStore.prototype, {
+    set_cashier(employee) {
+        const result = super.set_cashier(...arguments);
+        this.primetechEmployeePermissions = false;
+        if (!employee?.id) {
+            return result;
+        }
+        this.data
+            .call("pos.config", "primetech_get_employee_pos_permissions", [this.config.id, employee.id])
+            .then((permissions) => {
+                this.primetechEmployeePermissions = permissions;
+                employee._role = permissions.role;
+                const order = this.get_order();
+                if (order) {
+                    order.uiState.primetechNegativeStockAllowed = permissions.can_sell_negative;
+                }
+            })
+            .catch(() => {
+                this.primetechEmployeePermissions = false;
+            });
+        return result;
+    },
+
+    showScreen(name, props) {
+        if (name === "TicketScreen" && this.primetechIsSeller()) {
+            this.env.services.notification.add(
+                "Le rôle vendeur ne peut pas consulter les anciennes commandes ni effectuer de retour.",
+                { type: "warning" }
+            );
+            return;
+        }
+        return super.showScreen(...arguments);
+    },
+
     async primetechAssignOrderReference(order) {
         const prefix = `${this.config.primetech_order_reference_prefix || "COM"}`.trim();
         const padding = Number(this.config.primetech_order_sequence_padding || 4);
@@ -99,6 +135,9 @@ patch(PosStore.prototype, {
     },
 
     primetechCanModifyPrice() {
+        if (this.primetechEmployeePermissions) {
+            return this.primetechEmployeePermissions.can_modify_price;
+        }
         const cashierId = this.get_cashier()?.id;
         const authorizedEmployeeIds = (this.config.primetech_authorized_employee_ids || []).map(
             (employee) => employee.id || employee
@@ -114,7 +153,7 @@ patch(PosStore.prototype, {
     },
 
     primetechIsSeller() {
-        return this.user?.raw?.role === "seller";
+        return (this.primetechEmployeePermissions?.role || this.get_cashier()?._role) === "seller";
     },
 
     async primetechSendOrder() {

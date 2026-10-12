@@ -590,7 +590,10 @@ class AccountMove(models.Model):
                 move.invoice_currency_rate = rate
 
     def action_post(self):
-        for move in self.filtered(lambda item: item.move_type in ("in_invoice", "out_invoice")):
+        for move in self.filtered(
+            lambda item: item.move_type in ("in_invoice", "out_invoice")
+            and not (item.move_type == "out_invoice" and item.pos_order_ids)
+        ):
             if move.move_type == "in_invoice":
                 missing = [
                     label for field, label in (
@@ -1033,6 +1036,13 @@ class AccountMove(models.Model):
     def _primetech_create_delivery_picking(self):
         """Create the outgoing delivery linked to one customer invoice."""
         self.ensure_one()
+        # A POS invoice already belongs to the delivery created by its POS
+        # order.  Link that delivery instead of generating a duplicate one.
+        if self.pos_order_ids:
+            pos_pickings = self.pos_order_ids.mapped("picking_ids")
+            if pos_pickings:
+                self.primetech_delivery_picking_ids = [(6, 0, pos_pickings.ids)]
+            return pos_pickings
         if self.primetech_delivery_picking_ids:
             return self._primetech_sync_linked_pickings("delivery")
         lines = self.invoice_line_ids.filtered(

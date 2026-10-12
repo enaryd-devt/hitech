@@ -72,3 +72,30 @@ class PosConfig(models.Model):
         # and keeps the POS bootstrap resilient to the installed extensions.
         fields_list = list(self._fields)
         return fields_list
+
+    @api.model
+    def primetech_get_employee_pos_permissions(self, config_id, employee_id):
+        """Return up-to-date POS permissions when an employee logs in."""
+        config = self.browse(config_id).exists()
+        employee = self.env["hr.employee"].browse(employee_id).exists()
+        if not config or not employee:
+            return {"role": "cashier", "can_modify_price": False, "can_sell_negative": False}
+
+        visible_employees = self.env["hr.employee"].search(
+            config._employee_domain(config.current_user_id.id)
+        )
+        if employee not in visible_employees:
+            return {"role": "cashier", "can_modify_price": False, "can_sell_negative": False}
+
+        if employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_cashier"):
+            role = "cashier"
+        elif employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_seller"):
+            role = "seller"
+        else:
+            role = "manager" if employee in config.advanced_employee_ids else "cashier"
+        return {
+            "role": role,
+            "can_modify_price": employee in config.primetech_authorized_employee_ids,
+            "can_sell_negative": bool(config.primetech_allow_negative_stock_sale)
+            and employee in config.primetech_negative_stock_authorized_employee_ids,
+        }
