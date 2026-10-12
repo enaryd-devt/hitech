@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- This form is the configuration opened from the three-dot menu of a
+         POS card on the dashboard.  Settings are intentionally stored per
+         point of sale, rather than in the global Settings wizard. -->
+    <record id="pos_config_view_form_primetech_hitech" model="ir.ui.view">
+        <field name="name">pos.config.view.form.primetech.hitech</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[field[@name='module_pos_hr']]" position="after">
+                <setting id="primetech_pos_price_authorization" string="Modification des prix" help="Seuls les employés sélectionnés peuvent modifier le prix d'un article dans cette caisse.">
+                    <field name="primetech_authorized_employee_ids" widget="many2many_tags" placeholder="Sélectionnez les employés autorisés"/>
+                </setting>
+                <setting id="primetech_pos_negative_stock" string="Vente en stock négatif" help="Autorisez des employés précis à vendre malgré un stock insuffisant pour cette caisse.">
+                    <field name="primetech_allow_negative_stock_sale"/>
+                    <div class="content-group mt16" invisible="not primetech_allow_negative_stock_sale">
+                        <field name="primetech_negative_stock_authorized_employee_ids" widget="many2many_tags" placeholder="Sélectionnez les employés autorisés"/>
+                    </div>
+                </setting>
+                <setting id="primetech_pos_order_sequence" string="Numérotation des commandes" help="Configurez la référence générée pour les commandes de cette caisse.">
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label for="primetech_order_reference_prefix" class="col-lg-4 o_light_label">Préfixe</label>
+                            <field name="primetech_order_reference_prefix" class="col-lg-3" placeholder="COM"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="primetech_order_sequence_padding" class="col-lg-4 o_light_label">Chiffres du compteur</label>
+                            <field name="primetech_order_sequence_padding" class="col-lg-3"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- The same fields used to be inserted in the global Settings wizard. -->
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="active">False</field>
+    </record>
+</odoo>

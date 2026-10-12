@@ -104,19 +104,41 @@ patch(PosStore.prototype, {
         return Boolean(cashierId && authorizedEmployeeIds.includes(cashierId));
     },
 
-    async setup() {
-        await super.setup(...arguments);
-        this.primetechAssignOrderReference(this.get_order());
-        this._primetechReservationSync = async (event) => {
-            const order = event.detail?.order;
-            if (order && !order.finalized) {
-                await this.syncAllOrders({ orders: [order] }).catch(() => {});
-                if (event.detail?.line?.product_id?.is_storable) {
-                    await this._primetechRefreshLineStock(event.detail.line);
-                }
-            }
-        };
-        window.addEventListener("primetech-pos-reservation-changed", this._primetechReservationSync);
+    cashierHasPriceControlRights() {
+        // The standard POS rule grants the right to managers only when price
+        // control is restricted.  Extend it with this POS-specific employee
+        // whitelist, used by the configuration form.
+        return super.cashierHasPriceControlRights(...arguments) || this.primetechCanModifyPrice();
+    },
+
+    primetechIsSeller() {
+        return this.user?.raw?.role === "seller";
+    },
+
+    async primetechSendOrder() {
+        const order = this.get_order();
+        if (!order || order.is_empty()) {
+            return false;
+        }
+        await this.primetechAssignOrderReference(order);
+        await this.syncAllOrders({ orders: [order], throw: true });
+        this.env.services.notification.add(
+            "Commande envoyée pour encaissement.",
+            { type: "success" }
+        );
+        this.add_new_order();
+        return true;
+    },
+
+    async pay() {
+        if (this.primetechIsSeller()) {
+            this.env.services.notification.add(
+                "Un vendeur doit envoyer la commande à un utilisateur POS pour l'encaissement.",
+                { type: "warning" }
+            );
+            return false;
+        }
+        return await super.pay(...arguments);
     },
 
     add_new_order(data = {}) {
@@ -296,7 +318,7 @@ patch(OrderSummary.prototype, {
     async setLinePrice(line, price) {
         const newPrice = Number(price);
         if (Number.isFinite(newPrice) && newPrice !== line.get_unit_price()) {
-            if (!this.pos.primetechCanModifyPrice()) {
+            if (!this.pos.cashierHasPriceControlRights()) {
                 this.env.services.notification.add(
                     "Vous n'êtes pas autorisé à modifier le prix d'un article.",
                     { type: "danger" }

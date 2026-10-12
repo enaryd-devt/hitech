@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="group_pos_seller" model="res.groups">
+        <field name="name">Vendeur POS</field>
+        <field name="category_id" ref="base.module_category_sales_point_of_sale"/>
+        <field name="implied_ids" eval="[(4, ref('point_of_sale.group_pos_user'))]"/>
+        <field name="comment">Peut préparer et envoyer les commandes à encaisser, sans accéder au paiement.</field>
+    </record>
+    <record id="group_pos_cashier" model="res.groups">
+        <field name="name">Caissier POS</field>
+        <field name="category_id" ref="base.module_category_sales_point_of_sale"/>
+        <field name="implied_ids" eval="[(4, ref('point_of_sale.group_pos_user'))]"/>
+        <field name="comment">Peut recevoir les commandes envoyées, encaisser les paiements et imprimer les tickets.</field>
+    </record>
+</odoo>

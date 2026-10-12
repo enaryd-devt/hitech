@@ -3,10 +3,22 @@
 import re
 
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class PosOrder(models.Model):
     _inherit = "pos.order"
+
+    @api.model
+    def sync_from_ui(self, orders):
+        """A seller may submit a draft order, but cannot record a payment."""
+        if self.env.user.has_group("primetech_pos_hitech_theme.group_pos_seller"):
+            for order in orders:
+                if order.get("state") != "draft" or order.get("payment_ids"):
+                    raise UserError(
+                        "Un vendeur peut uniquement envoyer une commande brouillon pour encaissement."
+                    )
+        return super().sync_from_ui(orders)
 
     @api.model
     def primetech_next_reference(self, config_id=False):

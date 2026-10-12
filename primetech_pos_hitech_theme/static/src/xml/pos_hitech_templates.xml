@@ -59,6 +59,31 @@
                 </div>
             </div>
         </xpath>
+        <xpath expr="//button[contains(@class, 'pay-button')]" position="replace">
+            <button t-if="!pos.scanning and pos.primetechIsSeller()" class="btn-switchpane pay-button btn btn-lg flex-fill btn-secondary" disabled="disabled" title="Le paiement est réservé à l'utilisateur POS">
+                <span class="d-block">Paiement</span>
+                <span t-esc="total" />
+            </button>
+            <button t-if="!pos.scanning and pos.primetechIsSeller()" class="btn-switchpane btn btn-lg flex-fill btn-primary" t-att-disabled="currentOrder.is_empty()" t-on-click="() => pos.primetechSendOrder()">
+                <span class="d-block">Envoyer</span>
+                <span t-esc="total" />
+            </button>
+            <button t-if="!pos.scanning and !pos.primetechIsSeller()" class="btn-switchpane pay-button btn btn-lg w-50" t-attf-class="{{ currentOrder.is_empty() ? 'btn-secondary' : 'btn-primary' }}" t-on-click="() => pos.pay()">
+                <span class="d-block">Pay</span>
+                <span t-esc="total" />
+            </button>
+        </xpath>
+        <xpath expr="//button[contains(@class, 'review-button')]" position="attributes">
+            <attribute name="t-att-class">pos.primetechIsSeller() ? 'btn-switchpane btn btn-secondary review-button flex-fill' : 'btn-switchpane btn btn-secondary review-button w-50'</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ActionpadWidget" t-inherit-mode="extension" owl="1">
+        <xpath expr="//button[contains(@class, 'pay-order-button')]" position="replace">
+            <button t-if="pos.primetechIsSeller()" class="pay-order-button button btn btn-secondary btn-lg py-3 d-flex align-items-center justify-content-center flex-fill" disabled="disabled" title="Le paiement est réservé à l'utilisateur POS">Paiement</button>
+            <button t-if="pos.primetechIsSeller()" class="button btn btn-primary btn-lg py-3 d-flex align-items-center justify-content-center flex-fill" t-on-click="() => pos.primetechSendOrder()">Envoyer</button>
+            <button t-if="!pos.primetechIsSeller()" class="pay pay-order-button button btn btn-primary btn-lg py-3 d-flex align-items-center justify-content-center flex-fill" t-on-click="props.actionToTrigger" t-esc="props.actionName"/>
+        </xpath>
     </t>
 
     <t t-inherit="point_of_sale.ProductCard" t-inherit-mode="extension" owl="1">

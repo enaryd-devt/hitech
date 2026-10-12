@@ -699,6 +699,10 @@ class AccountMove(models.Model):
         )
         picking = self.env["stock.picking"].create({
             "picking_type_id": picking_type.id,
+            # The invoice context contains ``move_type=out_invoice``.  This
+            # is valid for account.move but not for stock.picking, whose
+            # move_type only accepts ``direct`` or ``one``.
+            "move_type": "direct",
             "partner_id": self.partner_id.id,
             "origin": self.name or self.ref,
             "location_id": source.id,
@@ -770,6 +774,7 @@ class AccountMove(models.Model):
             return self.env["stock.picking"]
         picking = self.env["stock.picking"].create({
             "picking_type_id": picking_type.id,
+            "move_type": "direct",
             "partner_id": self.partner_id.id,
             "origin": "%s — %s" % (self.name or self.ref, suffix),
             "location_id": source.id,
@@ -1053,6 +1058,7 @@ class AccountMove(models.Model):
             ))
         picking = self.env["stock.picking"].create({
             "picking_type_id": picking_type.id,
+            "move_type": "direct",
             "partner_id": self.partner_id.id,
             "origin": self.name or self.ref,
             "location_id": source.id,
