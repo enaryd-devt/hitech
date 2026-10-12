@@ -13,14 +13,6 @@ class PosOrder(models.Model):
     primetech_cashier_name = fields.Char(string="Encaissé par", readonly=True, copy=False)
 
     @api.model
-    def _load_pos_data_fields(self, config_id):
-        fields_to_load = super()._load_pos_data_fields(config_id)
-        for field_name in ("primetech_seller_name", "primetech_cashier_name"):
-            if field_name not in fields_to_load:
-                fields_to_load.append(field_name)
-        return fields_to_load
-
-    @api.model
     def _process_order(self, order, existing_order):
         """Keep the seller and the cashier separately on the POS order."""
         if not existing_order:
