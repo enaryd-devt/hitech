@@ -11,6 +11,8 @@ class StockMovementReport(models.AbstractModel):
     def get_report_data(self, filters):
         MoveLine = self.env['stock.move.line']
         domain = []
+        if filters.get('company_id'):
+            domain.append(('company_id', '=', filters['company_id']))
         if filters.get('date_from'):
             domain.append(('date', '>=', filters['date_from']))
         if filters.get('date_to'):
@@ -23,6 +25,10 @@ class StockMovementReport(models.AbstractModel):
             domain.append(('lot_id', 'in', filters['lot_ids']))
         if filters.get('supplier_ids'):
             domain.append(('move_id.partner_id', 'in', filters['supplier_ids']))
+        if filters.get('warehouse_ids'):
+            domain.append(('location_id.warehouse_id', 'in', filters['warehouse_ids']))
+        if filters.get('delivery_only'):
+            domain.append(('location_dest_id.usage', '=', 'customer'))
         if filters.get('validated_only'):
             domain.append(('state', '=', 'done'))
         move_lines = MoveLine.search(domain, order='\n                product_id,\n                date,\n                id\n            ')
@@ -42,7 +48,11 @@ class StockMovementReport(models.AbstractModel):
             product_id = (supplier_group, product.id) if filters.get('group_by_supplier') else product.id
             if product_id not in products:
                 products_count += 1
-                products[product_id] = {'product_id': product.id, 'product_name': product.name, 'default_code': product.default_code or '', 'category_name': product.categ_id.name or '', 'uom_name': product.uom_id.name or '', 'cost': product.standard_price, 'lines': [], 'total_in': 0.0, 'total_out': 0.0, 'balance': 0.0, 'valuation': 0.0}
+                stock_context = {'to_date': filters.get('date_to')}
+                if len(filters.get('warehouse_ids', [])) == 1:
+                    stock_context['warehouse_id'] = filters['warehouse_ids'][0]
+                remaining = product.with_context(**stock_context).qty_available
+                products[product_id] = {'product_id': product.id, 'product_name': product.name, 'default_code': product.default_code or '', 'category_name': product.categ_id.name or '', 'uom_name': product.uom_id.name or '', 'cost': product.standard_price, 'lines': [], 'total_in': 0.0, 'total_out': 0.0, 'balance': 0.0, 'stock_remaining': remaining, 'valuation': remaining * product.standard_price}
             product_data = products[product_id]
             qty = abs(line.quantity or line.qty_done or 0.0)
             lot_name = line.lot_id.name if line.lot_id else 'SANS LOT'

@@ -3,6 +3,7 @@
   <!-- MENU RACINE -->
   <menuitem id="menu_primetech_reporting_root" name="Reporting" web_icon="primetech_reporting_center,static/description/icon.png" groups="primetech_reporting_center.group_reporting_dashboard,primetech_reporting_center.group_reporting_accounting,primetech_reporting_center.group_reporting_sales,primetech_reporting_center.group_reporting_purchase,primetech_reporting_center.group_reporting_stock,primetech_reporting_center.group_reporting_hr,primetech_reporting_center.group_reporting_manager,base.group_system" sequence="10"/>
   <!-- DASHBOARD -->
+  <menuitem id="menu_primetech_reporting_home" name="Accueil" parent="menu_primetech_reporting_root" action="action_reporting_home" groups="primetech_reporting_center.group_reporting_home" sequence="2"/>
   <menuitem id="menu_primetech_reporting_dashboard" name="Tableau de bord exécutif" parent="menu_primetech_reporting_root" action="action_primetech_reporting_dashboard" groups="primetech_reporting_center.group_reporting_dashboard,primetech_reporting_center.group_reporting_manager" sequence="1"/>
   <!-- COMPTABILITE -->
   <menuitem id="menu_primetech_reporting_accounting" name="Comptabilité" parent="menu_primetech_reporting_root" groups="primetech_reporting_center.group_reporting_accounting,primetech_reporting_center.group_reporting_manager" sequence="10"/>

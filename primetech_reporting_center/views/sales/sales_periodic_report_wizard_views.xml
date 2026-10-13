@@ -39,6 +39,8 @@
               <field name="partner_id" options="{'no_create': True}"/>
             </group>
           </group>
+          <separator string="Périmètre de stock"/>
+          <group><field name="warehouse_ids" widget="many2many_tags" options="{'no_create': True}"/><div class="o_form_label text-muted">Le stock restant est calculé à la fin de la période pour les entrepôts sélectionnés. Sans sélection, le stock global est affiché.</div></group>
           <separator string="État des Documents"/>
           <group>
             <field name="state_filter" widget="radio"/>

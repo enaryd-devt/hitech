@@ -48,7 +48,7 @@ class StockMovementXlsx(models.AbstractModel):
             sheet.write(row, 0, 'TOTAL ARTICLE', total_format)
             sheet.write_number(row, 6, product['total_in'], total_format)
             sheet.write_number(row, 7, product['total_out'], total_format)
-            sheet.write_number(row, 8, product['balance'], total_format)
+            sheet.write_number(row, 8, product.get('stock_remaining', product['balance']), total_format)
             sheet.write_number(row, 10, product['valuation'], total_format)
             row += 3
         sheet.set_column('A:A', 18)

@@ -4,3 +4,4 @@ from . import stock_card
 from . import stock_valuation
 from . import stock_inventory
 from . import stock_movement
+from . import customer_delivery_report

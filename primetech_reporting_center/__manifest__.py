@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "PrimeTech Reporting Center",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.3.13",
     "category": "Reporting",
     "summary": "Tableaux de bord et rapports PDF/XLSX pour piloter l'entreprise",
     "description": """
@@ -269,6 +269,7 @@ de configuration, d'utilisation, de sécurité, de mise à jour et de désinstal
         "views/stock/stock_valuation_wizard_views.xml",
         "views/stock/stock_movement_action.xml",
         "views/stock/stock_movement_wizard_views.xml",
+        "views/stock/customer_delivery_wizard_views.xml",
         "views/stock/stock_inventory_action.xml",
         "views/stock/stock_inventory_wizard_views.xml",
 
@@ -278,6 +279,7 @@ de configuration, d'utilisation, de sécurité, de mise à jour et de désinstal
         "report/preview/stock/stock_valuation_preview.xml",
         "report/preview/stock/stock_inventory_preview.xml",
         "report/preview/stock/stock_movement_preview.xml",
+        "report/preview/stock/customer_delivery_preview.xml",
 
         # PDF
         "report/pdf/stock/stock_status_report.xml",
@@ -290,6 +292,8 @@ de configuration, d'utilisation, de sécurité, de mise à jour et de désinstal
         "report/pdf/stock/stock_inventory_pdf_template.xml",
         "report/pdf/stock/stock_movement_report.xml",
         "report/pdf/stock/stock_movement_pdf_template.xml",
+        "report/pdf/stock/customer_delivery_report.xml",
+        "report/pdf/stock/customer_delivery_pdf_template.xml",
 
         # XLSX
         "report/xlsx/stock/stock_status_xlsx.xml",
@@ -297,6 +301,7 @@ de configuration, d'utilisation, de sécurité, de mise à jour et de désinstal
         "report/xlsx/stock/stock_valuation_xlsx.xml",
         "report/xlsx/stock/stock_inventory_xlsx.xml",
         "report/xlsx/stock/stock_movement_xlsx.xml",
+        "report/xlsx/stock/customer_delivery_xlsx.xml",
 
         # =====================================================
         # MENU

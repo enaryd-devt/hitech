@@ -4,3 +4,4 @@ from . import stock_card_wizard
 from . import stock_valuation_wizard
 from . import stock_inventory_wizard
 from . import stock_movement_wizard
+from . import customer_delivery_wizard

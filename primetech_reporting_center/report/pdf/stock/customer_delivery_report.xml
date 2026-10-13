@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><record id="action_customer_delivery_pdf" model="ir.actions.report"><field name="name">Produits déstockés / livrés</field><field name="model">pt.customer.delivery.wizard</field><field name="report_type">qweb-pdf</field><field name="report_name">primetech_reporting_center.customer_delivery_pdf</field><field name="report_file">primetech_reporting_center.customer_delivery_pdf</field><field name="binding_model_id" ref="model_pt_customer_delivery_wizard"/></record></odoo>

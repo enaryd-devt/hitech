@@ -6,3 +6,5 @@ from . import purchase
 from . import stock
 from . import hr
 from . import res_groups
+from . import res_users
+from . import reporting_home

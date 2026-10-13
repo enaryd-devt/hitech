@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
   <!-- La vue d'ensemble des ventes est retirée du menu. -->
-  <delete id="menu_sales_dashboard" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- ANALYSE -->
   <!-- ===================================================== -->

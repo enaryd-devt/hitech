@@ -9,4 +9,11 @@
     <field name="view_mode">form</field>
     <field name="target">new</field>
   </record>
+  <record id="action_stock_delivery_wizard" model="ir.actions.act_window">
+    <field name="name">Produits déstockés / livrés</field>
+    <field name="res_model">pt.stock.movement.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+    <field name="context">{'default_delivery_only': True}</field>
+  </record>
 </odoo>

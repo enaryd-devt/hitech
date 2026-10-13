@@ -34,6 +34,9 @@
               </td>
             </tr>
           </table>
+          <div style="background:#0f4c5c; color:white; padding:11px 14px; font-weight:bold; margin:16px 0 0; border-radius:6px 6px 0 0;">SYNTHÈSE PAR ARTICLE — STOCK À LA FIN DE PÉRIODE</div>
+          <div style="padding:7px 12px; background:#eef7f8; border:1px solid #b9dfe3; font-size:10px;"><strong>Entrepôt(s) d'étude :</strong> <t t-if="report_data.get('warehouse_names')"><t t-esc="', '.join(report_data['warehouse_names'])"/></t><t t-else="">Tous les entrepôts de la société</t></div>
+          <table style="width:100%; border-collapse:collapse; margin:0 0 20px;"><thead><tr><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:left;">Article</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Quantité vendue</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Stock restant au <t t-esc="wizard.date_to"/></th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">CA HT</th></tr></thead><tbody><t t-foreach="product_summary" t-as="product"><tr><td style="border:1px solid #d9e3e5;padding:6px;"><t t-esc="product['product']"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.2f}'.format(product['qty'])"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;font-weight:bold;"><t t-out="'{:,.2f}'.format(product.get('stock_remaining', 0.0))"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(product['ht'])"/> FCFA</td></tr></t></tbody></table>
           <!-- ===================================== -->
           <!-- DETAIL VENTES -->
           <!-- ===================================== -->
@@ -229,13 +232,8 @@
               </t>
             </tbody>
           </table>
-          <!-- ===================================== -->
-          <!-- SYNTHESE ARTICLE -->
-          <!-- ===================================== -->
-          <div style="background:#2f2f2f; color:white; padding:8px; font-weight:bold; margin-bottom:5px;">
-                        SYNTHÈSE PAR ARTICLE
-                    </div>
-          <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+          <!-- La synthèse par article est affichée en tête de rapport. -->
+          <table t-if="False" style="width:100%; border-collapse:collapse; margin-bottom:30px;">
             <thead>
               <tr>
                 <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
@@ -243,6 +241,9 @@
                                 </th>
                 <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
                                     Quantité Vendue
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Stock restant au <t t-esc="wizard.date_to"/>
                                 </th>
                 <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
                                     CA HT
@@ -257,6 +258,9 @@
                   </td>
                   <td style="border:1px solid #ccc;padding:5px;text-align:center;">
                     <t t-esc="product['qty']"/>
+                  </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:center;">
+                    <t t-esc="product.get('stock_remaining', 0.0)"/>
                   </td>
                   <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(product['ht'])"/>
                                         FCFA

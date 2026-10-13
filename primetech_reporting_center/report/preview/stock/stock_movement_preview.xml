@@ -124,7 +124,7 @@
                                 </strong>
               </td>
               <td>
-                <t t-esc="product['balance']"/>
+                <t t-esc="product.get('stock_remaining', product['balance'])"/>
               </td>
               <td>
                 <strong>
@@ -283,7 +283,7 @@
 
                             </td>
               <td style="border:1px solid black; padding:8px; text-align:right;">
-                <t t-out="'{:,.2f}'.format( product['balance'] )"/>
+                <t t-out="'{:,.2f}'.format( product.get('stock_remaining', product['balance']) )"/>
               </td>
               <td style="border:1px solid black; padding:8px; font-weight:bold; background:#f2f2f2;">
 

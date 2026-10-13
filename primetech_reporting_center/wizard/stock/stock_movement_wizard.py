@@ -18,10 +18,11 @@ class StockMovementWizard(models.TransientModel):
     show_valuation = fields.Boolean(string='Afficher la valorisation', default=True)
     validated_only = fields.Boolean(string='Mouvements validés uniquement', default=True)
     observations = fields.Text(string='Observations')
+    delivery_only = fields.Boolean(default=lambda self: self.env.context.get('default_delivery_only', False))
 
     def _prepare_filters(self):
         self.ensure_one()
-        return {'company_id': self.company_id.id, 'date_from': self.date_from, 'date_to': self.date_to, 'warehouse_ids': self.warehouse_ids.ids, 'category_ids': self.category_ids.ids, 'product_ids': self.product_ids.ids, 'supplier_ids': self.supplier_ids.ids, 'group_by_supplier': self.group_by_supplier, 'lot_ids': self.lot_ids.ids, 'show_cost': self.show_cost, 'show_valuation': self.show_valuation, 'validated_only': self.validated_only, 'observations': self.observations}
+        return {'company_id': self.company_id.id, 'date_from': self.date_from, 'date_to': self.date_to, 'warehouse_ids': self.warehouse_ids.ids, 'category_ids': self.category_ids.ids, 'product_ids': self.product_ids.ids, 'supplier_ids': self.supplier_ids.ids, 'group_by_supplier': self.group_by_supplier, 'lot_ids': self.lot_ids.ids, 'show_cost': self.show_cost, 'show_valuation': self.show_valuation, 'validated_only': self.validated_only, 'delivery_only': self.delivery_only, 'observations': self.observations}
 
     def action_preview(self):
         self.ensure_one()

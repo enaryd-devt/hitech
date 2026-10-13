@@ -1,9 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-  <delete id="primetech_reporting_center.menu_logistics_command_center" model="ir.ui.menu"/>
-  <delete id="primetech_reporting_center.action_logistics_command_center" model="ir.actions.client"/>
   <!-- La vue d'ensemble du stock est retirée du menu. -->
-  <delete id="menu_stock_dashboard" model="ir.ui.menu"/>
   <!-- ===================================================== -->
   <!-- ANALYSE -->
   <!-- ===================================================== -->
@@ -17,4 +14,5 @@
   <!-- ===================================================== -->
   <menuitem id="menu_stock_operations_root" name="Mouvements" parent="menu_primetech_reporting_stock" sequence="30"/>
   <menuitem id="menu_stock_movements" name="Mouvements de Stock" parent="menu_stock_operations_root" action="action_stock_movement_wizard" sequence="10"/>
+  <menuitem id="menu_stock_customer_deliveries" name="Produits déstockés / livrés" parent="menu_stock_operations_root" action="action_customer_delivery_wizard" sequence="20"/>
 </odoo>

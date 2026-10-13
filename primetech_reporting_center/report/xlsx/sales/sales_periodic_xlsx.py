@@ -12,7 +12,7 @@ class SalesPeriodicXlsx(models.AbstractModel):
         header = workbook.add_format({'bold': True, 'border': 1, 'align': 'center'})
         cell = workbook.add_format({'border': 1})
         money = workbook.add_format({'border': 1, 'num_format': '#,##0.00'})
-        report_data = self.env['primetech.sales.periodic.report'].get_report_data(date_from=wizard.date_from, date_to=wizard.date_to, company_id=wizard.company_id.id, user_id=wizard.user_id.id if wizard.user_id else False, partner_id=wizard.partner_id.id if wizard.partner_id else False, state_filter=wizard.state_filter)
+        report_data = self.env['primetech.sales.periodic.report'].get_report_data(date_from=wizard.date_from, date_to=wizard.date_to, company_id=wizard.company_id.id, user_id=wizard.user_id.id if wizard.user_id else False, partner_id=wizard.partner_id.id if wizard.partner_id else False, warehouse_ids=wizard.warehouse_ids.ids, state_filter=wizard.state_filter)
         summary = report_data['summary']
         row = 0
         sheet.merge_range(row, 0, row, 8, 'RAPPORT PERIODIQUE DES VENTES', title)

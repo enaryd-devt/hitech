@@ -2,6 +2,7 @@
 <odoo>
   <!-- Technical groups: used by access rules and menus, never selected manually. -->
   <record id="group_reporting_dashboard" model="res.groups"><field name="name">Reporting technical - Dashboard</field><field name="category_id" eval="False"/></record>
+  <record id="group_reporting_home" model="res.groups"><field name="name">Reporting technical - Home</field><field name="category_id" eval="False"/></record>
   <record id="group_reporting_accounting" model="res.groups"><field name="name">Reporting technical - Accounting read</field><field name="category_id" eval="False"/></record>
   <record id="group_reporting_accounting_manager" model="res.groups"><field name="name">Reporting technical - Accounting manage</field><field name="category_id" eval="False"/><field name="implied_ids" eval="[(4, ref('group_reporting_accounting'))]"/></record>
   <record id="group_reporting_sales" model="res.groups"><field name="name">Reporting technical - Sales</field><field name="category_id" eval="False"/></record>
@@ -15,12 +16,12 @@
   <record id="group_reporting_manager" model="res.groups"><field name="name">Reporting technical - Full access</field><field name="category_id" eval="False"/><field name="implied_ids" eval="[(4, ref('group_reporting_dashboard')), (4, ref('group_reporting_accounting_manager')), (4, ref('group_reporting_sales')), (4, ref('group_reporting_purchase_manager')), (4, ref('group_reporting_stock_manager')), (4, ref('group_reporting_hr'))]"/></record>
 
   <!-- The six visible roles are exactly the six functional reporting menus. -->
-  <record id="group_role_menu_dashboard" model="res.groups"><field name="name">Reporting : Tableau de bord</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_dashboard'))]"/></record>
-  <record id="group_role_menu_accounting" model="res.groups"><field name="name">Reporting : Comptabilite</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_accounting_manager'))]"/></record>
-  <record id="group_role_menu_sales" model="res.groups"><field name="name">Reporting : Ventes</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_sales'))]"/></record>
-  <record id="group_role_menu_purchase" model="res.groups"><field name="name">Reporting : Achats</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_purchase_manager'))]"/></record>
-  <record id="group_role_menu_stock" model="res.groups"><field name="name">Reporting : Stock et logistique</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_stock_manager'))]"/></record>
-  <record id="group_role_menu_hr" model="res.groups"><field name="name">Reporting : Ressources humaines</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_hr'))]"/></record>
+  <record id="group_role_menu_dashboard" model="res.groups"><field name="name">Reporting : Administrateur (accès complet)</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_manager'))]"/></record>
+  <record id="group_role_menu_accounting" model="res.groups"><field name="name">Reporting : Comptabilite</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_accounting_manager')), (4, ref('group_reporting_home'))]"/></record>
+  <record id="group_role_menu_sales" model="res.groups"><field name="name">Reporting : Ventes</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_sales')), (4, ref('group_reporting_home'))]"/></record>
+  <record id="group_role_menu_purchase" model="res.groups"><field name="name">Reporting : Achats</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_purchase_manager')), (4, ref('group_reporting_home'))]"/></record>
+  <record id="group_role_menu_stock" model="res.groups"><field name="name">Reporting : Stock et logistique</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_stock_manager')), (4, ref('group_reporting_home'))]"/></record>
+  <record id="group_role_menu_hr" model="res.groups"><field name="name">Reporting : Ressources humaines</field><field name="category_id" ref="module_category_reporting_center"/><field name="implied_ids" eval="[(4, ref('group_reporting_hr')), (4, ref('group_reporting_home'))]"/></record>
 
   <!-- Previous job-title profiles stay hidden so existing users retain their access. -->
   <record id="group_role_dg" model="res.groups"><field name="name">Legacy role - General manager</field><field name="category_id" eval="False"/><field name="implied_ids" eval="[(4, ref('group_reporting_manager'))]"/><field name="users" eval="[(4, ref('base.user_admin'))]"/></record>
@@ -39,6 +40,7 @@
 
   <!-- Hide technical and legacy groups from the standard user form. -->
   <record id="group_reporting_dashboard" model="res.groups"><field name="category_id" ref="module_category_reporting_center_technical"/></record>
+  <record id="group_reporting_home" model="res.groups"><field name="category_id" ref="module_category_reporting_center_technical"/></record>
   <record id="group_reporting_accounting" model="res.groups"><field name="category_id" ref="module_category_reporting_center_technical"/></record>
   <record id="group_reporting_accounting_manager" model="res.groups"><field name="category_id" ref="module_category_reporting_center_technical"/></record>
   <record id="group_reporting_sales" model="res.groups"><field name="category_id" ref="module_category_reporting_center_technical"/></record>

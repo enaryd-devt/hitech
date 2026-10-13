@@ -4,4 +4,8 @@
     <field name="name">Reporting Placeholder</field>
     <field name="tag">primetech_reporting_placeholder</field>
   </record>
+  <record id="action_reporting_home" model="ir.actions.client">
+    <field name="name">Accueil Reporting</field>
+    <field name="tag">primetech_reporting_home</field>
+  </record>
 </odoo>

@@ -104,7 +104,7 @@
                                         </strong>
                   </td>
                   <td>
-                    <t t-out="'{:,.2f}'.format( product['balance'] )"/>
+                    <t t-out="'{:,.2f}'.format( product.get('stock_remaining', product['balance']) )"/>
                   </td>
                   <td>
                     <strong>
@@ -257,7 +257,7 @@
                                         Stock Final
                                     </td>
                   <td class="total_value">
-                    <t t-out="'{:,.2f}'.format( product['balance'] )"/>
+                    <t t-out="'{:,.2f}'.format( product.get('stock_remaining', product['balance']) )"/>
                   </td>
                   <td class="total_label">
                                         Valeur Finale
