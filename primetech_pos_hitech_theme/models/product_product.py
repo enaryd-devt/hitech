@@ -6,10 +6,14 @@ class ProductProduct(models.Model):
 
     @api.model
     def _primetech_pos_stock_context(self, config_id):
-        """Return the stock context of the POS delivery warehouse only."""
+        """Return the stock context of the POS operation type warehouse only."""
         config = self.env["pos.config"].browse(config_id).exists()
-        warehouse = config.picking_type_id.warehouse_id or config.warehouse_id
-        return {"warehouse": warehouse.id} if warehouse else {}
+        warehouse = config.picking_type_id.warehouse_id
+        # Never return an empty context here: an empty stock context makes
+        # Odoo calculate qty_available over every warehouse.  A non-existing
+        # warehouse deliberately yields zero instead, until the POS operation
+        # type is correctly linked to an actual warehouse.
+        return {"warehouse_id": warehouse.id or -1}
 
     def _load_pos_data_fields(self, config_id):
         """Expose the on-hand quantity to the POS product cards."""

@@ -131,6 +131,21 @@
     --mk-sidebar-width: 180px;
 }
 
+// On phones, navigation must use Odoo's native hamburger button.  It opens
+// the app/section drawer, while the desktop AppsBar stays completely hidden
+// and cannot reserve space or catch touches behind that drawer.
+@media (max-width: 767.98px) {
+    .o_web_client {
+        grid-template-columns: 0 minmax(0, 1fr) !important;
+    }
+
+    .mk_apps_sidebar_panel {
+        width: 0 !important;
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+
 // MuK AppsBar collapses a "large" sidebar to icons only at the Bootstrap md
 // breakpoint.  This leaves enough room for labels and avoids an unexplained
 // change of navigation at intermediate desktop widths.
