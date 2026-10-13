@@ -73,6 +73,20 @@ class PosConfig(models.Model):
         fields_list = list(self._fields)
         return fields_list
 
+    def get_limited_products_loading(self, fields):
+        """Read POS products with the POS destocking warehouse context.
+
+        Odoo uses this method instead of ``product.product._load_product_with_domain``
+        when the catalogue size is limited.  Computed stock fields such as
+        ``qty_available`` would otherwise be evaluated over all warehouses.
+        """
+        warehouse = self.picking_type_id.warehouse_id or self.warehouse_id
+        if not warehouse:
+            return super().get_limited_products_loading(fields)
+        return super(PosConfig, self.with_context(warehouse=warehouse.id)).get_limited_products_loading(
+            fields
+        )
+
     @api.model
     def primetech_get_employee_pos_permissions(self, config_id, employee_id):
         """Return up-to-date POS permissions when an employee logs in."""
