@@ -624,13 +624,10 @@ class AccountMove(models.Model):
                 ) % ", ".join(missing))
         self._primetech_sync_global_tax()
         result = super().action_post()
-        for move in self.filtered(lambda item: item.move_type == "in_invoice"):
-            move.sudo()._primetech_create_receipt_picking()
-            move.sudo()._primetech_apply_supplier_product_costs()
-        for move in self.filtered(lambda item: item.move_type == "out_invoice"):
-            move.sudo()._primetech_create_delivery_picking()
-        for move in self.filtered(lambda item: item.move_type in ("in_refund", "out_refund")):
-            move.sudo()._primetech_create_credit_note_return_picking()
+        # ``write({'state': 'posted'})`` below is the single stock-generation
+        # entry point for normal confirmation.  Calling it a second time here
+        # used to synchronise an additional receipt using the header's
+        # operation type, creating a duplicate of the location-based receipt.
         return result
 
     def action_primetech_save_supplier_draft(self):
@@ -711,10 +708,6 @@ class AccountMove(models.Model):
                 "Configurez un emplacement de destination sur la facture ou "
                 "sur le type de réception avant de confirmer la facture."
             ))
-        source = (
-            picking_type.default_location_src_id
-            or self.partner_id.property_stock_supplier
-        )
         lines_by_destination = {}
         for line in lines:
             destination = line.primetech_destination_location_id or default_destination
@@ -723,18 +716,36 @@ class AccountMove(models.Model):
         pickings = self.env["stock.picking"]
         for destination_id, destination_lines in lines_by_destination.items():
             destination = self.env["stock.location"].browse(destination_id)
+            destination_picking_type = self._primetech_receipt_picking_type_for_destination(
+                destination, fallback_type=picking_type,
+            )
+            source = (
+                destination_picking_type.default_location_src_id
+                or self.partner_id.property_stock_supplier
+            )
             picking = self.env["stock.picking"].create({
-                "picking_type_id": picking_type.id, "move_type": "direct",
+                "picking_type_id": destination_picking_type.id, "move_type": "direct",
                 "partner_id": self.partner_id.id, "origin": self.name or self.ref,
                 "location_id": source.id, "location_dest_id": destination.id,
                 "company_id": self.company_id.id,
                 "scheduled_date": self.invoice_date or fields.Datetime.now(),
             })
+            # One receipt per destination.  Consolidate duplicate products on
+            # that receipt as well, so its lines remain readable even when the
+            # supplier bill contains the same article more than once.
+            moves_by_product_uom = {}
             for line in destination_lines:
-                self.env["stock.move"].create({
+                key = (line.product_id.id, line.product_uom_id.id)
+                move_values = moves_by_product_uom.setdefault(key, {
                     "name": line.name or line.product_id.display_name,
-                    "product_id": line.product_id.id, "product_uom_qty": line.quantity,
-                    "product_uom": line.product_uom_id.id, "picking_id": picking.id,
+                    "product_id": line.product_id.id,
+                    "product_uom_qty": 0.0,
+                    "product_uom": line.product_uom_id.id,
+                })
+                move_values["product_uom_qty"] += line.quantity
+            for move_values in moves_by_product_uom.values():
+                self.env["stock.move"].create({
+                    **move_values, "picking_id": picking.id,
                     "location_id": source.id, "location_dest_id": destination.id,
                     "company_id": self.company_id.id,
                 })
@@ -743,6 +754,38 @@ class AccountMove(models.Model):
             pickings |= picking
         self.primetech_receipt_picking_ids = [(4, picking.id) for picking in pickings]
         return pickings
+
+    def _primetech_receipt_picking_type_for_destination(self, destination, fallback_type=False):
+        """Choose the incoming operation configured for ``destination``.
+
+        Each incoming operation owns its receipt sequence.  Selecting it from
+        the destination (rather than blindly using the invoice default) makes
+        the generated receipt number identify the destination warehouse or
+        sub-location.  The invoice operation remains a safe fallback when no
+        destination-specific operation has been configured.
+        """
+        self.ensure_one()
+        picking_types = self.env["stock.picking.type"].search([
+            ("code", "=", "incoming"), ("company_id", "=", self.company_id.id),
+        ])
+        destination_path = (destination.parent_path or "").strip("/").split("/")
+        matches = []
+        for picking_type in picking_types:
+            operation_destination = (
+                picking_type.default_location_dest_id
+                or picking_type.warehouse_id.lot_stock_id
+            )
+            if not operation_destination:
+                continue
+            operation_path = (operation_destination.parent_path or "").strip("/").split("/")
+            # The operation destination may be the exact location, or a
+            # parent warehouse location containing the selected sub-location.
+            if destination_path[:len(operation_path)] == operation_path:
+                matches.append((len(operation_path), picking_type))
+        if matches:
+            # The closest matching location is the most specific operation.
+            return sorted(matches, key=lambda item: (item[0], item[1].id), reverse=True)[0][1]
+        return fallback_type or picking_types[:1]
 
     def _primetech_apply_supplier_product_costs(self):
         """Apply validated costs and manually entered physical data to products."""

@@ -139,7 +139,7 @@
             <xpath expr="(//header/button[@name='action_post'])[2]" position="before">
                 <button name="action_primetech_save_supplier_draft" type="object" string="Enregistrer"
                         class="btn-secondary" icon="fa-save"
-                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_user,primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_user,!primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                         invisible="move_type != 'in_invoice' or state != 'draft'"/>
             </xpath>
             <xpath expr="//header/button[@name='action_reverse']" position="attributes">

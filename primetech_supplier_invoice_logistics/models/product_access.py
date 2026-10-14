@@ -13,8 +13,13 @@ class PrimetechLimitedProductAccess(models.AbstractModel):
     _description = "Primetech limited product access helper"
 
     def _primetech_check_product_write_access(self):
-        if self.env.user.has_group(
-            "primetech_supplier_invoice_logistics.group_supplier_invoice_user"
+        if (
+            self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_user"
+            )
+            and not self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+            )
         ):
             raise AccessError(_(
                 "Le profil Utilisateur des factures fournisseurs logistiques "
@@ -28,15 +33,23 @@ class ProductTemplate(models.Model):
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
-        if view_type == "form" and self.env.user.has_group(
-            "primetech_supplier_invoice_logistics.group_supplier_invoice_user"
-        ):
+        if view_type == "form" and self._primetech_is_limited_supplier_user():
             arch = etree.fromstring(result["arch"])
             arch.set("create", "0")
             arch.set("edit", "0")
             arch.set("delete", "0")
             result["arch"] = etree.tostring(arch, encoding="unicode")
         return result
+
+    def _primetech_is_limited_supplier_user(self):
+        return (
+            self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_user"
+            )
+            and not self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+            )
+        )
 
     def write(self, vals):
         self.env["primetech.limited.product.access"]._primetech_check_product_write_access()
@@ -58,15 +71,23 @@ class ProductProduct(models.Model):
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
-        if view_type == "form" and self.env.user.has_group(
-            "primetech_supplier_invoice_logistics.group_supplier_invoice_user"
-        ):
+        if view_type == "form" and self._primetech_is_limited_supplier_user():
             arch = etree.fromstring(result["arch"])
             arch.set("create", "0")
             arch.set("edit", "0")
             arch.set("delete", "0")
             result["arch"] = etree.tostring(arch, encoding="unicode")
         return result
+
+    def _primetech_is_limited_supplier_user(self):
+        return (
+            self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_user"
+            )
+            and not self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+            )
+        )
 
     def write(self, vals):
         self.env["primetech.limited.product.access"]._primetech_check_product_write_access()
