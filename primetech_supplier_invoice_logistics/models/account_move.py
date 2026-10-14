@@ -590,6 +590,14 @@ class AccountMove(models.Model):
                 move.invoice_currency_rate = rate
 
     def action_post(self):
+        restricted_moves = self.filtered(
+            lambda move: move.move_type == "in_invoice"
+            and move.state == "draft"
+        )
+        if restricted_moves and not self.env.user.has_group(
+            "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+        ):
+            raise UserError(_("Seul l'administrateur des factures fournisseurs logistiques peut confirmer une facture fournisseur."))
         for move in self.filtered(
             lambda item: item.move_type in ("in_invoice", "out_invoice")
             and not (item.move_type == "out_invoice" and item.pos_order_ids)
@@ -624,6 +632,17 @@ class AccountMove(models.Model):
         for move in self.filtered(lambda item: item.move_type in ("in_refund", "out_refund")):
             move.sudo()._primetech_create_credit_note_return_picking()
         return result
+
+    def action_primetech_save_supplier_draft(self):
+        """Explicit save action for operators preparing a supplier bill.
+
+        The web client saves the form values before invoking an object button;
+        reloading then gives the operator an unambiguous saved-draft state.
+        """
+        self.ensure_one()
+        if self.move_type != "in_invoice" or self.state != "draft":
+            raise UserError(_("L'enregistrement manuel est uniquement disponible sur une facture fournisseur en brouillon."))
+        return {"type": "ir.actions.client", "tag": "reload"}
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -686,12 +705,8 @@ class AccountMove(models.Model):
             ], limit=1)
         if not picking_type:
             return self.env["stock.picking"]
-        destination = (
-            self.primetech_stock_location_id
-            or picking_type.default_location_dest_id
-            or picking_type.warehouse_id.lot_stock_id
-        )
-        if not destination:
+        default_destination = self.primetech_stock_location_id or picking_type.default_location_dest_id or picking_type.warehouse_id.lot_stock_id
+        if not default_destination:
             raise UserError(_(
                 "Configurez un emplacement de destination sur la facture ou "
                 "sur le type de réception avant de confirmer la facture."
@@ -700,34 +715,34 @@ class AccountMove(models.Model):
             picking_type.default_location_src_id
             or self.partner_id.property_stock_supplier
         )
-        picking = self.env["stock.picking"].create({
-            "picking_type_id": picking_type.id,
-            # The invoice context contains ``move_type=out_invoice``.  This
-            # is valid for account.move but not for stock.picking, whose
-            # move_type only accepts ``direct`` or ``one``.
-            "move_type": "direct",
-            "partner_id": self.partner_id.id,
-            "origin": self.name or self.ref,
-            "location_id": source.id,
-            "location_dest_id": destination.id,
-            "company_id": self.company_id.id,
-            "scheduled_date": self.invoice_date or fields.Datetime.now(),
-        })
+        lines_by_destination = {}
         for line in lines:
-            self.env["stock.move"].create({
-                "name": line.name or line.product_id.display_name,
-                "product_id": line.product_id.id,
-                "product_uom_qty": line.quantity,
-                "product_uom": line.product_uom_id.id,
-                "picking_id": picking.id,
-                "location_id": picking.location_id.id,
-                "location_dest_id": picking.location_dest_id.id,
+            destination = line.primetech_destination_location_id or default_destination
+            lines_by_destination.setdefault(destination.id, self.env["account.move.line"])
+            lines_by_destination[destination.id] |= line
+        pickings = self.env["stock.picking"]
+        for destination_id, destination_lines in lines_by_destination.items():
+            destination = self.env["stock.location"].browse(destination_id)
+            picking = self.env["stock.picking"].create({
+                "picking_type_id": picking_type.id, "move_type": "direct",
+                "partner_id": self.partner_id.id, "origin": self.name or self.ref,
+                "location_id": source.id, "location_dest_id": destination.id,
                 "company_id": self.company_id.id,
+                "scheduled_date": self.invoice_date or fields.Datetime.now(),
             })
-        picking.action_confirm()
-        picking.primetech_auto_validate_if_fully_available()
-        self.primetech_receipt_picking_ids = [(4, picking.id)]
-        return picking
+            for line in destination_lines:
+                self.env["stock.move"].create({
+                    "name": line.name or line.product_id.display_name,
+                    "product_id": line.product_id.id, "product_uom_qty": line.quantity,
+                    "product_uom": line.product_uom_id.id, "picking_id": picking.id,
+                    "location_id": source.id, "location_dest_id": destination.id,
+                    "company_id": self.company_id.id,
+                })
+            picking.action_confirm()
+            picking.primetech_auto_validate_if_fully_available()
+            pickings |= picking
+        self.primetech_receipt_picking_ids = [(4, picking.id) for picking in pickings]
+        return pickings
 
     def _primetech_apply_supplier_product_costs(self):
         """Apply validated costs and manually entered physical data to products."""
@@ -1010,6 +1025,8 @@ class AccountMove(models.Model):
     def action_create_primetech_receipt(self):
         """Create the receipt linked to this supplier bill, without posting it."""
         self.ensure_one()
+        if not self.env.user.has_group("primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"):
+            raise UserError(_("Seul l'administrateur des factures fournisseurs logistiques peut gérer les réceptions."))
         if self.move_type != "in_invoice" or self.state not in ("draft", "posted"):
             raise UserError(_("La réception peut uniquement être créée pour une facture fournisseur."))
         self.sudo()._primetech_create_receipt_picking()
@@ -1435,6 +1452,11 @@ class AccountMoveLine(models.Model):
 
     primetech_product_image = fields.Image(
         related="product_id.image_1920", string="Image", readonly=True,
+    )
+    primetech_destination_location_id = fields.Many2one(
+        "stock.location", string="Emplacement de destination", check_company=True,
+        domain="[('usage', '=', 'internal'), ('company_id', 'in', (False, company_id))]",
+        help="Si vide, l'emplacement de destination défini sur la facture est utilisé.",
     )
     primetech_weight = fields.Float(
         string="Poids", compute="_compute_primetech_logistics", digits=(16, 6),

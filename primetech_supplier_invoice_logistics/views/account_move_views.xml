@@ -10,10 +10,10 @@
                  reception action for supplier bills. -->
             <xpath expr="(//header/button[@name='action_post'])[2]" position="before">
                 <button name="action_create_primetech_receipt" string="R&#233;ceptionner" class="oe_highlight"
-                        type="object" icon="fa-truck" groups="account.group_account_invoice"
+                        type="object" icon="fa-truck" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                         invisible="move_type != 'in_invoice' or state != 'draft' or primetech_receipt_picking_count &gt; 0"/>
                 <button name="action_create_primetech_delivery" string="Cr&#233;er la livraison" class="oe_highlight"
-                        type="object" icon="fa-truck" groups="account.group_account_invoice"
+                        type="object" icon="fa-truck" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                         invisible="move_type != 'out_invoice' or state != 'draft' or primetech_delivery_picking_count &gt; 0"/>
             </xpath>
             <!-- Replace native printing with the professional invoice layouts.
@@ -45,17 +45,17 @@
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="attributes">
                 <attribute name="string">Unité de mesure</attribute>
                 <attribute name="optional">show</attribute>
-                <attribute name="groups">base.group_user</attribute>
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_uom_id' and @groups]" position="after">
                 <field name="primetech_quantity_received" string="Reçu final" readonly="1"
-                       class="pt-invoice-stock-quantity"
+                       class="pt-invoice-stock-quantity" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                        column_invisible="parent.move_type != 'in_invoice'"/>
                 <field name="primetech_quantity_delivered" string="Livré final" readonly="1"
-                       class="pt-invoice-stock-quantity"
+                       class="pt-invoice-stock-quantity" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                        column_invisible="parent.move_type != 'out_invoice'"/>
                 <field name="primetech_quantity_returned" string="Retourné" readonly="1"
-                       class="pt-invoice-stock-quantity"
+                       class="pt-invoice-stock-quantity" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                        column_invisible="parent.move_type not in ('in_refund', 'out_refund')"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="attributes">
@@ -67,12 +67,14 @@
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='name']" position="attributes">
                 <attribute name="string">Libellé</attribute>
                 <attribute name="optional">show</attribute>
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
                 <attribute name="string">Compte comptable</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='asset_category_id']" position="attributes">
                 <attribute name="string">Catégorie d’actif</attribute>
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='discount']" position="attributes">
                 <attribute name="string">Remise (%)</attribute>
@@ -81,38 +83,67 @@
                 <attribute name="optional">hide</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="attributes">
-                <attribute name="string">Prix unitaire</attribute>
+                <attribute name="string">Prix fournisseur</attribute>
                 <attribute name="widget">monetary</attribute>
                 <attribute name="digits">[16, 3]</attribute>
                 <attribute name="options">{'currency_field': 'currency_id', 'field_digits': True}</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="attributes">
                 <attribute name="optional">hide</attribute>
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='discount']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='tax_ids']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_subtotal']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='analytic_distribution']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_create_primetech_receipt" type="object" class="oe_stat_button" icon="fa-truck"
                         string="Cr&#233;er la r&#233;ception"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                         invisible="move_type != 'in_invoice' or state != 'posted' or primetech_receipt_picking_count &gt; 0"/>
-                <button name="action_view_primetech_receipts" type="object" class="oe_stat_button" icon="fa-truck" invisible="move_type != 'in_invoice' or primetech_receipt_picking_count == 0">
+                <button name="action_view_primetech_receipts" type="object" class="oe_stat_button" icon="fa-truck" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator" invisible="move_type != 'in_invoice' or primetech_receipt_picking_count == 0">
                     <field name="primetech_receipt_picking_count" widget="statinfo" string="R&#233;ceptions"/>
                 </button>
-                <button name="action_view_primetech_deliveries" type="object" class="oe_stat_button" icon="fa-truck" invisible="move_type != 'out_invoice' or primetech_delivery_picking_count == 0">
+                <button name="action_view_primetech_deliveries" type="object" class="oe_stat_button" icon="fa-truck" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator" invisible="move_type != 'out_invoice' or primetech_delivery_picking_count == 0">
                     <field name="primetech_delivery_picking_count" widget="statinfo" string="Livraisons"/>
                 </button>
-                <button name="action_view_primetech_credit_notes" type="object" class="oe_stat_button" icon="fa-undo"
+                <button name="action_view_primetech_credit_notes" type="object" class="oe_stat_button" icon="fa-undo" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                         invisible="move_type not in ('in_invoice', 'out_invoice') or primetech_credit_note_count == 0">
                     <field name="primetech_credit_note_count" widget="statinfo" string="Avoirs"/>
                 </button>
-                <button name="action_view_primetech_returns" type="object" class="oe_stat_button" icon="fa-exchange"
+                <button name="action_view_primetech_returns" type="object" class="oe_stat_button" icon="fa-exchange" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
                         invisible="move_type not in ('in_refund', 'out_refund') or primetech_return_picking_count == 0">
                     <field name="primetech_return_picking_count" widget="statinfo" string="Retours"/>
                 </button>
             </xpath>
             <xpath expr="//header/button[@name='button_cancel']" position="attributes">
-                <attribute name="groups">account.group_account_manager</attribute>
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
             </xpath>
             <xpath expr="//header/button[@name='button_draft']" position="attributes">
-                <attribute name="groups">account.group_account_manager</attribute>
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="(//header/button[@name='action_post'])[1]" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="(//header/button[@name='action_post'])[2]" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="(//header/button[@name='action_post'])[2]" position="before">
+                <button name="action_primetech_save_supplier_draft" type="object" string="Enregistrer"
+                        class="btn-secondary" icon="fa-save"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_user,primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+                        invisible="move_type != 'in_invoice' or state != 'draft'"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_reverse']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
             </xpath>
             <!-- Complete the native supplier-bill header on the left. -->
             <xpath expr="//group[@id='header_left_group']/field[@name='ref'][1]" position="after">
@@ -177,7 +208,7 @@
             <xpath expr="//group[@id='header_right_group']/field[@name='invoice_date'][2]" position="after">
                 <field name="primetech_apply_discount"
                        invisible="move_type not in ('in_invoice', 'in_refund', 'out_invoice', 'out_refund')"
-                       readonly="state != 'draft'"/>
+                       readonly="state != 'draft'" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_warehouse_id" invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
                 <field name="primetech_picking_type_id" invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
                 <field name="primetech_stock_location_id" invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
@@ -252,39 +283,41 @@
                 <field name="primetech_last_price" widget="monetary"
                        options="{'currency_field': 'currency_id', 'field_digits': True}" digits="[16, 3]"
                        string="Dernier prix fournisseur" optional="show"
-                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
+                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
                 <field name="company_currency_id" column_invisible="1"/>
-                <field name="primetech_stock_quantity" string="Stock actuel" readonly="1" optional="show"/>
+                <field name="primetech_stock_quantity" string="Stock actuel" readonly="1" optional="show" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_last_real_price" string="Dernier prix réel" optional="show"
                        widget="monetary" options="{'currency_field': 'company_currency_id', 'field_digits': True}"
-                       digits="[16, 3]" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_real_price" string="Prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_weight_cost" string="Constante de poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_volume_cost" string="Constante de volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_cost_by_weight" string="Coût de revient par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_cost_by_volume" string="Coût de revient par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
+                       digits="[16, 3]" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_real_price" string="Prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_weight_cost" string="Constante de poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_volume_cost" string="Constante de volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_cost_by_weight" string="Coût de revient par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_cost_by_volume" string="Coût de revient par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_last_final_purchase_cost" string="Dernier coût d’achat final" readonly="1" optional="show"
-                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_final_cost" string="Coût de revient final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
+                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_final_cost" string="Coût de revient final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_sale_cost" string="Coût" widget="monetary"
                        options="{'currency_field': 'currency_id'}" readonly="1"
-                       column_invisible="parent.move_type not in ('out_invoice', 'out_refund')"/>
+                       column_invisible="parent.move_type not in ('out_invoice', 'out_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_line_margin" string="Marge totale" widget="monetary"
                        options="{'currency_field': 'currency_id'}" readonly="1"
-                       column_invisible="parent.move_type not in ('out_invoice', 'out_refund')"/>
-                <field name="primetech_sale_price_by_weight" string="Prix de vente par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_sale_price_by_volume" string="Prix de vente par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_last_final_sale_price" string="Dernier prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_final_sale_price" string="Prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
+                       column_invisible="parent.move_type not in ('out_invoice', 'out_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_sale_price_by_weight" string="Prix de vente par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_sale_price_by_volume" string="Prix de vente par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_last_final_sale_price" string="Dernier prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_final_sale_price" string="Prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_weight_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_weight_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_weight" string="Poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
                 <field name="primetech_volume_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_volume_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_volume" string="Volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_constant_cost" string="Constante" optional="hide" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
+                <field name="primetech_constant_cost" string="Constante" optional="hide" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_destination_location_id" string="Emplacement de destination" optional="show"
+                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="before">
                 <field name="primetech_product_image" widget="image" optional="hide"/>
@@ -302,7 +335,7 @@
                     <field name="primetech_total_units" string="Total unités" readonly="1" digits="[16,0]"/>
                     <field name="primetech_total_weight" string="Total poids (kg)" readonly="1" digits="[16,5]"/>
                     <field name="primetech_total_volume" string="Total volume (CBM)" readonly="1" digits="[16,5]"/>
-                    <field name="primetech_total_cost" readonly="1"/>
+                    <field name="primetech_total_cost" readonly="1" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                     <field name="primetech_total_constant" readonly="1"/>
                 </group>
                 <group string="Informations logistiques"

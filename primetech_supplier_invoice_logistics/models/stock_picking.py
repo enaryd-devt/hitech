@@ -8,7 +8,16 @@ class StockPicking(models.Model):
     _inherit = "stock.picking"
 
     def primetech_auto_validate_if_fully_available(self):
-        """Validate a delivery only when all requested stock is reserved."""
+        """Validate incoming receipts, and deliveries only when fully reserved."""
+        receipts = self.filtered(
+            lambda picking: picking.picking_type_code == "incoming"
+            and picking.state not in ("done", "cancel")
+        )
+        if receipts:
+            receipts.action_assign()
+            for move in receipts.move_ids_without_package.filtered(lambda item: item.state not in ("done", "cancel")):
+                move.quantity = move.product_uom_qty
+            receipts.button_validate()
         deliveries = self.filtered(
             lambda picking: picking.picking_type_code == "outgoing"
             and picking.state not in ("done", "cancel")

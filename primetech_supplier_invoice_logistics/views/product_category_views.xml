@@ -255,7 +255,7 @@
         <field name="inherit_id" ref="purchase.view_product_template_purchase_buttons_from"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_view_po']" position="replace">
-                <button class="oe_stat_button" name="action_open_primetech_purchase_invoice_history" type="object" icon="fa-credit-card">
+                <button class="oe_stat_button" name="action_open_primetech_purchase_invoice_history" type="object" icon="fa-credit-card" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator">
                     <div class="o_field_widget o_stat_info"><span class="o_stat_value d-flex gap-1"><field name="primetech_purchase_invoice_qty" widget="statinfo" nolabel="1" class="oe_inline"/><field name="uom_name" class="oe_inline" groups="uom.group_uom"/></span><span class="o_stat_text">Acheté</span></div>
                 </button>
             </xpath>
@@ -268,7 +268,7 @@
         <field name="inherit_id" ref="purchase.product_normal_form_view_inherit_purchase"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_view_po']" position="replace">
-                <button class="oe_stat_button" name="action_open_primetech_purchase_invoice_history" type="object" icon="fa-credit-card">
+                <button class="oe_stat_button" name="action_open_primetech_purchase_invoice_history" type="object" icon="fa-credit-card" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator">
                     <div class="o_field_widget o_stat_info"><span class="o_stat_value d-flex gap-1"><field name="primetech_purchase_invoice_qty" widget="statinfo" nolabel="1" class="oe_inline"/><field name="uom_name" class="oe_inline" groups="uom.group_uom"/></span><span class="o_stat_text">Acheté</span></div>
                 </button>
             </xpath>
@@ -368,6 +368,34 @@
         <field name="inherit_id" ref="product.product_normal_form_view"/>
         <field name="active" eval="False"/>
         <field name="arch" type="xml"><xpath expr="//notebook" position="inside"><separator invisible="1"/></xpath></field>
+    </record>
+
+    <record id="view_product_template_primetech_restricted_user" model="ir.ui.view">
+        <field name="name">product.template.primetech.restricted.user</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="//page[@name='purchase']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+            <xpath expr="//page[@name='primetech_purchase_invoice_history']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_variant_primetech_restricted_user" model="ir.ui.view">
+        <field name="name">product.product.primetech.restricted.user</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="groups">primetech_supplier_invoice_logistics.group_supplier_invoice_administrator</attribute>
+            </xpath>
+        </field>
     </record>
 
 </odoo>

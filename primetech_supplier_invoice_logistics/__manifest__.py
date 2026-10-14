@@ -8,6 +8,7 @@
     "license": "LGPL-3",
     "depends": ["account", "stock", "sale", "purchase", "point_of_sale", "om_account_asset"],
     "data": [
+        "security/primetech_supplier_invoice_groups.xml",
         "security/ir.model.access.csv",
         "data/primetech_invoice_sequences.xml",
         "views/product_category_views.xml",
