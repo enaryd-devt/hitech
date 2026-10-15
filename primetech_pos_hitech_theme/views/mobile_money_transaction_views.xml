@@ -55,5 +55,5 @@
         <field name="groups_id" eval="[(4, ref('point_of_sale.group_pos_manager'))]"/>
     </record>
 
-    <menuitem id="menu_primetech_mobile_money_transactions" name="Transactions Mobile Money" parent="point_of_sale.menu_point_root" action="action_primetech_mobile_money_transactions" sequence="95" groups="point_of_sale.group_pos_manager"/>
+    <menuitem id="menu_primetech_mobile_money_transactions" name="Transactions" parent="menu_primetech_mobile_money_root" action="action_primetech_mobile_money_transactions" sequence="10" groups="point_of_sale.group_pos_manager"/>
 </odoo>

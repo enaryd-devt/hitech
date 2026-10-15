@@ -72,16 +72,14 @@ class PosSession(models.Model):
         cash_method = methods.filtered(
             lambda method: method.primetech_mobile_money_type == "cash"
         )[:1]
-        orange_method = methods.filtered(
-            lambda method: method.primetech_mobile_money_type == "orange"
-        )[:1]
-        momo_method = methods.filtered(
-            lambda method: method.primetech_mobile_money_type == "momo"
-        )[:1]
         return {
             "cash": max(0.0, session.cash_register_balance_end) if cash_method else False,
-            "orange": session._primetech_wallet_available_balance(orange_method),
-            "momo": session._primetech_wallet_available_balance(momo_method),
+            "wallets": [{
+                "id": method.id,
+                "name": method.name,
+                "provider": method.primetech_mobile_money_type,
+                "balance": session._primetech_wallet_available_balance(method),
+            } for method in methods.filtered(lambda method: method.primetech_mobile_money_type in ("orange", "momo"))],
         }
 
     @api.model
@@ -246,15 +244,13 @@ class PosSession(models.Model):
         return True
 
     @api.model
-    def primetech_mobile_money_transfer(self, session_id, provider, operation, amount, reason=""):
+    def primetech_mobile_money_transfer(self, session_id, payment_method_id, operation, amount, reason=""):
         """Transfer funds between POS cash and an Orange/MTN mobile wallet."""
         session = self.browse(session_id).exists()
         if not session or session.state != "opened":
             raise UserError(_("La session du point de vente doit être ouverte."))
         if not self.env.user.has_group("point_of_sale.group_pos_user"):
             raise AccessError(_("Vous n'êtes pas autorisé à effectuer des mouvements de caisse."))
-        if provider not in ("orange", "momo"):
-            raise ValidationError(_("Le portefeuille Mobile Money sélectionné est invalide."))
         if operation not in ("withdrawal", "deposit"):
             raise ValidationError(_("Le type d'opération sélectionné est invalide."))
         try:
@@ -269,8 +265,11 @@ class PosSession(models.Model):
             lambda method: method.primetech_mobile_money_type == "cash"
         )[:1]
         payment_method = config.payment_method_ids.filtered(
-            lambda method: method.primetech_mobile_money_type == provider
-        )[:1]
+            lambda method: method.id == int(payment_method_id) and method.primetech_mobile_money_type in ("orange", "momo")
+        )
+        if not payment_method:
+            raise ValidationError(_("Le portefeuille Mobile Money sélectionné est invalide."))
+        provider = payment_method.primetech_mobile_money_type
         cash_journal = cash_method.journal_id
         mobile_journal = payment_method.journal_id
         if not payment_method or not mobile_journal:
@@ -278,11 +277,10 @@ class PosSession(models.Model):
             raise UserError(_("Configurez la méthode de paiement %(provider)s et son journal.", provider=label))
         if not cash_method or not cash_journal:
             raise UserError(_("Configurez une méthode de paiement de type Espèces et son journal."))
-        other_provider = "momo" if provider == "orange" else "orange"
         other_method = config.payment_method_ids.filtered(
-            lambda method: method.primetech_mobile_money_type == other_provider
-        )[:1]
-        if other_method and other_method.journal_id == mobile_journal:
+            lambda method: method.id != payment_method.id and method.journal_id == mobile_journal and method.primetech_mobile_money_type in ("orange", "momo")
+        )
+        if other_method:
             raise UserError(_(
                 "Orange Money et MTN MoMo doivent utiliser deux journaux comptables différents. "
                 "Corrigez les méthodes de paiement du point de vente avant de poursuivre."
@@ -365,7 +363,7 @@ class PosSession(models.Model):
         return {
             "transaction_id": mobile_line.id,
             "reference": reference,
-            "provider": provider_label,
+            "provider": payment_method.name,
             "operation": operation_label,
             "amount": amount,
             "reason": reason,

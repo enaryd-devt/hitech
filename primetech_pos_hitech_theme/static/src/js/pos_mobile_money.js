@@ -105,17 +105,18 @@ export class PrimetechMobileMoneyPopup extends Component {
         this.dialog = useService("dialog");
         this.confirm = this.confirm.bind(this);
         this.state = useState({
-            provider: "momo",
+            paymentMethodId: false,
             operation: "withdrawal",
             amount: "",
             reason: "",
             saving: false,
-            balances: { cash: false, orange: false, momo: false },
+            balances: { cash: false, wallets: [] },
         });
         onWillStart(async () => {
             this.state.balances = await this.pos.data.call(
                 "pos.session", "primetech_mobile_money_balances", [[this.pos.session.id]], {}, true
             );
+            this.state.paymentMethodId = this.state.balances.wallets[0]?.id || false;
         });
     }
 
@@ -138,7 +139,7 @@ export class PrimetechMobileMoneyPopup extends Component {
             const result = await this.pos.data.call(
                 "pos.session",
                 "primetech_mobile_money_transfer",
-                [[this.pos.session.id], this.state.provider, this.state.operation, amount, this.state.reason.trim()],
+                [[this.pos.session.id], this.state.paymentMethodId, this.state.operation, amount, this.state.reason.trim()],
                 {},
                 true
             );
@@ -148,7 +149,7 @@ export class PrimetechMobileMoneyPopup extends Component {
                     provider: result.provider,
                     amount: this.env.utils.formatCurrency(result.amount),
                     balance: this.env.utils.formatCurrency(
-                        result.balances[this.state.provider]
+                        result.balances.wallets.find((wallet) => wallet.id === this.state.paymentMethodId)?.balance || 0
                     ),
                 }),
                 { type: "success" }

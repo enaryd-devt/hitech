@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <menuitem id="menu_primetech_mobile_money_root" name="Mobile Money" parent="point_of_sale.menu_point_root" sequence="95" groups="point_of_sale.group_pos_manager"/>
     <!-- This form is the configuration opened from the three-dot menu of a
          POS card on the dashboard.  Settings are intentionally stored per
          point of sale, rather than in the global Settings wizard. -->
