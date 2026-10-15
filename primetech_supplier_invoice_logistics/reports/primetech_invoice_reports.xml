@@ -45,7 +45,7 @@
                           .pt-pro-invoice { color:#172b55; font-family:Arial, sans-serif; font-size:13px; padding-top:28mm; }
                           /* wkhtmltopdf ne prend pas fiablement en charge les variables CSS :
                              chaque bande reçoit donc une couleur explicite et imprimable. */
-                          .pt-pro-invoice .pt-title { background:#0759a8 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:18px; font-weight:700; margin:0 0 14px; padding:9px 15px; white-space:nowrap; }
+                          .pt-pro-invoice .pt-title { background:#0759a8 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:18px; font-weight:700; margin:0; padding:9px 15px; white-space:normal; }
                           .pt-pro-invoice--customer .pt-title { background:#0759a8 !important; }
                           .pt-pro-invoice--proforma .pt-title { background:#6b49a8 !important; }
                           .pt-pro-invoice--supplier .pt-title { background:#b84b08 !important; }
@@ -53,10 +53,10 @@
                           .pt-pro-invoice .pt-title .pt-number { color:#fff0c5 !important; }
                             .pt-pro-invoice .pt-document-date { clear:both; color:#1f3f68; font-size:14px; font-style:italic; font-weight:600; margin:7px 3px 11px 0; text-align:right; }
                             .pt-pro-invoice .pt-separator { border-top:2px solid #0c5da7; clear:both; margin:0; opacity:.72; }
-                            .pt-pro-invoice .pt-grid { display:table; width:100%; table-layout:fixed; }
-                            .pt-pro-invoice .pt-col { display:table-cell; vertical-align:top; width:50%; }
-                            .pt-pro-invoice .pt-col + .pt-col { padding-left:10px; }
-                            .pt-pro-invoice .pt-card { background:#f3f7fd; border-radius:4px; min-height:118px; padding:13px 15px; }
+                            .pt-pro-invoice .pt-grid { clear:both; width:100%; }
+                            .pt-pro-invoice .pt-col { display:block; width:100%; }
+                            .pt-pro-invoice .pt-partner-section { clear:both; margin-top:12px; width:100%; }
+                            .pt-pro-invoice .pt-card { background:#f3f7fd; border-radius:4px; box-sizing:border-box; min-height:0; padding:11px 15px; width:100%; }
                             .pt-pro-invoice .pt-label { color:#1671c1; font-size:11px; font-weight:700; text-transform:uppercase; }
                             .pt-pro-invoice .pt-partner { color:#122a53; font-size:15px; font-weight:700; margin:5px 0; text-transform:uppercase; }
                             .pt-pro-invoice .pt-meta { border-collapse:collapse; width:100%; }
@@ -107,25 +107,21 @@
                         <div class="pt-document-date" t-esc="o._primetech_report_date_in_words()"/>
 
                         <div class="pt-grid">
-                            <div class="pt-col">
-                                <div class="pt-title">
-                                    <t t-if="is_draft and is_customer">FACTURE PROFORMA</t>
-                                    <t t-elif="is_draft">COTATION FOURNISSEUR</t>
-                                    <t t-elif="is_customer">FACTURE CLIENT</t>
-                                    <t t-else="">FACTURE FOURNISSEUR</t>
-                                    <span class="pt-number"> N° <span t-esc="o._primetech_document_reference()"/></span>
-                                </div>
-                            </div>
-                            <div class="pt-col">
-                                <div class="pt-card">
-                                    <div class="pt-label"><t t-if="is_customer">Client</t><t t-else="">Fournisseur</t></div>
-                                    <div class="pt-partner" t-field="o.partner_id.name"/>
-                                    <div t-field="o.primetech_customer_address"/>
-                                    <div t-if="o.partner_id.phone">Tél. : <span t-field="o.partner_id.phone"/></div>
-                                    <div t-if="o.partner_id.email">E-mail : <span t-field="o.partner_id.email"/></div>
-                                    <div t-if="o.partner_id.vat">NIU / TVA : <span t-field="o.partner_id.vat"/></div>
-                                </div>
-                            </div>
+                            <div class="pt-col"><div class="pt-title">
+                                <t t-if="is_draft and is_customer">FACTURE PROFORMA</t>
+                                <t t-elif="is_draft">COTATION FOURNISSEUR</t>
+                                <t t-elif="is_customer">FACTURE CLIENT</t>
+                                <t t-else="">FACTURE FOURNISSEUR</t>
+                                <span class="pt-number"> N° <span t-esc="o._primetech_document_reference()"/></span>
+                            </div></div>
+                            <div class="pt-partner-section"><div class="pt-card">
+                                <div class="pt-label"><t t-if="is_customer">Client</t><t t-else="">Fournisseur</t></div>
+                                <div class="pt-partner" t-field="o.partner_id.name"/>
+                                <div t-field="o.primetech_customer_address"/>
+                                <div t-if="o.partner_id.phone">Tél. : <span t-field="o.partner_id.phone"/></div>
+                                <div t-if="o.partner_id.email">E-mail : <span t-field="o.partner_id.email"/></div>
+                                <div t-if="o.partner_id.vat">NIU / TVA : <span t-field="o.partner_id.vat"/></div>
+                            </div></div>
                         </div>
 
                         <div class="pt-traceability">
