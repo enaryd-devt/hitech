@@ -1,20 +1,26 @@
 {
     "name": "Primetech POS Hitech",
     "summary": "Interface Hitech moderne et ergonomique pour le Point de Vente",
-    "version": "18.0.1.1.13",
+    "version": "18.0.1.1.32",
     "category": "Point of Sale",
     "author": "Primetech",
     "license": "LGPL-3",
-    "depends": ["point_of_sale", "pos_hr"],
+    "depends": ["point_of_sale", "pos_hr", "account"],
     "data": [
         "security/security.xml",
         "views/pos_config_views.xml",
+        "views/pos_payment_method_views.xml",
+        "views/mobile_money_report_wizard_views.xml",
+        "views/mobile_money_transaction_views.xml",
+        "reports/mobile_money_reports.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [
             "primetech_pos_hitech_theme/static/src/js/pos_hitech.js",
             "primetech_pos_hitech_theme/static/src/js/pos_hitech_clock.js",
+            "primetech_pos_hitech_theme/static/src/js/pos_mobile_money.js",
             "primetech_pos_hitech_theme/static/src/xml/pos_hitech_templates.xml",
+            "primetech_pos_hitech_theme/static/src/xml/pos_mobile_money.xml",
             "primetech_pos_hitech_theme/static/src/scss/pos_hitech.scss",
         ],
     },

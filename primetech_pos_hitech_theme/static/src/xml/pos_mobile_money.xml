@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'status-buttons')]/Dropdown" position="before">
+            <button t-if="showCashMoveButton and !pos.primetechIsSeller() and !primetechMobileMoney.isManager" class="btn btn-light btn-lg lh-lg" t-on-click="openPrimetechMobileMoney" title="Transaction Orange Money ou MTN MoMo" aria-label="Transaction Mobile Money">
+                <i class="fa fa-exchange"/>
+            </button>
+            <Dropdown t-if="showCashMoveButton and primetechMobileMoney.isManager" menuClass="'primetech-mobile-money-menu'">
+                <button class="btn btn-light btn-lg lh-lg" title="Transactions Mobile Money" aria-label="Transactions Mobile Money">
+                    <i class="fa fa-exchange"/>
+                    <i class="fa fa-caret-down ms-1 small"/>
+                </button>
+                <t t-set-slot="content">
+                    <DropdownItem onSelected="openPrimetechMobileMoney">
+                        <i class="fa fa-exchange me-2"/>Faire une transaction
+                    </DropdownItem>
+                    <DropdownItem onSelected="openPrimetechMobileMoneyList">
+                        <i class="fa fa-list me-2"/>Consulter les transactions
+                    </DropdownItem>
+                </t>
+            </Dropdown>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ClosePosPopup" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'payment-methods-overview')]/div[@t-foreach='props.non_cash_payment_methods']/div[contains(@class, 'fs-3')]" position="after">
+            <t t-if="pm.mobile_money_moves !== undefined">
+                <button class="btn btn-link p-0 text-start" t-on-click="() => this.toggleMobileMoneyMoves(pm.id)">
+                    <i t-att-class="this.isMobileMoneyMovesExpanded(pm.id) ? 'fa fa-caret-down me-1' : 'fa fa-caret-right me-1'"/>
+                    Dépôts / retraits
+                </button>
+                <div t-if="this.isMobileMoneyMovesExpanded(pm.id)" class="primetech-mobile-money-moves text-muted border-start ps-2 small">
+                    <t t-if="pm.mobile_money_moves.length"><div t-foreach="pm.mobile_money_moves" t-as="move" t-key="move_index"><span t-esc="move.name"/> : <span t-esc="env.utils.formatCurrency(move.amount)"/></div></t>
+                    <span t-else="" class="fst-italic">Aucun dépôt ou retrait durant cette session.</span>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[@t-foreach='props.non_cash_payment_methods']/t[@t-if='_showDiff']/span" position="replace">
+            <span><t t-esc="pm.name"/> Comptage</span>
+        </xpath>
+        <xpath expr="//t[@t-set='_showDiff']" position="attributes">
+            <attribute name="t-value">(pm.type === 'bank' and pm.number !== 0) or pm.mobile_money_moves !== undefined</attribute>
+        </xpath>
+        <xpath expr="//div[@t-if='pos.config.cash_control' and contains(@class, 'mb-3')][.//Input]" position="after">
+            <div class="primetech-mobile-money-closing-counts" t-foreach="props.non_cash_payment_methods" t-as="pm" t-key="pm.id">
+                <t t-if="pm.mobile_money_moves !== undefined">
+                    <t t-set="walletDiff" t-value="getDifference(pm.id)"/>
+                    <div class="primetech-mobile-money-closing-count">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label mb-0" t-esc="pm.mobile_money_provider === 'orange' ? 'Comptage OM' : 'Comptage MOMO'"/>
+                            <small class="text-muted">Attendu : <strong t-esc="env.utils.formatCurrency(pm.amount)"/></small>
+                        </div>
+                        <Input tModel="[state.payments[pm.id], 'counted']" isValid.bind="env.utils.isValidFloat" class="'w-100'"/>
+                        <div class="d-flex justify-content-between small mt-1" t-att-class="{'text-danger fw-bold': walletDiff}">
+                            <span>Écart</span><span t-esc="env.utils.formatCurrency(walletDiff)"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+        <xpath expr="//div[@t-foreach='props.non_cash_payment_methods']/t[@t-if='_showDiff']" position="attributes">
+            <attribute name="t-if">_showDiff and pm.mobile_money_moves === undefined</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.OpeningControlPopup" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'opening-cash-section')]" position="after">
+            <div class="mb-3" t-foreach="state.mobileMoneyOpening" t-as="wallet" t-key="wallet.id">
+                <label class="form-label"><t t-esc="wallet.name"/> à l'ouverture</label>
+                <div class="cash-input-sub-section d-flex gap-1" t-att-class="{ 'w-50': !ui.isSmall }">
+                    <Input tModel="[wallet, 'counted']" isValid.bind="env.utils.isValidFloat" placeholder.translate="Solde d'ouverture"/>
+                </div>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="primetech_pos_hitech_theme.MobileMoneyPopup">
+        <Dialog contentClass="'primetech-mobile-money-dialog'">
+            <t t-set-slot="header">
+                <div class="primetech-mm-header">
+                    <div class="primetech-mm-header-icon"><i class="fa fa-mobile"/><i class="fa fa-lock"/></div>
+                    <div><h3>Transaction Mobile Money</h3><p>Effectuez un dépôt ou un retrait via mobile money</p></div>
+                </div>
+            </t>
+            <section class="primetech-mm-section primetech-mm-balances">
+                <div class="primetech-mm-section-title"><i class="fa fa-credit-card"/>Soldes disponibles <small><i class="fa fa-info-circle"/> Le solde en rouge sera débité par cette opération.</small></div>
+                <div class="row g-3">
+                    <div class="col-4"><div t-att-class="{'is-debited': state.operation === 'withdrawal'}" class="primetech-mm-balance cash"><i class="fa fa-database"/><span>Espèces</span><strong t-esc="formatBalance(state.balances.cash)"/></div></div>
+                    <div class="col-4"><div t-att-class="{'is-debited': state.operation === 'deposit' and state.provider === 'momo'}" class="primetech-mm-balance momo"><img src="/primetech_pos_hitech_theme/static/src/img/mtn_momo.jpg" alt="MTN MoMo"/><span>MTN MoMo</span><strong t-esc="formatBalance(state.balances.momo)"/></div></div>
+                    <div class="col-4"><div t-att-class="{'is-debited': state.operation === 'deposit' and state.provider === 'orange'}" class="primetech-mm-balance orange"><img src="/primetech_pos_hitech_theme/static/src/img/orange_money.jpg" alt="Orange Money"/><span>Orange Money</span><strong t-esc="formatBalance(state.balances.orange)"/></div></div>
+                </div>
+            </section>
+            <section class="primetech-mm-section">
+                <div class="primetech-mm-section-title"><i class="fa fa-exchange"/>Portefeuille source</div>
+                <div class="row g-3">
+                    <div class="col-6"><button t-on-click="() => state.provider = 'momo'" t-att-class="{'is-selected': state.provider === 'momo'}" class="primetech-mm-choice momo"><i class="fa fa-dot-circle-o"/><img src="/primetech_pos_hitech_theme/static/src/img/mtn_momo.jpg" alt="MTN MoMo"/><span><strong>MTN MoMo</strong><small>Mobile Money</small></span></button></div>
+                    <div class="col-6"><button t-on-click="() => state.provider = 'orange'" t-att-class="{'is-selected': state.provider === 'orange'}" class="primetech-mm-choice orange"><i class="fa fa-circle-o"/><img src="/primetech_pos_hitech_theme/static/src/img/orange_money.jpg" alt="Orange Money"/><span><strong>Orange Money</strong><small>Mobile Money</small></span></button></div>
+                </div>
+            </section>
+            <section class="primetech-mm-section">
+                <div class="primetech-mm-section-title"><i class="fa fa-exchange"/>Type d'opération</div>
+                <div class="row g-3">
+                    <div class="col-6"><button t-on-click="() => state.operation = 'withdrawal'" t-att-class="{'is-selected': state.operation === 'withdrawal'}" class="primetech-mm-operation withdrawal"><i class="fa fa-arrow-up"/><span><strong>Retrait</strong><small>Espèces → Portefeuille</small></span></button></div>
+                    <div class="col-6"><button t-on-click="() => state.operation = 'deposit'" t-att-class="{'is-selected': state.operation === 'deposit'}" class="primetech-mm-operation deposit"><i class="fa fa-arrow-down"/><span><strong>Dépôt</strong><small>Portefeuille → Espèces</small></span></button></div>
+                </div>
+            </section>
+            <section class="primetech-mm-section"><label class="primetech-mm-section-title" for="primetech-mobile-money-amount"><i class="fa fa-database"/>Montant</label><div class="input-group input-group-lg"><input id="primetech-mobile-money-amount" class="form-control" type="number" min="0" step="0.01" t-model="state.amount" placeholder="Montant" autofocus="autofocus"/><span class="input-group-text">FCFA</span></div></section>
+            <section class="primetech-mm-section"><label class="primetech-mm-section-title" for="primetech-mobile-money-reason"><i class="fa fa-phone"/>Motif / numéro de téléphone</label><div class="input-group input-group-lg"><span class="input-group-text"><i class="fa fa-phone"/></span><input id="primetech-mobile-money-reason" class="form-control" t-model="state.reason" placeholder="Motif ou numéro de téléphone (facultatif)"/></div></section>
+            <t t-set-slot="footer"><div class="primetech-mm-footer"><button class="btn btn-primary" t-att-disabled="state.saving" t-on-click="confirm"><i class="fa fa-check-circle"/>Valider</button><button class="btn btn-light" t-att-disabled="state.saving" t-on-click="props.close"><i class="fa fa-times"/>Annuler</button></div></t>
+        </Dialog>
+    </t>
+
+    <t t-name="primetech_pos_hitech_theme.MobileMoneyReceipt">
+        <div class="pos-receipt primetech-mm-ticket">
+            <ReceiptHeader data="props.headerData"/>
+            <div class="primetech-mm-ticket-heading"><div>Transaction Mobile Money</div><small>Justificatif de dépôt / retrait</small></div>
+            <div class="primetech-mm-ticket-rule dotted"/>
+            <div class="primetech-mm-ticket-row"><i class="fa fa-file-text-o"/><span>Référence</span><strong t-esc="props.receipt.reference"/></div>
+            <div class="primetech-mm-ticket-row"><i class="fa fa-wallet"/><span>Portefeuille</span><strong t-esc="props.receipt.provider"/></div>
+            <div class="primetech-mm-ticket-row"><i class="fa fa-exchange"/><span>Opération</span><strong t-esc="props.receipt.operation"/></div>
+            <div t-if="props.receipt.reason" class="primetech-mm-ticket-row"><i class="fa fa-phone"/><span>Motif / téléphone</span><strong t-esc="props.receipt.reason"/></div>
+            <div class="primetech-mm-ticket-total"><i class="fa fa-database"/><span>Montant</span><strong t-esc="format(props.receipt.amount)"/></div>
+            <div class="primetech-mm-ticket-rule dotted"/>
+            <div class="primetech-mm-ticket-footer"><i class="fa fa-check-circle-o"/><strong>Merci de votre confiance</strong><span>Conservez ce ticket comme justificatif.</span></div>
+            <div class="primetech-mm-ticket-rule dotted"/>
+            <div class="primetech-mm-ticket-bottom"><span><i class="fa fa-calendar"/> <t t-esc="props.receipt.date or ''"/></span><span><i class="fa fa-file-text-o"/> <t t-esc="props.receipt.reference"/></span></div>
+        </div>
+    </t>
+
+    <t t-name="primetech_pos_hitech_theme.MobileMoneyTransactionScreen">
+        <div class="screen h-100 primetech-mm-list-screen d-flex flex-column">
+            <div class="primetech-mm-list-header d-flex align-items-center gap-3 p-3">
+                <button class="btn btn-light" t-on-click="back"><i class="fa fa-chevron-left"/></button>
+                <div class="flex-grow-1"><h2 class="mb-0">Transactions Mobile Money</h2><small>Dépôts et retraits Orange Money / MTN MoMo</small></div>
+                <button class="btn btn-outline-primary" t-on-click="loadTransactions"><i class="fa fa-refresh me-1"/>Actualiser</button>
+                <button class="btn btn-primary" t-on-click="printReport"><i class="fa fa-print me-1"/>Imprimer le rapport</button>
+            </div>
+            <div class="primetech-mm-list-filters p-3 d-flex flex-wrap gap-2">
+                <input class="form-control flex-grow-1" placeholder="Rechercher par nom, numéro, référence ou téléphone" t-att-value="state.search" t-on-input="onSearchInput"/>
+                <select class="form-select" t-model="state.provider" t-on-change="onFilterChanged"><option value="all">Tous les portefeuilles</option><option value="orange">Orange Money</option><option value="momo">MTN MoMo</option></select>
+                <select class="form-select" t-model="state.operation" t-on-change="onFilterChanged"><option value="all">Toutes les opérations</option><option value="withdrawal">Retraits</option><option value="deposit">Dépôts</option></select>
+                <input class="form-control" type="date" t-model="state.dateFrom" t-on-change="onFilterChanged" title="Date de début"/>
+                <input class="form-control" type="date" t-model="state.dateTo" t-on-change="onFilterChanged" title="Date de fin"/>
+            </div>
+            <div class="primetech-mm-list-body flex-grow-1 overflow-auto px-3 pb-3">
+                <div t-if="state.loading" class="text-center p-5"><i class="fa fa-spinner fa-spin me-2"/>Chargement des transactions…</div>
+                <div t-elif="!state.transactions.length" class="text-center text-muted p-5">Aucune transaction trouvée.</div>
+                <table t-else="" class="table table-hover align-middle bg-white">
+                    <thead><tr><th>Date</th><th>Référence / numéro</th><th>Client / contact</th><th>Mode</th><th>Portefeuille</th><th>Opération</th><th class="text-end">Montant</th><th/></tr></thead>
+                    <tbody><tr t-foreach="state.transactions" t-as="transaction" t-key="transaction.id"><td t-esc="transaction.date"/><td t-esc="transaction.reference"/><td t-esc="transaction.partner or '-'"/><td t-esc="transaction.payment_method or '-'"/><td t-esc="transaction.provider"/><td><span class="badge" t-att-class="transaction.operation === 'Retrait' ? 'text-bg-danger' : 'text-bg-success'" t-esc="transaction.operation"/></td><td class="text-end fw-bold" t-esc="format(Math.abs(transaction.amount))"/><td class="text-end"><button class="btn btn-sm btn-light" title="Imprimer le ticket" t-on-click="() => this.printTransaction(transaction)"><i class="fa fa-print"/></button></td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+</templates>

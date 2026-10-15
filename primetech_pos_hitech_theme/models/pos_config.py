@@ -47,6 +47,13 @@ class PosConfig(models.Model):
         required=True,
         help="Nombre de chiffres du compteur quotidien des commandes.",
     )
+    primetech_mobile_money_transfer_account_id = fields.Many2one(
+        "account.account",
+        string="Compte de transfert Mobile Money",
+        domain="[('deprecated', '=', False)]",
+        check_company=True,
+        help="Compte transitoire utilisé entre la caisse espèces et les portefeuilles Mobile Money.",
+    )
 
     @api.constrains("primetech_stock_warning_level", "primetech_stock_critical_level")
     def _check_primetech_stock_levels(self):

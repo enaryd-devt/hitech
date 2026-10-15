@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_primetech_mobile_money_transaction_list" model="ir.ui.view">
+        <field name="name">primetech.mobile.money.transaction.list</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="arch" type="xml">
+            <list string="Dépôts et retraits Mobile Money" create="false" edit="false" delete="false" default_order="date desc, id desc">
+                <header>
+                    <button name="%(action_primetech_mobile_money_report_wizard)d" type="action" string="Imprimer le rapport par période" class="btn-secondary" icon="fa-print" display="always"/>
+                </header>
+                <field name="date"/>
+                <field name="payment_ref" string="Numéro / référence"/>
+                <field name="partner_id" string="Client / contact" optional="show"/>
+                <field name="primetech_mobile_money_payment_method_id" string="Mode de paiement" optional="show"/>
+                <field name="primetech_mobile_money_provider" string="Portefeuille"/>
+                <field name="primetech_mobile_money_operation" string="Opération"/>
+                <field name="amount" sum="Total"/>
+                <field name="primetech_mobile_money_session_id" string="Session PDV" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_primetech_mobile_money_transaction_search" model="ir.ui.view">
+        <field name="name">primetech.mobile.money.transaction.search</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher une transaction Mobile Money">
+                <field name="payment_ref" string="Numéro, référence, motif ou téléphone"/>
+                <field name="partner_id" string="Client / contact"/>
+                <field name="primetech_mobile_money_payment_method_id" string="Mode de paiement"/>
+                <separator/>
+                <filter string="Orange Money" name="orange" domain="[('primetech_mobile_money_provider','=','orange')]"/>
+                <filter string="MTN MoMo" name="momo" domain="[('primetech_mobile_money_provider','=','momo')]"/>
+                <filter string="Retraits" name="withdrawal" domain="[('primetech_mobile_money_operation','=','withdrawal')]"/>
+                <filter string="Dépôts" name="deposit" domain="[('primetech_mobile_money_operation','=','deposit')]"/>
+                <separator/>
+                <filter string="Aujourd'hui" name="today" domain="[('date','=',context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Mode de paiement" name="group_payment_method" context="{'group_by':'primetech_mobile_money_payment_method_id'}"/>
+                    <filter string="Portefeuille" name="group_provider" context="{'group_by':'primetech_mobile_money_provider'}"/>
+                    <filter string="Opération" name="group_operation" context="{'group_by':'primetech_mobile_money_operation'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by':'date'}"/>
+                    <filter string="Session PDV" name="group_session" context="{'group_by':'primetech_mobile_money_session_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_primetech_mobile_money_transactions" model="ir.actions.act_window">
+        <field name="name">Dépôts et retraits Mobile Money</field>
+        <field name="res_model">account.bank.statement.line</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('primetech_mobile_money_provider','!=',False)]</field>
+        <field name="search_view_id" ref="view_primetech_mobile_money_transaction_search"/>
+        <field name="groups_id" eval="[(4, ref('point_of_sale.group_pos_manager'))]"/>
+    </record>
+
+    <menuitem id="menu_primetech_mobile_money_transactions" name="Transactions Mobile Money" parent="point_of_sale.menu_point_root" action="action_primetech_mobile_money_transactions" sequence="95" groups="point_of_sale.group_pos_manager"/>
+</odoo>

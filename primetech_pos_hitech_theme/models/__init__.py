@@ -5,3 +5,7 @@ from . import res_config_settings
 from . import res_users
 from . import hr_employee
 from . import pos_order
+from . import pos_session
+from . import pos_payment_method
+from . import account_bank_statement_line
+from . import mobile_money_report_wizard

@@ -30,6 +30,15 @@
                         </div>
                     </div>
                 </setting>
+                <setting id="primetech_pos_mobile_money" string="Transactions Orange Money et MTN MoMo" help="Configurez les portefeuilles Mobile Money et le compte transitoire utilisés par les dépôts et retraits depuis la caisse.">
+                    <div class="content-group">
+                        <div class="row mt8">
+                            <label for="primetech_mobile_money_transfer_account_id" class="col-lg-4 o_light_label">Compte de transfert</label>
+                            <field name="primetech_mobile_money_transfer_account_id" class="col-lg-5" options="{'no_create': True}"/>
+                        </div>
+                        <div class="text-muted mt8">Définissez le type Espèces, Orange Money ou MTN MoMo directement sur chaque méthode de paiement du POS.</div>
+                    </div>
+                </setting>
             </xpath>
         </field>
     </record>

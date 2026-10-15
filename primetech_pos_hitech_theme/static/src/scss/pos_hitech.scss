@@ -498,6 +498,151 @@ html.primetech-pos-dark {
     }
 }
 
+.close-pos-popup {
+    .primetech-mobile-money-moves {
+        animation: primetech-mobile-money-expand 180ms ease-out both;
+        overflow: hidden;
+    }
+}
+
+.close-pos-popup .primetech-mobile-money-closing-counts {
+    margin: -4px 0 16px;
+
+    .primetech-mobile-money-closing-count {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #e0e8f4;
+        border-radius: 9px;
+        background: #f8fbff;
+    }
+}
+
+@keyframes primetech-mobile-money-expand {
+    from {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        max-height: 180px;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .close-pos-popup .primetech-mobile-money-moves {
+        animation: none;
+    }
+}
+
+.primetech-mm-ticket {
+    width: 100%; max-width: 330px; padding: 8px 9px 7px; color: #080808 !important;
+    background: #fff !important; font-family: Arial, Helvetica, sans-serif; font-size: 10px; line-height: 1.18;
+    br { display: none; }
+    .pos-receipt-logo { display: block; width: auto; max-width: 105px; max-height: 52px; margin: 0 auto 3px; filter: grayscale(1); }
+    .pos-receipt-header { color: #080808 !important; } .pos-receipt-contact { font-size: 8px; line-height: 1.18; text-align: center; } .pos-receipt-contact .cashier { margin-top: 3px; } .pos-receipt-contact .cashier div:first-child { font-size: 7px; line-height: 1; }
+    .primetech-mm-ticket-heading { margin: 5px 0 7px; padding: 7px 6px 6px; border-radius: 4px; background: #f2f2f2; text-align: center; text-transform: uppercase; font-size: 14px; font-weight: 800; }
+    .primetech-mm-ticket-heading small { display: block; margin-top: 2px; font-size: 9px; font-weight: 400; text-transform: none; }
+    .primetech-mm-ticket-rule { height: 1px; margin: 5px 0; background: #222; }
+    .primetech-mm-ticket-rule.dotted { background: repeating-linear-gradient(90deg, #aaa 0 3px, transparent 3px 6px); }
+    .primetech-mm-ticket-row { display: grid; grid-template-columns: 17px minmax(62px, 1fr) minmax(100px, 1.55fr); gap: 5px; align-items: center; padding: 5px 2px; border-bottom: 1px dashed #ccc; }
+    .primetech-mm-ticket-row i { font-size: 12px; text-align: center; } .primetech-mm-ticket-row strong { text-align: right; overflow-wrap: anywhere; font-weight: 700; }
+    .primetech-mm-ticket-total { display: grid; grid-template-columns: 27px 1fr auto; gap: 5px; align-items: center; margin: 7px 0; padding: 7px 6px; border-radius: 4px; background: #f2f2f2; font-size: 10px; font-weight: 700; }
+    .primetech-mm-ticket-total i { font-size: 18px; text-align: center; } .primetech-mm-ticket-total strong { font-size: 17px; white-space: nowrap; }
+    .primetech-mm-ticket-footer { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 0 5px; text-align: center; font-size: 8px; }
+    .primetech-mm-ticket-footer i { margin-bottom: 1px; font-size: 18px; } .primetech-mm-ticket-footer strong { font-size: 9px; }
+    .primetech-mm-ticket-bottom { display: flex; justify-content: space-between; gap: 4px; font-size: 7px; } .primetech-mm-ticket-bottom i { margin-right: 2px; }
+}
+
+.primetech-mobile-money-dialog {
+    --mm-blue: #145be7;
+    --mm-navy: #071643;
+    --mm-muted: #7482a6;
+    --mm-border: #e5ecf8;
+
+    .modal-header { padding: 16px 24px 10px; border: 0; }
+    .modal-body {
+        padding: 12px 24px 14px;
+        background: #fff;
+    }
+    .modal-footer { padding: 0 24px 18px; border: 0; }
+    .primetech-mm-header { display: flex; align-items: center; gap: 16px; color: var(--mm-navy); }
+    .primetech-mm-header h3 { margin: 0; font-weight: 800; font-size: 24px; }
+    .primetech-mm-header p { margin: 2px 0 0; color: var(--mm-muted); font-size: 16px; }
+    .primetech-mm-header-icon { position: relative; display: grid; width: 62px; height: 62px; place-items: center; border-radius: 13px; background: #e5eeff; color: var(--mm-blue); font-size: 31px; }
+    .primetech-mm-header-icon .fa-lock { position: absolute; right: 12px; bottom: 12px; font-size: 15px; }
+    .primetech-mm-section { margin: 0 0 7px; padding: 16px 18px; border: 1px solid var(--mm-border); border-radius: 15px; background: linear-gradient(120deg, #fbfdff, #f7faff); box-shadow: 0 4px 15px rgba(35, 75, 142, .04); }
+    .primetech-mm-section-title { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; color: var(--mm-navy); font-size: 17px; font-weight: 800; }
+    .primetech-mm-section-title > .fa { color: var(--mm-blue); font-size: 19px; }
+    .primetech-mm-section-title small { margin-left: auto; padding: 7px 11px; border-radius: 9px; background: #eef5ff; color: #2c62bc; font-size: 11px; font-weight: 500; }
+    .primetech-mm-balance { display: grid; grid-template-columns: 38px 1fr; grid-template-rows: 22px 25px; align-items: center; min-height: 70px; padding: 10px; border-radius: 11px; }
+    .primetech-mm-balance > i, .primetech-mm-balance > img { grid-row: 1 / 3; width: 36px; max-height: 36px; object-fit: contain; color: #e51d3c; font-size: 29px; }
+    .primetech-mm-balance span { color: #4f5f87; font-size: 13px; }
+    .primetech-mm-balance strong { color: var(--mm-navy); font-size: 17px; }
+    .primetech-mm-balance.cash { background: #fff0f2; } .primetech-mm-balance.momo { background: #fff9df; } .primetech-mm-balance.orange { background: #fff4e8; }
+    .primetech-mm-balance.is-debited strong { color: #e61d3d; }
+    .primetech-mm-choice, .primetech-mm-operation { display: flex; width: 100%; min-height: 70px; align-items: center; gap: 15px; padding: 11px 16px; border: 1px solid #dbe4f3; border-radius: 12px; background: #fff; color: var(--mm-navy); text-align: left; transition: all 170ms ease; }
+    .primetech-mm-choice:hover, .primetech-mm-operation:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgba(20, 55, 110, .10); }
+    .primetech-mm-choice > .fa { color: #c6d2e8; font-size: 23px; } .primetech-mm-choice.is-selected > .fa { color: #2870f7; }
+    .primetech-mm-choice img { width: 52px; height: 34px; object-fit: contain; }
+    .primetech-mm-choice span, .primetech-mm-operation span { display: flex; flex-direction: column; }
+    .primetech-mm-choice small, .primetech-mm-operation small { color: var(--mm-muted); font-size: 13px; }
+    .primetech-mm-choice.momo.is-selected { border: 2px solid #fbbd14; background: #fffdf5; } .primetech-mm-choice.orange.is-selected { border: 2px solid #ff7900; background: #fffaf5; }
+    .primetech-mm-operation > .fa { display: grid; width: 39px; height: 39px; place-items: center; border-radius: 50%; color: #fff; font-size: 18px; }
+    .primetech-mm-operation.withdrawal > .fa { background: #e91d40; } .primetech-mm-operation.deposit > .fa { background: #06a960; }
+    .primetech-mm-operation.withdrawal.is-selected { border: 2px solid #ef2949; background: #fff7f8; } .primetech-mm-operation.deposit.is-selected { border: 2px solid #49bf8a; background: #f7fffb; }
+    .primetech-mm-section .input-group-text { border-color: #cbd7ec; background: #f1f5fc; color: #64759a; font-size: 14px; }
+    .primetech-mm-section .form-control { border-color: #cbd7ec; font-size: 16px; }
+    .primetech-mm-footer { display: flex; gap: 12px; width: 100%; } .primetech-mm-footer .btn { min-width: 160px; padding: 12px 23px; border-radius: 10px; font-weight: 750; } .primetech-mm-footer .btn i { margin-right: 14px; }
+
+    .border.rounded.bg-light {
+        border: 0 !important;
+        border-radius: 14px !important;
+        padding: 1rem !important;
+        background: #fff !important;
+        box-shadow: 0 8px 22px rgba(27, 58, 107, .08);
+    }
+
+    .form-label {
+        color: #263858;
+        font-weight: 650;
+    }
+
+    .primetech-wallet-choice {
+        display: flex;
+        min-height: 76px;
+        align-items: center;
+        justify-content: center;
+        gap: .55rem;
+        border: 1px solid #dce3ef;
+        border-radius: 13px;
+        background: #fff;
+        color: #33435f;
+        font-weight: 700;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+
+        &:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(31, 56, 99, .12); }
+        &.is-selected { border-width: 2px; box-shadow: 0 8px 18px rgba(31, 56, 99, .16); }
+        img { max-width: 82px; max-height: 34px; object-fit: contain; }
+    }
+
+    .primetech-wallet-momo.is-selected { border-color: #f5b400; background: #fff9df; }
+    .primetech-wallet-orange.is-selected { border-color: #ff7900; background: #fff2e8; }
+
+    .btn-group .btn {
+        border-radius: 11px !important;
+        padding: .75rem .6rem;
+        font-weight: 650;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+
+        &:hover { transform: translateY(-1px); box-shadow: 0 6px 12px rgba(20, 40, 80, .12); }
+    }
+
+    .form-control { border-radius: 10px; border-color: #d9e0eb; }
+    .form-control:focus { border-color: #4c82c3; box-shadow: 0 0 0 .2rem rgba(76, 130, 195, .14); }
+}
+
 // Structured sales ticket: deliberately monochrome for reliable paper printing.
 .primetech-hitech-receipt {
     // Do not use CSS min() here: Odoo's LibSass tries to compare % and px.
@@ -640,4 +785,28 @@ html.primetech-pos-dark {
     .primetech-hitech-receipt .primetech-receipt-payment { width: 52%; }
     .primetech-hitech-receipt .primetech-receipt-total { padding: 2.5mm 3mm; font-size: 11pt; }
     .primetech-hitech-receipt .primetech-receipt-total strong { font-size: 12pt; }
+}
+// Mobile Money transaction history displayed directly in the POS.
+.primetech-mm-list-screen {
+    background: #f5f8fd;
+    color: #14285d;
+}
+.primetech-mm-list-header {
+    background: #fff;
+    border-bottom: 1px solid #e2e9f7;
+    h2 { font-size: 1.35rem; font-weight: 700; }
+    small { color: #7483a7; }
+}
+.primetech-mm-list-filters {
+    background: #fff;
+    border-bottom: 1px solid #e2e9f7;
+    .form-control, .form-select { min-width: 160px; max-width: 250px; border-color: #d6e0f2; }
+    .flex-grow-1 { min-width: 280px; max-width: none; }
+}
+.primetech-mm-list-body table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(33, 66, 130, .06);
+    thead { background: #eef4ff; color: #24478e; }
+    th { white-space: nowrap; }
 }
