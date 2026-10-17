@@ -1679,11 +1679,17 @@ class AccountMoveLine(models.Model):
             # The existing bill setting is deliberately reused: Poids means
             # air freight, while Volume means maritime freight.
             is_maritime = line.move_id.primetech_calculation_basis == "volume"
+            # Les constantes sont des valeurs unitaires de ligne : elles ne
+            # dépendent pas de la quantité facturée.
+            # Constante poids = poids × taux poids
+            # Constante volume = volume × taux volume
             line.primetech_weight_cost = (
-                line.primetech_weight * quantity * (line.move_id.primetech_weight_rate or 0.0)
+                (line.primetech_weight or 0.0)
+                * (line.move_id.primetech_weight_rate or 0.0)
             )
             line.primetech_volume_cost = (
-                line.primetech_volume * quantity * (line.move_id.primetech_volume_rate or 0.0)
+                (line.primetech_volume or 0.0)
+                * (line.move_id.primetech_volume_rate or 0.0)
             )
             # Default to the latest approved final purchase cost.  The inverse
             # field keeps any value entered by the buyer as an explicit override.

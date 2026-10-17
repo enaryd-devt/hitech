@@ -5,12 +5,17 @@
         <field name="default" eval="False"/>
         <field name="format">A4</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">20</field>
-        <field name="margin_bottom">20</field>
+        <!-- This top margin is reserved by wkhtmltopdf on *every* page for
+             the external-layout header.  Never simulate it with page padding:
+             CSS padding only protects the first page of a long document. -->
+        <!-- Réserve la place nécessaire à l'en-tête externe complet. -->
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">24</field>
         <field name="margin_left">8</field>
         <field name="margin_right">8</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">8</field>
+        <!-- Positionne l'en-tête externe près du bord supérieur. -->
+        <field name="header_spacing">32</field>
         <field name="dpi">90</field>
     </record>
 
@@ -34,15 +39,101 @@
         <field name="paperformat_id" ref="paperformat_primetech_invoice"/>
     </record>
 
+    <template id="report_primetech_hitech_header">
+        <style type="text/css">
+            /* Le header est rendu par wkhtmltopdf dans une page séparée.
+               Ne pas utiliser position:fixed ou de marge négative : ces deux
+               techniques le font rogner par le moteur PDF. */
+            .header.o_company_1_layout, .header[class*="o_company_"] {
+                margin:0 !important;
+                padding:5px 0 0 !important;
+            }
+            .pt-hitech-header { border-bottom:1px solid #0868c9; color:#17213c; font-family:Arial,sans-serif; height:48mm; margin:0; padding-bottom:2px; position:relative; width:100%; }
+            .pt-hitech-header__main { display:table; height:35mm; table-layout:fixed; width:100%; }
+            .pt-hitech-header__logo { display:table-cell; text-align:center; vertical-align:middle; width:27%; }
+            .pt-hitech-header__logo img { max-height:34mm; max-width:100%; }
+            .pt-hitech-header__body { border-left:1mm solid #0968c7; display:table-cell; padding-left:5mm; vertical-align:middle; width:73%; }
+            .pt-hitech-header__title { color:#075fc2; font-size:39pt; font-weight:900; letter-spacing:-1.7px; line-height:1; white-space:nowrap; }
+            .pt-hitech-header__title b { color:#ff7200; }
+            .pt-hitech-header__accent { display:table; height:2px; margin:2mm 0; width:100%; }
+            .pt-hitech-header__accent:before { background:#0868c9; content:''; display:table-cell; width:48%; }
+            .pt-hitech-header__accent:after { background:#ff7200; content:''; display:table-cell; width:52%; }
+            .pt-hitech-header__contacts { display:table; table-layout:fixed; width:100%; }
+            .pt-hitech-header__phone, .pt-hitech-header__online { display:table-cell; font-size:11pt; line-height:1.45; vertical-align:top; width:50%; }
+            .pt-hitech-header__online { border-left:1px solid #0868c9; padding-left:5mm; }
+            .pt-hitech-header strong { color:#0868c9; }
+            .pt-hitech-header .pt-orange { color:#ff7200; }
+            .pt-hitech-header__services { border-top:2px solid #0868c9; color:#17213c; font-size:9.5pt; margin-top:3mm; padding:2mm 3mm 0; white-space:nowrap; }
+            .pt-hitech-header__services strong { font-size:13pt; }
+        </style>
+        <div class="pt-hitech-header">
+            <div class="pt-hitech-header__main">
+                <div class="pt-hitech-header__logo">
+                    <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="Hitech DZ"/>
+                </div>
+                <div class="pt-hitech-header__body">
+                    <div class="pt-hitech-header__title">HIGHT-TECH- <b>DZ SARL</b></div>
+                    <div class="pt-hitech-header__accent"/>
+                    <div class="pt-hitech-header__contacts">
+                        <div class="pt-hitech-header__phone">
+                            <div><strong>● Services clients Number one:</strong> 657878693</div>
+                            <div><strong class="pt-orange">● Services clients ancien troisième:</strong> 659595814</div>
+                            <div><strong>● Direction:</strong> (+237) 679 576 626 - 655 502 254</div>
+                        </div>
+                        <div class="pt-hitech-header__online">
+                            <div><strong class="pt-orange">✉ Email:</strong> hightechdz9@gmail.com</div>
+                            <div><strong>◎ Site web :</strong> www.ngmangang.com</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-hitech-header__services"><strong>SERVICES:</strong>&#160; COMMERCE GÉNÉRAL &#160; ● &#160; VIDÉOS SURVEILLANCE &#160; ● &#160; IMPORT-EXPORT &#160; ● &#160; MAINTENANCE &#160; ● &#160; VENTE DU MATÉRIEL INFORMATIQUE ET ACCESSOIRES (GROS ET DETAIL)</div>
+        </div>
+    </template>
+
+    <!-- Layout réellement utilisé par la société (external_layout_striped). -->
+    <template id="report_primetech_hitech_external_layout_striped" inherit_id="web.external_layout_striped">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]" position="replace">
+            <div t-attf-class="o_company_#{company.id}_layout header">
+                <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_header"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'footer')]" position="replace">
+            <div t-attf-class="footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}">
+                <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_footer"/>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="report_primetech_hitech_footer">
+        <style type="text/css">
+            .pt-hitech-footer { color:#07509a; font-family:Arial,sans-serif; font-size:8pt; position:relative; text-align:center; width:100%; }
+            .pt-hitech-footer__rule { border-top:1px solid #07509a; margin-bottom:2mm; }
+            .pt-hitech-footer__content { line-height:1.35; text-align:center; width:100%; }
+            .pt-hitech-footer__configured { font-weight:600; }
+            .pt-hitech-footer__page { display:block; font-size:7pt; margin-top:1mm; }
+        </style>
+        <div class="pt-hitech-footer">
+            <div class="pt-hitech-footer__rule"/>
+            <div class="pt-hitech-footer__content">
+                <div t-if="o.company_id.report_footer" class="pt-hitech-footer__configured" t-field="o.company_id.report_footer"/>
+                <div t-else="" class="pt-hitech-footer__configured"><span t-esc="o.company_id.name"/></div>
+                <span class="pt-hitech-footer__page">Page <span class="page"/> / <span class="topage"/></span>
+            </div>
+        </div>
+    </template>
+
     <template id="report_primetech_invoice_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="o.company_id"/>
+                <!-- Même layout dynamique que le bouton d'impression natif. -->
                 <t t-call="web.external_layout">
                     <div t-attf-class="page pt-pro-invoice #{'pt-pro-invoice--proforma' if o.state == 'draft' and o.move_type == 'out_invoice' else 'pt-pro-invoice--quotation' if o.state == 'draft' else 'pt-pro-invoice--customer' if o.move_type == 'out_invoice' else 'pt-pro-invoice--supplier'}">
                         <style type="text/css">
                             /* L'en-tête externe reste en haut ; le contenu démarre volontairement
                                plus bas pour lui laisser une respiration nette. */
-                          .pt-pro-invoice { color:#172b55; font-family:Arial, sans-serif; font-size:13px; padding-top:28mm; }
+                          .pt-pro-invoice { color:#172b55; font-family:Arial, sans-serif; font-size:13px; padding-top:0; }
                           /* wkhtmltopdf ne prend pas fiablement en charge les variables CSS :
                              chaque bande reçoit donc une couleur explicite et imprimable. */
                           .pt-pro-invoice .pt-title { background:#0759a8 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:18px; font-weight:700; margin:0; padding:9px 15px; white-space:normal; }
@@ -52,7 +143,6 @@
                           .pt-pro-invoice--quotation .pt-title { background:#147d78 !important; }
                           .pt-pro-invoice .pt-title .pt-number { color:#fff0c5 !important; }
                             .pt-pro-invoice .pt-document-date { clear:both; color:#1f3f68; font-size:14px; font-style:italic; font-weight:600; margin:7px 3px 11px 0; text-align:right; }
-                            .pt-pro-invoice .pt-separator { border-top:2px solid #0c5da7; clear:both; margin:0; opacity:.72; }
                             .pt-pro-invoice .pt-grid { clear:both; width:100%; }
                             .pt-pro-invoice .pt-col { display:block; width:100%; }
                             .pt-pro-invoice .pt-partner-section { clear:both; margin:12px 0 0 auto; width:49%; }
@@ -72,6 +162,8 @@
                             .pt-pro-invoice .pt-traceability tr + tr td { border-top:1px solid #d6dee8 !important; }
                             .pt-pro-invoice .pt-traceability strong { color:#183f73; font-size:12px; font-weight:700; }
                             .pt-pro-invoice .pt-lines { border-collapse:collapse; margin-top:11px; width:100%; }
+                            .pt-pro-invoice .pt-lines thead { display:table-header-group; }
+                            .pt-pro-invoice .pt-lines tr { page-break-inside:avoid; }
                             .pt-pro-invoice .pt-lines th { background:#084a93; border:1px solid #c5d7ed; color:#fff; font-size:11px; padding:9px 7px; text-align:center; }
                             .pt-pro-invoice .pt-lines td { border:1px solid #d5e1f0; padding:9px 7px; vertical-align:top; }
                             .pt-pro-invoice .pt-lines .pt-right { text-align:right; }
@@ -103,7 +195,6 @@
                         <t t-set="invoice_lines" t-value="o._primetech_report_invoice_lines()"/>
                         <t t-set="columns" t-value="o._primetech_report_column_visibility()"/>
                         <t t-set="trace" t-value="o._primetech_report_traceability()"/>
-                        <div class="pt-separator"/>
                         <div class="pt-document-date" t-esc="o._primetech_report_date_in_words()"/>
 
                         <div class="pt-grid">
