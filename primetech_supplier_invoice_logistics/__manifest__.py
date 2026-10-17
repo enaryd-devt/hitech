@@ -2,7 +2,7 @@
 {
     "name": "Primetech - Facturation logistique, réceptions et livraisons",
     "summary": "Factures, coûts logistiques, réceptions, livraisons, retours et avoirs liés",
-    "version": "18.0.1.1.42",
+    "version": "18.0.1.1.43",
     "category": "Accounting/Inventory",
     "author": "Primetech",
     "license": "LGPL-3",

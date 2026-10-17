@@ -41,10 +41,10 @@
                 <style type="text/css">
                   /* Les variables CSS ne sont pas rendues de façon fiable par wkhtmltopdf. */
                   .pt-picking-document { color:#18375f; font-family:Arial,sans-serif; font-size:11px; padding-top:0; }
-                  .pt-picking-document__title { background:#7651b5 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:21px; font-weight:700; padding:9px 15px; }
+                  .pt-picking-document__title { background:#7651b5 !important; border-radius:5px; color:#fff !important; display:inline-block; font-size:15px; font-weight:700; line-height:1.2; padding:7px 11px; white-space:nowrap; }
                   .pt-picking-document--receipt .pt-picking-document__title { background:#17835d !important; }
                   .pt-picking-document--delivery .pt-picking-document__title { background:#7651b5 !important; }
-                  .pt-picking-document__ref { color:#fff2a5 !important; }
+                  .pt-picking-document__ref { color:#fff2a5 !important; display:inline-block; white-space:nowrap; }
                   .pt-picking-document__partner-title { color:#fff !important; display:block; font-size:11px; font-weight:600; margin-top:4px; opacity:.95; text-transform:uppercase; }
                     .pt-picking-document__grid { display:table; margin-top:13px; table-layout:fixed; width:100%; }
                     .pt-picking-document__col { display:table-cell; vertical-align:top; width:50%; }
