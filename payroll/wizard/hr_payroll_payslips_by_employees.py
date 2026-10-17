@@ -33,7 +33,6 @@ class HrPayslipEmployees(models.TransientModel):
                 "employee_id": employee.id,
                 "name": slip_data["value"].get("name"),
                 "struct_id": slip_data["value"].get("struct_id"),
-                "struct_ids": slip_data["value"].get("struct_ids"),
                 "contract_id": slip_data["value"].get("contract_id"),
                 "payslip_run_id": active_id,
                 "input_line_ids": [

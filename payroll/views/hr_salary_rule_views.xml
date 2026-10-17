@@ -177,16 +177,9 @@
                                         colspan="2"
                                     />
                                     <field
-                                        name="percentage_base_source"
-                                        string="Pourcentage basé sur"
+                                        name="amount_percentage_base"
                                         invisible="amount_select != 'percentage'"
                                         required="amount_select == 'percentage'"
-                                    />
-                                    <field
-                                        name="amount_percentage_base"
-                                        string="Expression personnalisée"
-                                        invisible="amount_select != 'percentage' or percentage_base_source != 'custom'"
-                                        required="amount_select == 'percentage' and percentage_base_source == 'custom'"
                                     />
                                     <field
                                         name="quantity"

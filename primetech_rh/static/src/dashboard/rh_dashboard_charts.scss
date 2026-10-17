@@ -1,0 +1,39 @@
+.pt-chart-indicators {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px 3px;
+}
+
+.pt-chart-indicators button {
+    flex: 1;
+    padding: 5px 7px;
+    border: 0;
+    border-radius: 7px;
+    background: #f6f8fe;
+    color: #6a7b98;
+    text-align: left;
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+}
+
+.pt-chart-indicators button:hover { background: #edf3ff; transform: translateY(-1px); }
+.pt-chart-indicators small { display: block; font-size: 9px; }
+.pt-chart-indicators b { display: block; margin-top: 2px; color: #6e4ae9; font-size: 13px; }
+.pt-chart-indicators b.green { color: #1ba76c; }
+.pt-chart-indicators b.red { color: #e65870; }
+.pt-chart-indicators b.blue { color: #357ce8; }
+.pt-chart-indicators b.orange { color: #d88220; }
+
+.pt-curve-box { height: 130px; padding: 3px 16px 0; }
+.pt-curve-box svg { width: 100%; height: 110px; overflow: visible; }
+.pt-curve-box .grid line { stroke: #e7edf8; stroke-width: .55; vector-effect: non-scaling-stroke; }
+.pt-curve-box .curve { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; transition: stroke-width .18s ease; }
+.pt-curve-box .curve:hover { stroke-width: 3.5; }
+.pt-curve-box .total { stroke: #7a4ff0; }
+.pt-curve-box .arrivals { stroke: #22ba7c; }
+.pt-curve-box .departures { stroke: #ee6a7f; }
+.pt-curve-box .net { stroke: #3d83ef; }
+.pt-curve-box .gross { stroke: #9b65ef; }
+.pt-chart-labels { display: flex; justify-content: space-between; gap: 2px; margin-top: -4px; }
+.pt-chart-labels small { flex: 1; overflow: hidden; color: #74839d; font-size: 8px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.pt-payroll-panel footer button { margin-left: auto; }

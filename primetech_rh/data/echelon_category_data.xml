@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<odoo>
+	<data noupdate="">
+		
+		<!-- LES CATEGORIES -->
+			<record id="grille_sal_cat_01" model="hr.employee.category">
+				<field name="name">01</field>
+				<field name="sequence">1</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_02" model="hr.employee.category">
+				<field name="name">02</field>
+				<field name="sequence">2</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_03" model="hr.employee.category">
+				<field name="name">03</field>
+				<field name="sequence">3</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_04" model="hr.employee.category">
+				<field name="name">04</field>
+				<field name="sequence">4</field>	
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_05" model="hr.employee.category">
+				<field name="name">05</field>
+				<field name="sequence">5</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_06" model="hr.employee.category">
+				<field name="name">06</field>
+				<field name="sequence">6</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_07" model="hr.employee.category">
+				<field name="name">07</field>
+				<field name="sequence">7</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_08" model="hr.employee.category">
+				<field name="name">08</field>
+				<field name="sequence">8</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_09" model="hr.employee.category">
+				<field name="name">09</field>
+				<field name="sequence">9</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_10" model="hr.employee.category">
+				<field name="name">10</field>
+				<field name="sequence">10</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_11" model="hr.employee.category">
+				<field name="name">11</field>
+				<field name="sequence">11</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+			<record id="grille_sal_cat_12" model="hr.employee.category">
+				<field name="name">12</field>
+				<field name="sequence">12</field>
+				<!-- <field name="company_id">1</field> -->
+			</record>
+		<!-- FIN DES CATEGORIES -->
+		
+		<!-- LES ECHELONS -->
+			<record id="grille_sal_echel_A" model="hr.paie.echelon">
+				<field name="name">A</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">1</field>
+			</record>
+			<record id="grille_sal_echel_B" model="hr.paie.echelon">
+				<field name="name">B</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">2</field>
+			</record>
+			<record id="grille_sal_echel_C" model="hr.paie.echelon">
+				<field name="name">C</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">3</field>
+			</record>
+			<record id="grille_sal_echel_D" model="hr.paie.echelon">
+				<field name="name">D</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">4</field>
+			</record>
+			<record id="grille_sal_echel_E" model="hr.paie.echelon">
+				<field name="name">E</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">5</field>
+			</record>
+			<record id="grille_sal_echel_F" model="hr.paie.echelon">
+				<field name="name">F</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">6</field>
+			</record>
+			<record id="grille_sal_echel_G" model="hr.paie.echelon">
+				<field name="name">G</field>				
+				<field name="company_id">1</field>
+				<field name="sequence">7</field>
+			</record>
+			
+		<!-- FIN DES ECHELONS -->
+		
+	</data>
+</odoo>

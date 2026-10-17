@@ -7,7 +7,6 @@
             <list>
                 <field name="name" />
                 <field name="code" />
-                <field name="report_side" />
                 <field name="rule_ids" />
                 <field
                     name="company_id"
@@ -24,7 +23,6 @@
             <list>
                 <field name="name" />
                 <field name="code" />
-                <field name="report_side" />
                 <field
                     name="company_id"
                     groups="base.group_multi_company"
@@ -86,7 +84,6 @@
                         <field name="name" />
                         <field name="code" required="require_code" />
                         <field name="parent_id" />
-                        <field name="report_side" widget="radio" />
                         <field
                             name="company_id"
                             groups="base.group_multi_company"
@@ -94,7 +91,7 @@
                         />
                     </group>
                     <notebook>
-                        <page string="Règles salariales">
+                        <page string="Salary Rules">
                             <field
                                 name="rule_ids"
                                 domain="[('parent_rule_id','=',False)]"

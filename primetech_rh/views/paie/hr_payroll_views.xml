@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_hr_payslip_inherit_form" model="ir.ui.view">
+        <field name="name">hr.payslip.primetech.rh.form</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="primetech_rh.hr_payslip_view_form"/>
+        <field name="arch" type="xml">
+            <field name="contract_id" position="after">
+                <field name="category_id" required="1" readonly="state != 'draft'"/>
+                <field name="echelon_id" required="1" readonly="state != 'draft'"/>
+            </field>
+            <field name="number" position="after">
+                <field name="period_id" readonly="1"/>
+            </field>
+            <xpath expr="//field[@name='dynamic_filtered_payslip_lines']/list/field[@name='amount']" position="replace">
+                <field name="base" readonly="1"/>
+                <field name="appears_on_payslip" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_inherit_form" model="ir.ui.view">
+        <field name="name">hr.payslip.run.primetech.rh.form</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="primetech_rh.hr_payslip_run_view_form"/>
+        <field name="arch" type="xml">
+            <field name="credit_note" position="after">
+                <field name="period_id" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_inherit_form" model="ir.ui.view">
+        <field name="name">hr.salary.rule.primetech.rh.form</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="primetech_rh.hr_salary_rule_view_form"/>
+        <field name="arch" type="xml">
+            <field name="appears_on_payslip" position="after">
+                <field name="compute_leave"/>
+            </field>
+            <field name="code" position="after">
+                <field name="payslip_code"/>
+                <field name="contrib"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_hr_rule_input_list">
+        <field name="name">hr.rule.input.list</field>
+        <field name="model">hr.rule.input</field>
+        <field name="arch" type="xml">
+            <list string="Indemnities and benefits type">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="input_id"/>
+            </list>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="action_hr_rule_input_list">
+        <field name="name">Indemnities and benefits type</field>
+        <field name="view_id" ref="view_hr_rule_input_list"/>
+        <field name="res_model">hr.rule.input</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

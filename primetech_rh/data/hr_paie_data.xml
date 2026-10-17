@@ -1,0 +1,1449 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="BASIC" model="hr.salary.rule.category">
+        <field name="name">Base</field>
+        <field name="code">BASIC</field>
+    </record>
+    <data noupdate="">
+<!--   Rule Category -->
+    
+    <record id="TOTAUX" model="hr.salary.rule.category">
+        <field name="name">Totaux salaires</field>
+        <field name="code">TOTAUX</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="TOTAL_GAIN" model="hr.salary.rule.category">
+        <field name="name">Tous les gains</field>
+        <field name="code">ALL-GAIN</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="GAIN" model="hr.salary.rule.category">
+        <field name="name">Gain à valeure réelle</field>
+        <field name="code">GAIN</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="GAIN_TAX" model="hr.salary.rule.category">
+        <field name="name">Gains taxables</field>
+        <field name="code">GAINTAX</field>
+        <field name="parent_id" ref='TOTAL_GAIN'/>
+    </record>
+    
+    <record id="GAIN_CO" model="hr.salary.rule.category">
+        <field name="name">Gains cotisables</field>
+        <field name="code">GAINCO</field>
+        <field name="parent_id" ref='TOTAL_GAIN'/>
+    </record>
+    
+    <record id="GAIN_TAXCO" model="hr.salary.rule.category">
+        <field name="name">Gains taxables et cotisables</field>
+        <field name="code">GAINTAXCO</field>
+        <field name="parent_id"  ref='TOTAL_GAIN'/>
+    </record>
+    
+    <record id="GAIN_NOTAXCO" model="hr.salary.rule.category">
+        <field name="name">Gains non taxables et non cotisables</field>
+        <field name="code">GAINNOTAXCO</field>
+        <field name="parent_id"  ref='TOTAL_GAIN'/>
+    </record>
+    
+    <record id="AVANTAGE" model="hr.salary.rule.category">
+        <field name="name">Avantage en nature</field>
+        <field name="code">AVNAT_CAT</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="COTISATION" model="hr.salary.rule.category">
+        <field name="name">Cotisations</field>
+        <field name="code">COTI</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="COTISATION_SAL" model="hr.salary.rule.category">
+        <field name="name">Cotisations salariales</field>
+        <field name="code">COTI_SAL</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    
+    <record id="COTISATION_PAT" model="hr.salary.rule.category">
+        <field name="name">Cotisations patronales</field>
+        <field name="code">COTI_PAT</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="AUTRE_RET" model="hr.salary.rule.category">
+        <field name="name">Autres Retenues</field>
+        <field name="code">AUTRE_RET</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+    
+    <record id="ARRONDIS" model="hr.salary.rule.category">
+        <field name="name">ARRONDIS</field>
+        <field name="code">ROUND</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+
+
+        <!-- Contribution Register -->
+
+    <record id="hr_cm_cnps" model="hr.contribution.register">
+        <field name="name">CNPS</field>
+    </record>
+
+    <record id="hr_cm_fne" model="hr.contribution.register">
+        <field name="name">FNE</field>
+    </record>
+
+    <record id="hr_cm_cfe" model="hr.contribution.register">
+        <field name="name">Caisse des Francais de l'Etranger</field>
+    </record>
+
+    <record id="hr_cm_cfc" model="hr.contribution.register">
+        <field name="name">Credit Foncier du Cameroun</field>
+    </record>
+    
+    <record id="hr_cm_tc" model="hr.contribution.register">
+        <field name="name">Commune (Taxe communale)</field>
+    </record>
+
+    <record id="hr_cm_crtv" model="hr.contribution.register">
+        <field name="name">CRTV</field>
+    </record>
+    
+    <record id="hr_cm_impot" model="hr.contribution.register">
+        <field name="name">Impôt (IRPP)</field>
+    </record>
+    
+    
+<!-- HR SALARY RULES-->
+    
+    <record id="hr_rule_heure_normal" model="hr.salary.rule">
+        <field name="name">Salaire des heures normales</field>
+        <field name="code">HN</field>
+        <field name="sequence">800</field>
+        <field name="category_id" ref="BASIC"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_python_compute">result = round(contract.wage - ((contract.wage*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_rule_basic" model="hr.salary.rule">
+        <field name="name">Salaire de base</field>
+        <field name="code">BASE</field>
+        <field name="payslip_code">1000</field>
+        <field name="sequence">850</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = round(HN, 0)</field>
+    </record>
+    
+    <record id="hr_rule_base_heure_sup" model="hr.salary.rule">
+        <field name="name">Base de calcul heure Supp. 120%</field>
+        <field name="code">BHS120</field>
+        <field name="sequence">870</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.2, 2)</field>
+    </record>
+    
+    <record id="hr_rule_base_heure_sup130" model="hr.salary.rule">
+        <field name="name">Base de calcul heure Supp. 130%</field>
+        <field name="code">BHS130</field>
+        <field name="sequence">871</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.3, 2)</field>
+    </record>
+    
+    <record id="hr_rule_base_heure_sup140" model="hr.salary.rule">
+        <field name="name">Base de calcul heure Supp. 140%</field>
+        <field name="code">BHS140</field>
+        <field name="sequence">872</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.4, 2)</field>
+    </record>
+    
+    <record id="hr_rule_base_heure_sup150" model="hr.salary.rule">
+        <field name="name">Base de calcul heure Supp. 150%</field>
+        <field name="code">BHS150</field>
+        <field name="sequence">873</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.5, 2)</field>
+    </record>
+    
+    <record id="hr_rule_heure_sup" model="hr.salary.rule">
+        <field name="name">H. SUPP 120%</field>
+        <field name="code">HS120</field>
+        <field name="sequence">875</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="amount_percentage_base">BHS120</field>
+        <field name="quantity">worked_days.SUPP120 and worked_days.SUPP120.number_of_hours or 0</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.2 * (worked_days.SUPP120 and worked_days.SUPP120.number_of_hours or 0), 0)</field>
+    </record>
+    
+    <record id="hr_rule_heure_sup_130" model="hr.salary.rule">
+        <field name="name">H. SUPP 130%</field>
+        <field name="code">HS130</field>
+        <field name="sequence">885</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_percentage_base">BHS130</field>
+        <field name="quantity">worked_days.SUPP130 and worked_days.SUPP130.number_of_hours or 0</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.3 * (worked_days.SUPP130 and worked_days.SUPP130.number_of_hours or 0), 0)</field>
+    </record>
+    
+    <record id="hr_rule_heure_sup_140" model="hr.salary.rule">
+        <field name="name">H. SUPP 140%</field>
+        <field name="code">HS140</field>
+        <field name="sequence">890</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_percentage_base">BHS140</field>
+        <field name="quantity">worked_days.SUPP140 and worked_days.SUPP140.number_of_hours or 0</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.4 * (worked_days.SUPP140 and worked_days.SUPP140.number_of_hours or 0), 0)</field>
+    </record>
+    
+    <record id="hr_rule_heure_sup_150" model="hr.salary.rule">
+        <field name="name">H. SUPP 150%</field>
+        <field name="code">HS150</field>
+        <field name="sequence">895</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_percentage_base">BHS150</field>
+        <field name="quantity">worked_days.SUPP150 and worked_days.SUPP150.number_of_hours or 0</field>
+        <field name="amount_python_compute">result = round((BASE / 173.33) * 1.5 * (worked_days.SUPP150 and worked_days.SUPP150.number_of_hours or 0), 0)</field>
+    </record> 
+        
+        <record id="hr_rule_indemnite_conges" model="hr.salary.rule">
+            <field name="name">CONGES</field>
+            <field name="code">INDEMCONGES</field>
+            <field name="sequence">900</field>
+            <field name="category_id" ref="GAIN_TAXCO"/>  
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="compute_leave" eval="True"/> 
+            <field name="appears_on_payslip" eval="True"/> 
+            <field name="amount_python_compute">result = inputs.INPUT_INDEMCONGES and inputs.INPUT_INDEMCONGES.amount or 0</field>
+        </record>
+    
+    <record id="hr_rule_forfait_heure_sup_b1" model="hr.salary.rule">
+        <field name="name">FORFAIT HEURES SUPP. valeur réelle</field>
+        <field name="code">FHS_B1</field>
+        <field name="sequence">903</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_VAR_FSUPP_B1 and inputs.INPUT_VAR_FSUPP_B1.amount or 0</field>
+    </record>
+    
+    <record id="hr_rule_forfait_heure_sup" model="hr.salary.rule">
+        <field name="name">FORFAIT HEURES SUPP.</field>
+        <field name="code">FHS</field>
+        <field name="sequence">904</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(FHS_B1 - ((FHS_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_input_fsupp_b1" model="hr.rule.input">
+        <field name="name">Forfait heures supp</field>
+        <field name="code">INPUT_VAR_FSUPP_B1</field>
+        <field name="input_id" ref="hr_rule_forfait_heure_sup_b1"/>
+    </record>
+    
+    <record id="hr_rule_prime_entre_b1" model="hr.salary.rule">
+        <field name="name">Prime d'entretien valeur réelle</field>
+        <field name="code">PRIENTR_B1</field>
+        <field name="sequence">905</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_VAR_PRIENTR_B1 and inputs.INPUT_VAR_PRIENTR_B1.amount or 0</field>
+    </record>
+    
+    <record id="hr_rule_prime_entre" model="hr.salary.rule">
+        <field name="name">PRIME D'ENTRETIEN</field>
+        <field name="code">PRIENTR</field>
+        <field name="sequence">906</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(PRIENTR_B1 - ((PRIENTR_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_input_prime_entretien_b1" model="hr.rule.input">
+        <field name="name">Prime d'entretien</field>
+        <field name="code">INPUT_VAR_PRIENTR_B1</field>
+        <field name="input_id" ref="hr_rule_prime_entre_b1"/>
+    </record>
+    
+    <record id="hr_rule_prime_tech_b1" model="hr.salary.rule">
+        <field name="name">Prime de technicité valeur réelle</field>
+        <field name="code">PRITECH_B1</field>
+        <field name="sequence">907</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_VAR_PRITECH_B1 and inputs.INPUT_VAR_PRITECH_B1.amount or 0</field>
+    </record>
+    
+    <record id="hr_rule_prime_tech" model="hr.salary.rule">
+        <field name="name">PRIME DE TECHNICITE</field>
+        <field name="code">PRITECH</field>
+        <field name="sequence">908</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(PRITECH_B1 - ((PRITECH_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_input_prime_tech_b1" model="hr.rule.input">
+        <field name="name">Prime de technicité</field>
+        <field name="code">INPUT_VAR_PRITECH_B1</field>
+        <field name="input_id" ref="hr_rule_prime_tech_b1"/>
+    </record>
+    
+     <record id="hr_rule_respo_b1" model="hr.salary.rule">
+        <field name="name">Prime de Responsabilité à valeure réelle </field>
+        <field name="code">INDRESP_B1</field>
+        <field name="sequence">909</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_VAR_INDRESP_B1 and inputs.INPUT_VAR_INDRESP_B1.amount or 0</field>
+    </record>
+    
+    <record id="hr_rule_respo" model="hr.salary.rule">
+       <field name="name">Prime de responsabilité</field>
+       <field name="code">INDRESP</field>
+       <field name="payslip_code">1145</field>
+       <field name="sequence">910</field>
+       <field name="category_id" ref="GAIN_TAXCO"/>
+       <field name="appears_on_payslip" eval="True"/>
+       <field name="condition_select">none</field>
+       <field name="compute_leave" eval="True"/> 
+       <field name="amount_select">code</field>
+       <field name="amount_python_compute">result = round(INDRESP_B1 - ((INDRESP_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+   </record>
+    
+     <record id="hr_rule_astreinte_b1" model="hr.salary.rule">
+        <field name="name">PRIME d'astreinte à valeure réelle </field>
+        <field name="code">PRIAST_B1</field>
+        <field name="sequence">913</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_VAR_PRIAST_B1 and inputs.INPUT_VAR_PRIAST_B1.amount or 0</field>
+    </record>
+    
+     <record id="hr_rule_astreinte" model="hr.salary.rule">
+        <field name="name">PRIME D'ASTREINTE</field>
+        <field name="code">PRIAST</field>
+        <field name="sequence">914</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(PRIAST_B1 - ((PRIAST_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>   
+    
+    <record id="hr_rule_prisal_b1" model="hr.salary.rule">
+        <field name="name">Prime de salissure à valeur réelle</field>
+        <field name="code">PRISAL_B1</field>
+        <field name="sequence">915</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_PRISAL and inputs.INPUT_PRISAL.amount or 0</field>
+    </record>   
+    
+    <record id="hr_rule_prisal" model="hr.salary.rule">
+        <field name="name">PRIME DE SALISSURE</field>
+        <field name="code">PRISAL</field>
+        <field name="sequence">916</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = round(PRISAL_B1 - ((PRISAL_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record> 
+    
+    <record id="hr_rule_indeplt_b1" model="hr.salary.rule">
+        <field name="name">Indemnité de transport à valeure réelle</field>
+        <field name="code">INDEPLT_B1</field>
+        <field name="sequence">917</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_INDEPLT and inputs.INPUT_INDEPLT.amount or 0</field>
+    </record> 
+    
+    <record id="hr_rule_indeplt" model="hr.salary.rule">
+        <field name="name">Indemnité TRANSPORT</field>
+        <field name="code">INDEPLT</field>
+        <field name="payslip_code">1125</field>
+        <field name="sequence">918</field>
+        <field name="category_id" ref="GAIN_TAX"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = round(INDEPLT_B1 - ((INDEPLT_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_rule_ration" model="hr.salary.rule">
+        <field name="name">RATION</field>
+        <field name="code">RATION</field>
+        <field name="sequence">920</field>
+        <field name="category_id" ref="GAIN_CO"/>        
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_RATION and inputs.INPUT_RATION.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_ration" model="hr.rule.input">
+        <field name="name">Ration</field>
+        <field name="code">INPUT_RATION</field>
+        <field name="input_id" ref="hr_rule_ration"/>
+    </record>
+    
+    <record id="hr_rule_deces" model="hr.salary.rule">
+        <field name="name">DECES</field>
+        <field name="code">DECES</field>
+        <field name="sequence">922</field>
+        <field name="category_id" ref="GAIN_CO"/>        
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_DECES and inputs.INPUT_DECES.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_deces" model="hr.rule.input">
+        <field name="name">Indemnité de décès</field>
+        <field name="code">INPUT_DECES</field>
+        <field name="input_id" ref="hr_rule_deces"/>
+    </record>
+    
+    <record id="hr_rule_avnat" model="hr.salary.rule">
+        <field name="name">Avantage en Nature</field>
+        <field name="code">AVNAT</field>
+        <field name="sequence">923</field>
+        <field name="category_id" ref="AVANTAGE"/>        
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_AVNAT and inputs.INPUT_AVNAT.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_avnat" model="hr.rule.input">
+        <field name="name">Avantage en Nature</field>
+        <field name="code">INPUT_AVNAT</field>
+        <field name="input_id" ref="hr_rule_avnat"/>
+    </record>
+    
+    <record id="hr_rule_indemrisq_b1" model="hr.salary.rule">
+        <field name="name">Prime de risque à valeure réelle</field>
+        <field name="code">INDEMRISQ_B1</field>
+        <field name="sequence">924</field>
+        <field name="category_id" ref="GAIN"/>        
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="False"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_INDEMRISQ and inputs.INPUT_INDEMRISQ.amount or 0</field>
+    </record>
+    
+    <record id="hr_rule_indemrisq" model="hr.salary.rule">
+        <field name="name">PRIME DE RISQUE</field>
+        <field name="code">PRIRISQ</field>
+        <field name="sequence">925</field>
+        <field name="category_id" ref="GAIN_CO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = round(INDEMRISQ_B1 - ((INDEMRISQ_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+     <record id="hr_rule_sugges_b1" model="hr.salary.rule">
+        <field name="name">Prime de suggestion à valeure réelle </field>
+        <field name="code">INDSUGG_B1</field>
+        <field name="sequence">926</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_VAR_INDSUGG_B1 and inputs.INPUT_VAR_INDSUGG_B1.amount or 0</field>
+    </record>
+    
+     <record id="hr_rule_sugges" model="hr.salary.rule">
+        <field name="name">Prime de suggestion</field>
+        <field name="code">INDSUGG</field>
+        <field name="payslip_code">1147</field>
+        <field name="sequence">927</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(INDSUGG_B1 - ((INDSUGG_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_rule_indrep_b1" model="hr.salary.rule">
+        <field name="name">Indemnité de Representation à valeure réelle</field>
+        <field name="code">INDREP_B1</field>
+        <field name="sequence">929</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_INDREP and inputs.INPUT_INDREP.amount or 0</field>
+    </record>
+    
+    <record id="hr_rule_indrep" model="hr.salary.rule">
+        <field name="name">IND. REPRESENTATION</field>
+        <field name="code">INDREP</field>
+        <field name="payslip_code">1130</field>
+        <field name="sequence">930</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = round(INDREP_B1 - ((INDREP_B1*(worked_days.UNPAID and worked_days.UNPAID.number_of_days or 0))/30), 0)</field>
+    </record>
+    
+    <record id="hr_rule_pan" model="hr.salary.rule">
+        <field name="name">Prime d'ancienneté</field>
+        <field name="code">PAN</field>
+        <field name="payslip_code">1030</field>
+        <field name="sequence">935</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">
+if payslip.seniority >= 24 :
+    result = round(payslip.contract_id.seniority_base_amount * 0.02 * int(int(payslip.seniority)/12), 0)
+else :
+    result = 0  
+        </field>
+    </record>
+    
+    <record id="hr_salary_rule_prime_tenue_caisse" model="hr.salary.rule">
+        <field name="name">Prime de caisse</field>
+        <field name="code">PRITENUCAI</field>
+        <field name="payslip_code">1045</field>
+        <field name="sequence">940</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRITENUCAI_B1 and inputs.PRITENUCAI_B1.amount or 0</field>       
+    </record>
+        
+    <record id="hr_input_rule_prime_tenue_caisse" model="hr.rule.input">
+        <field name="name">Prime de caisse</field>
+        <field name="code">PRITENUCAI_B1</field>
+        <field name="input_id" ref="hr_salary_rule_prime_tenue_caisse"/>
+    </record>
+
+    <record id="hr_salary_rule_particuliere" model="hr.salary.rule">
+        <field name="name">Prime particulière</field>
+        <field name="code">PRIEXECPT</field>
+        <field name="payslip_code">1146</field>
+        <field name="sequence">945</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIEXECPT_B1 and inputs.PRIEXECPT_B1.amount or 0</field>       
+    </record>
+        
+    <record id="hr_input_rule_particuliere" model="hr.rule.input">
+        <field name="name">Prime particulière</field>
+        <field name="code">PRIEXECPT_B1</field>
+        <field name="input_id" ref="hr_salary_rule_particuliere"/>
+    </record>
+    
+    <record id="hr_rule_medical_fees" model="hr.salary.rule">
+        <field name="name">Remboursement Frais Médicaux</field>
+        <field name="code">MEDICFEES</field>
+        <field name="sequence">950</field>
+        <field name="category_id" ref="AUTRE_RET"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.MEDICFEES_B1 and inputs.MEDICFEES_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_medical_fees" model="hr.rule.input">
+        <field name="name">Remboursement Frais Médicaux</field>
+        <field name="code">MEDICFEES_B1</field>
+        <field name="input_id" ref="hr_rule_medical_fees"/>
+    </record>
+    
+    <record id="hr_rule_rappel_sal" model="hr.salary.rule">
+        <field name="name">Rappel Salaire</field>
+        <field name="code">RAPSAL</field>
+        <field name="sequence">960</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.RAPSAL_B1 and inputs.RAPSAL_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_rappel_sal" model="hr.rule.input">
+        <field name="name">Rappel Salaire</field>
+        <field name="code">RAPSAL_B1</field>
+        <field name="input_id" ref="hr_rule_rappel_sal"/>
+    </record>
+    
+    <record id="hr_rule_arround" model="hr.salary.rule">
+        <field name="name">Arrondi du mois</field>
+        <field name="code">ROUND</field>
+        <field name="payslip_code">220</field>
+        <field name="sequence">965</field>
+        <field name="category_id" ref="ARRONDIS"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.ROUND_B1 and inputs.ROUND_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_arround" model="hr.rule.input">
+        <field name="name">Arrondi du mois</field>
+        <field name="code">ROUND_B1</field>
+        <field name="input_id" ref="hr_rule_arround"/>
+    </record>
+    
+    <record id="hr_rule_prime_inter" model="hr.salary.rule">
+        <field name="name">Prime d'intérim</field>
+        <field name="code">PRIMINTER</field>
+        <field name="sequence">970</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMINTER_B1 and inputs.PRIMINTER_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_inter" model="hr.rule.input">
+        <field name="name">Prime d'intérim</field>
+        <field name="code">PRIMINTER_B1</field>
+        <field name="input_id" ref="hr_rule_prime_inter"/>
+    </record>
+    
+    <record id="hr_rule_prime_excp" model="hr.salary.rule">
+        <field name="name">Prime exceptionnelle</field>
+        <field name="code">PRIMEXCP</field>
+        <field name="sequence">980</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMEXCP_B1 and inputs.PRIMEXCP_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_excp" model="hr.rule.input">
+        <field name="name">Prime exceptionnelle</field>
+        <field name="code">PRIMEXCP_B1</field>
+        <field name="input_id" ref="hr_rule_prime_excp"/>
+    </record>
+    
+    <record id="hr_rule_prime_obj" model="hr.salary.rule">
+        <field name="name">Prime d'objectif</field>
+        <field name="code">PRIMOBJ</field>
+        <field name="sequence">990</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMOBJ_B1 and inputs.PRIMOBJ_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_obj" model="hr.rule.input">
+        <field name="name">Prime d'objectif</field>
+        <field name="code">PRIMOBJ_B1</field>
+        <field name="input_id" ref="hr_rule_prime_obj"/>
+    </record>
+    
+    <record id="hr_rule_prime_prod" model="hr.salary.rule">
+        <field name="name">Prime de production</field>
+        <field name="code">PRIMPROD</field>
+        <field name="sequence">995</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMPROD_B1 and inputs.PRIMPROD_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_prod" model="hr.rule.input">
+        <field name="name">Prime de production</field>
+        <field name="code">PRIMPROD_B1</field>
+        <field name="input_id" ref="hr_rule_prime_prod"/>
+    </record>
+    
+    <record id="hr_rule_ind_unemployment" model="hr.salary.rule">
+        <field name="name">Indemnité de Chômage Technique</field>
+        <field name="code">INDCHTECH</field>
+        <field name="sequence">994</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INDCHTECH_B1 and inputs.INDCHTECH_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_ind_unemployment" model="hr.rule.input">
+        <field name="name">Indemnité de Chômage Technique</field>
+        <field name="code">INDCHTECH_B1</field>
+        <field name="input_id" ref="hr_rule_ind_unemployment"/>
+    </record>
+    
+    <record id="hr_rule_ind_endcareer" model="hr.salary.rule">
+        <field name="name">Indemnité de Fin de Carrière</field>
+        <field name="code">INDENDCAREER</field>
+        <field name="sequence">995</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INDENDCAREER_B1 and inputs.INDENDCAREER_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_ind_endcareer" model="hr.rule.input">
+        <field name="name">Indemnité de Fin de Carrière</field>
+        <field name="code">INDENDCAREER_B1</field>
+        <field name="input_id" ref="hr_rule_ind_endcareer"/>
+    </record>
+    
+    <record id="hr_rule_prime_forf" model="hr.salary.rule">
+        <field name="name">Forfait Prime</field>
+        <field name="code">PRIMFORF</field>
+        <field name="sequence">996</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMFORF_B1 and inputs.PRIMFORF_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_forf" model="hr.rule.input">
+        <field name="name">Forfait Prime</field>
+        <field name="code">PRIMFORF_B1</field>
+        <field name="input_id" ref="hr_rule_prime_forf"/>
+    </record>
+
+    <record id="hr_rule_inpanier" model="hr.salary.rule">
+        <field name="name">Indemnité de panier</field>
+        <field name="code">INPANIER</field>
+        <field name="payslip_code">1060</field>
+        <field name="sequence">997</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs.INPUT_INPANIER and inputs.INPUT_INPANIER.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_inpanier" model="hr.rule.input">
+        <field name="name">Indemnité de panier</field>
+        <field name="code">INPUT_INPANIER</field>
+        <field name="input_id" ref="hr_rule_inpanier"/>
+    </record>
+    
+    <record id="hr_rule_prime_rendmt" model="hr.salary.rule">
+        <field name="name">Prime de rendement</field>
+        <field name="code">PRIMRDMT</field>
+        <field name="sequence">1000</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMRDMT_B1 and inputs.PRIMRDMT_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_rendmt" model="hr.rule.input">
+        <field name="name">Prime de rendement</field>
+        <field name="code">PRIMRDMT_B1</field>
+        <field name="input_id" ref="hr_rule_prime_rendmt"/>
+    </record>
+    
+    <record id="hr_rule_prime_repport" model="hr.salary.rule">
+        <field name="name">Prime de rapport</field>
+        <field name="code">PRIMRAP</field>
+        <field name="sequence">1010</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.PRIMRAP_B1 and inputs.PRIMRAP_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_prime_repport" model="hr.rule.input">
+        <field name="name">Prime de rapport</field>
+        <field name="code">PRIMRAP_B1</field>
+        <field name="input_id" ref="hr_rule_prime_repport"/>
+    </record>
+    
+    <record id="hr_rule_indem_log" model="hr.salary.rule">
+        <field name="name">Indemnité Logement</field>
+        <field name="code">INDLOG</field>
+        <field name="payslip_code">1140</field>
+        <field name="sequence">1010</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INDLOG_B1 and inputs.INDLOG_B1.amount or 0</field>
+    </record>
+        
+    <record id="hr_input_indem_log" model="hr.rule.input">
+        <field name="name">Indemnité Logement</field>
+        <field name="code">INDLOG_B1</field>
+        <field name="input_id" ref="hr_rule_indem_log"/>
+    </record>
+    
+    <record id="hr_rule_eau" model="hr.salary.rule">
+        <field name="name">Ind. D'eau</field>
+        <field name="code">EAU</field>
+        <field name="payslip_code">1105</field>
+        <field name="sequence">1020</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_EAU and inputs.INPUT_EAU.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_eau" model="hr.rule.input">
+        <field name="name">Ind. D'eau</field>
+        <field name="code">INPUT_EAU</field>
+        <field name="input_id" ref="hr_rule_eau"/>
+    </record>
+    
+    <record id="hr_rule_electricite" model="hr.salary.rule">
+        <field name="name">Ind. D'eléctricité</field>
+        <field name="code">ELECTRICITE</field>
+        <field name="payslip_code">1100</field>
+        <field name="sequence">1030</field>
+        <field name="category_id" ref="GAIN_NOTAXCO"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_ELECTRICITE and inputs.INPUT_ELECTRICITE.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_electricite" model="hr.rule.input">
+        <field name="name">Ind. D'eléctricité</field>
+        <field name="code">INPUT_ELECTRICITE</field>
+        <field name="input_id" ref="hr_rule_electricite"/>
+    </record>
+    
+    <record id="hr_rule_sursal" model="hr.salary.rule">
+        <field name="name">Sursalaire</field>
+        <field name="code">SURSAL</field>
+        <field name="payslip_code">1002</field>
+        <field name="sequence">1040</field>
+        <field name="category_id" ref="GAIN_TAXCO"/>        
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="False"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">result = inputs.INPUT_SURSAL and inputs.INPUT_SURSAL.amount or 0</field>
+    </record>
+    
+    <record id="hr_input_sursal" model="hr.rule.input">
+        <field name="name">Sursalaire</field>
+        <field name="code">INPUT_SURSAL</field>
+        <field name="input_id" ref="hr_rule_sursal"/>
+    </record>
+    
+    <record id="hr_rule_saltax" model="hr.salary.rule">
+        <field name="name">Salaire Taxable</field>
+        <field name="code">SALTAX</field>
+        <field name="sequence">1200</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories.GAINTAX + categories.GAINTAXCO</field>
+    </record>
+    
+    <record id="hr_rule_aveau" model="hr.salary.rule">
+        <field name="name">Avantage en nature eau</field>
+        <field name="code">VAR_AVEAU</field>
+        <field name="sequence">1210</field>
+        <field name="category_id" ref="AVANTAGE"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">
+if EAU == 0 :
+    result = 0
+elif  SALTAX * 0.02 > EAU :
+    result = EAU 
+else:
+    result = round(SALTAX * 0.02, 0)
+        </field>
+    </record>
+    
+    <record id="hr_rule_avelectricite" model="hr.salary.rule">
+        <field name="name">Avantage en nature electricite</field>
+        <field name="code">VAR_AVELECTRICITE</field>
+        <field name="sequence">1220</field>
+        <field name="category_id" ref="AVANTAGE"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_python_compute">
+if ELECTRICITE == 0 :
+    result = 0
+elif  SALTAX * 0.04 > ELECTRICITE :
+    result = ELECTRICITE 
+else:
+    result = round(SALTAX * 0.04, 0)
+        </field>
+    </record>
+    
+    <record id="hr_rule_avlogement" model="hr.salary.rule">
+        <field name="name">Avantage en nature logement</field>
+        <field name="code">VAR_AVLOGEMENT</field>
+        <field name="sequence">1230</field>
+        <field name="category_id" ref="AVANTAGE"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+if INDLOG == 0 :
+    result = 0
+elif  SALTAX * 0.15 > INDLOG :
+    result = INDLOG 
+else:
+    result = round(SALTAX * 0.15, 0)
+        </field>
+    </record>
+    
+    <record id="hr_rule_nosaltax" model="hr.salary.rule">
+        <field name="name">Salaire non Taxable</field>
+        <field name="code">SALNOTAX</field>
+        <field name="sequence">2002</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_python_compute">result = categories.GAINCO + categories.GAINNOTAXCO</field>
+    </record>
+    
+    <record id="hr_rule_salco" model="hr.salary.rule">
+        <field name="name">Salaire cotisable</field>
+        <field name="code">SALCO</field>
+        <field name="sequence">2003</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories.GAINCO + categories.GAINTAXCO</field>
+    </record>
+    
+    
+    <record id="hr_rule_saltax_b1" model="hr.salary.rule">
+        <field name="name">Salaire brut Taxable</field>
+        <field name="code">SALTAX_B1</field>
+        <field name="sequence">2011</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = SALTAX + VAR_AVEAU + VAR_AVELECTRICITE  + VAR_AVLOGEMENT</field>
+    </record>
+    
+    
+    <record id="hr_rule_salco_plaf" model="hr.salary.rule">
+        <field name="name">Base cotisation plafonnee</field>
+        <field name="code">SALCO_PLAF</field>
+        <field name="sequence">2013</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_python_compute">
+if SALCO &lt; 750000 :
+  result = SALCO 
+else :
+  result = 750000
+        </field>
+    </record>
+    
+    <record id="hr_rule_saltax_b2" model="hr.salary.rule">
+        <field name="name">Salaire net taxable</field>
+        <field name="code">SALTAX_B2</field>
+        <field name="sequence">2014</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(SALTAX_B1 * 0.7 -  0.042 * SALCO_PLAF, 0)</field>
+    </record>
+    
+    <record id="hr_rule_saltax_b3" model="hr.salary.rule">
+        <field name="name">Salaire taxable revenu net categoriel</field>
+        <field name="code">SALTAX_B3</field>
+        <field name="sequence">2015</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+if SALTAX_B1 &lt; 52000 :
+    result = 0
+elif SALTAX_B2 > 41667 :
+    result = ( SALTAX_B2 - 41667 )
+else :
+    result = 0
+        </field>
+    </record>
+    
+    <record id="hr_rule_taxable" model="hr.salary.rule">
+        <field name="name">Salaire Brut</field>
+        <field name="code">BRUT</field>
+        <field name="sequence">2016</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories.GAINTAX + categories.GAINCO + categories.GAINTAXCO + categories.GAINNOTAXCO</field>
+    </record>
+
+    <record id="hr_rule_cfc" model="hr.salary.rule">
+        <field name="name">CREDIT FONCIER</field>
+        <field name="code">CFC</field>
+        <field name="payslip_code">110</field>
+        <field name="sequence">2019</field>
+        <field name="category_id" ref="COTISATION_SAL"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="contrib" eval="True"/>
+        <field eval="1.0" name="amount_percentage"/>
+        <field name="amount_percentage_base">SALTAX_B1</field>
+    </record>    
+    
+    <record id="hr_rule_pv" model="hr.salary.rule">
+        <field name="name">Pension viellesse</field>
+        <field name="code">PV</field>
+        <field name="payslip_code">105</field>
+        <field name="sequence">2018</field>
+        <field name="category_id" ref="COTISATION_SAL"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="compute_leave" eval="True"/>
+        <field name="contrib" eval="True"/>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field eval="4.2" name="amount_percentage"/>
+        <field name="amount_percentage_base">SALCO_PLAF</field>
+    </record>
+    
+    <record id="hr_rule_rav" model="hr.salary.rule">
+        <field name="name">REDEVANCE CRTV</field>
+        <field name="code">RAV</field>
+        <field name="payslip_code">115</field>
+        <field name="sequence">2020</field>
+        <field name="category_id" ref="COTISATION_SAL"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="contrib" eval="True"/>
+        <field name="amount_percentage_base">BRUT</field>
+        <field name="amount_python_compute">
+if BRUT &lt;= 50000 :
+  result = 0
+elif BRUT &gt; 50000 and BRUT &lt;= 100000 :
+  result = 750
+elif BRUT &gt; 100000 and BRUT &lt;= 200000 :
+  result = 1950
+elif BRUT &gt; 200000 and BRUT &lt;= 300000 :
+  result = 3250
+elif BRUT &gt; 300000 and BRUT &lt;= 400000 :
+  result = 4550
+elif BRUT &gt; 400000 and BRUT &lt;= 500000 :
+  result = 5850
+elif BRUT &gt; 500000 and BRUT &lt;= 600000 :
+  result = 7150    
+elif BRUT &gt; 600000 and BRUT &lt;= 700000 :
+  result = 8450    
+elif BRUT &gt; 700000 and BRUT &lt;= 800000 :
+  result = 9750    
+elif BRUT &gt; 800000 and BRUT &lt;= 900000 :
+  result = 11050    
+elif BRUT &gt; 900000 and BRUT &lt;= 1000000 :
+  result = 12350    
+elif BRUT &gt; 1000000 :
+  result = 13000 
+        </field>
+    </record>
+    
+    <record id="hr_rule_irpph" model="hr.salary.rule">
+        <field name="name">IRPP</field>
+        <field name="code">IRPPH</field>
+        <field name="payslip_code">218</field>
+        <field name="sequence">2021</field>
+        <field name="category_id" ref="COTISATION_SAL"/>
+        <field name="appears_on_payslip" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_percentage_base">SALTAX_B1</field>
+        <field name="amount_python_compute">
+if SALTAX_B3 &lt; 166668 :
+  result = SALTAX_B3 * 0.1
+elif SALTAX_B3 &gt;= 166668 and SALTAX_B3 &lt; 250001 :
+  result = ( SALTAX_B3 - 166667 ) * 0.15 + 16667  
+elif SALTAX_B3 &gt;= 250001 and SALTAX_B3 &lt; 416668 :
+  result = ( SALTAX_B3 - 250000) * 0.25 + 29167 
+elif SALTAX_B3 &gt;= 416668 :
+  result = ( SALTAX_B3 - 416667 ) * 0.35 + 70833.75</field>
+    </record>
+    
+    <record id="hr_rule_cac" model="hr.salary.rule">
+        <field name="name">CAC/IRPP</field>
+        <field name="code">CAC</field>
+        <field name="payslip_code">219</field>
+        <field name="sequence">2022</field>
+        <field name="category_id" ref="COTISATION_SAL"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field eval="10.0" name="amount_percentage"/>
+        <field name="amount_percentage_base">IRPPH</field>
+    </record>
+    
+    <record id="hr_rule_TDL_BASE" model="hr.salary.rule">
+        <field name="name">Base de calcul TDL</field>
+        <field name="code">BASE_TDL</field>
+        <field name="sequence">2023</field>
+        <field name="category_id" ref="GAIN"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip.contract_id.seniority_base_amount</field>
+    </record>
+    
+    <record id="hr_rule_tdl" model="hr.salary.rule">
+        <field name="name">TAXE DEVELOP. LOCAL</field>
+        <field name="code">TC</field>
+        <field name="payslip_code">213</field>
+        <field name="sequence">2024</field>
+        <field name="category_id" ref="COTISATION_SAL"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="amount_percentage_base">BASE</field>
+        <field name="amount_python_compute">
+if BASE &lt; 62000 :
+  result = 0 
+elif BASE &gt;= 62000 and BASE &lt; 75251 :
+  result = 250 
+elif BASE &gt; 75250 and BASE &lt; 100001 :
+  result = 500 
+elif BASE &gt; 100000 and BASE &lt; 125001 :
+  result = 750 
+elif BASE &gt; 125000 and BASE &lt; 150001 :
+  result = 1000 
+elif BASE &gt; 150000 and BASE &lt; 200001 :
+  result = 1250 
+elif BASE &gt; 200000 and BASE &lt; 250001 :
+  result = 1500 
+elif BASE &gt; 250000 and BASE &lt; 300001 :
+  result = 2000 
+elif BASE &gt; 300000 and BASE &lt; 500001 :
+  result = 2250
+elif BASE &gt; 500000 :
+  result = 2500
+        </field>
+    </record>
+    
+    <record id="hr_rule_total_cotisal" model="hr.salary.rule">
+        <field name="name">Totale retenue salariale</field>
+        <field name="code">T_SAL</field>
+        <field name="sequence">2030</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories.COTI_SAL</field>
+    </record>
+
+    <record id="hr_rule_cfc_pat" model="hr.salary.rule">
+        <field name="name">CREDIT. FONC. PATR.</field>
+        <field name="code">CFC_PAT</field>
+        <field name="sequence">2032</field>
+        <field name="category_id" ref="COTISATION_PAT"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field eval="1.5" name="amount_percentage"/>
+        <field name="amount_percentage_base">BRUT</field>
+    </record>
+    
+    <record id="hr_rule_fne_pat" model="hr.salary.rule">
+        <field name="name">FOND. NAT. EMP. </field>
+        <field name="code">FNE</field>
+        <field name="sequence">2034</field>
+        <field name="category_id" ref="COTISATION_PAT"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field eval="1.0" name="amount_percentage"/>
+        <field name="amount_percentage_base">BRUT</field>
+    </record>
+    
+    <record id="hr_rule_prestfam" model="hr.salary.rule">
+        <field name="name">ALLOC. FAMI.</field>
+        <field name="code">PRESTFAM</field>
+        <field name="sequence">2036</field>
+        <field name="category_id" ref="COTISATION_PAT"/>
+        <field name="condition_select">none</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="amount_select">percentage</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field eval="7" name="amount_percentage"/>
+        <field name="amount_percentage_base">SALCO_PLAF</field>
+    </record>
+    
+    <record id="hr_rule_pv_pat" model="hr.salary.rule">
+        <field name="name">PENSION VIEILLESSE</field>
+        <field name="code">PV_PAT</field>
+        <field name="sequence">2037</field>
+        <field name="category_id" ref="COTISATION_PAT"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="appears_on_payslip" eval="True"/> 
+        <field eval="4.2" name="amount_percentage"/>
+        <field name="amount_percentage_base">SALCO_PLAF</field>
+    </record>
+    
+    <record id="hr_rule_accident_pat" model="hr.salary.rule">
+        <field name="name">ACCIDENT TRAV.</field>
+        <field name="code">ACC_TRAV</field>
+        <field name="sequence">2038</field>
+        <field name="category_id" ref="COTISATION_PAT"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="compute_leave" eval="True"/> 
+        <field eval="5" name="amount_percentage"/>
+        <field name="amount_percentage_base">SALCO_PLAF</field>
+    </record>
+    
+    <record id="hr_rule_atmpt_pat" model="hr.salary.rule">
+        <field name="name">AT/MP.</field>
+        <field name="code">AT_MP</field>
+        <field name="sequence">2039</field>
+        <field name="category_id" ref="COTISATION_PAT"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">percentage</field>
+        <field name="appears_on_payslip" eval="True"/> 
+        <field name="compute_leave" eval="True"/> 
+        <field eval="2.5" name="amount_percentage"/>
+        <field name="amount_percentage_base">SALCO_PLAF</field>
+    </record>
+    
+    <record id="hr_rule_total_pat" model="hr.salary.rule">
+        <field name="name">Total cotisations patronales</field>
+        <field name="code">TOTAL_COT_PAT</field>
+        <field name="sequence">4006</field>
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="compute_leave" eval="True"/> 
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories.COTI_PAT</field>
+    </record>
+    
+    <record id="hr_rule_net" model="hr.salary.rule">
+        <field name="name">Salaire Net</field>
+        <field name="code">NET</field>
+        <field name="sequence">10025</field>
+        <field name="compute_leave" eval="True"/> 
+        <field name="category_id" ref="TOTAUX"/>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(BRUT - categories.COTI_SAL - categories.AUTRE_RET + categories.ARRONDIS, 0)</field>
+    </record>
+    
+    <record id="hr_input_respo_b1" model="hr.rule.input">
+        <field name="name">Prime de responsabilité</field>
+        <field name="code">INPUT_VAR_INDRESP_B1</field>
+        <field name="input_id" ref="hr_rule_respo_b1"/>
+    </record>
+    
+    <record id="hr_input_sugges_b1" model="hr.rule.input">
+        <field name="name">Prime de suggestion</field>
+        <field name="code">INPUT_VAR_INDSUGG_B1</field>
+        <field name="input_id" ref="hr_rule_sugges_b1"/>
+    </record>
+        
+    <record id="hr_input_indemnite_conges" model="hr.rule.input">
+        <field name="name">Indemnité de conges payes</field>
+        <field name="code">INPUT_INDEMCONGES</field>
+        <field name="input_id" ref="hr_rule_indemnite_conges"/>
+    </record>
+    
+    <record id="hr_input_astreinte_b1" model="hr.rule.input">
+        <field name="name">Prime d'astreinte</field>
+        <field name="code">INPUT_VAR_PRIAST_B1</field>
+        <field name="input_id" ref="hr_rule_astreinte_b1"/>
+    </record>
+    
+    <record id="hr_input_prisal" model="hr.rule.input">
+        <field name="name">Prime de salissure</field>
+        <field name="code">INPUT_PRISAL</field>
+        <field name="input_id" ref="hr_rule_prisal_b1"/>
+    </record>
+    
+    <record id="hr_input_indrep" model="hr.rule.input">
+        <field name="name">Indemnité de Representation</field>
+        <field name="code">INPUT_INDREP</field>
+        <field name="input_id" ref="hr_rule_indrep_b1"/>
+    </record>
+    
+    <record id="hr_input_indeplt" model="hr.rule.input">
+        <field name="name">Indemnité de transport</field>
+        <field name="code">INPUT_INDEPLT</field>
+        <field name="input_id" ref="hr_rule_indeplt_b1"/>
+    </record>
+    
+    <record id="hr_input_indemrisq" model="hr.rule.input">
+        <field name="name">Indemnité de risque</field>
+        <field name="code">INPUT_INDEMRISQ</field>
+        <field name="input_id" ref="hr_rule_indemrisq_b1"/>
+    </record>
+    
+        <!-- Salary Structure -->
+
+    <record id="salary_structure_base_cm" model="hr.payroll.structure">
+        <field name="code">CM-BASE</field>
+        <field name="name">Profil de base</field>
+        <field eval="[(6, 0, [ref('hr_rule_heure_normal'), ref('hr_rule_basic'), ref('hr_rule_respo_b1'), ref('hr_rule_sugges'),
+        ref('hr_rule_sugges_b1'), ref('hr_rule_respo'), ref('hr_rule_astreinte_b1'), ref('hr_rule_indemnite_conges'), ref('hr_rule_astreinte'),
+        ref('hr_rule_indeplt_b1'), ref('hr_rule_indeplt'), ref('hr_rule_indemrisq_b1'), ref('hr_rule_indemrisq'), ref('hr_rule_prime_entre'),
+        ref('hr_rule_indrep_b1'), ref('hr_rule_indrep'), ref('hr_rule_saltax'), ref('hr_rule_nosaltax'), ref('hr_rule_salco'), ref('hr_rule_aveau'),
+        ref('hr_rule_prime_entre_b1'),ref('hr_rule_saltax_b1'),ref('hr_rule_saltax_b2'),ref('hr_rule_saltax_b3'),ref('hr_rule_pan'), ref('hr_rule_avelectricite'),
+        ref('hr_rule_salco_plaf'), ref('hr_rule_taxable'), ref('hr_rule_cfc'), ref('hr_rule_pv'), ref('hr_rule_avnat'), ref('hr_rule_TDL_BASE'), 
+        ref('hr_rule_rav'), ref('hr_rule_irpph'), ref('hr_rule_cac'), ref('hr_rule_tdl'), ref('hr_rule_cfc_pat'), ref('hr_rule_indem_log'), ref('hr_rule_avlogement'),
+        ref('hr_rule_prestfam'), ref('hr_rule_fne_pat'), ref('hr_rule_pv_pat'), ref('hr_rule_atmpt_pat'), ref('hr_rule_prime_tech_b1'), ref('hr_rule_prime_tech'),
+        ref('hr_rule_medical_fees'), ref('hr_rule_rappel_sal'), ref('hr_rule_prime_inter'), ref('hr_rule_prime_excp'), ref('hr_rule_arround'),
+        ref('hr_rule_prime_obj'), ref('hr_rule_prime_rendmt'), ref('hr_rule_prime_repport'), ref('hr_rule_electricite'), ref('hr_rule_eau'), ref('hr_rule_sursal'),
+        ref('hr_rule_net'), ref('hr_rule_total_cotisal'), ref('hr_rule_total_pat'), ref('hr_salary_rule_prime_tenue_caisse'), ref('hr_salary_rule_particuliere'), ref('hr_rule_inpanier'),
+        ref('hr_rule_heure_sup'), ref('hr_rule_base_heure_sup'), ref('hr_rule_heure_sup_130'), ref('hr_rule_base_heure_sup130'), 
+        ref('hr_rule_heure_sup_140'), ref('hr_rule_base_heure_sup140'), ref('hr_rule_heure_sup_150'), ref('hr_rule_base_heure_sup150'),]) ]" name="rule_ids"/>
+        <field name="company_id" ref="base.main_company"/>
+    </record>
+
+    </data>
+</odoo>

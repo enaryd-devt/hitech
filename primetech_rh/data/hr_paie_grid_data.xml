@@ -1,0 +1,533 @@
+<?xml version="1.0"?>
+<odoo>
+	<data noupdate="">
+		
+		<!-- Ceation de la grid de salaire -->
+		<record id="grid_sal_grid_sal" model="hr.paie.grid">
+			<field name="name">GRILLE 2026</field>
+			<field name="date_start">2026-01-01</field>
+			<field name="state">active</field>	
+			<field name="company_id">1</field>
+		</record>				
+		
+		<!-- POUR CHAQUE CATEGORIE ASSOCIER UN ECHELON -->	
+			<!-- ECHELON A -->
+				<record id="grid_sal_grid_line_A_01" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_01" />				
+					<field name="echelon_id" ref="primetech_rh.grille_sal_echel_A" />
+					<field name="sal_base">60473</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_02" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_02" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">71754</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_03" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_03" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">93256</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_04" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_04" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">108600</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_05" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_05" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">124652</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_06" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_06" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">150355</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_07" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_07" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">156222</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_08" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_08" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">218005</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_09" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_09" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">245736</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_10" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_10" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">290270</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_11" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_11" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">366484</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_A_12" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_12" />				
+					<field name="echelon_id" ref="grille_sal_echel_A" />	
+					<field name="sal_base">442225</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+			<!-- FIN ECHELON A -->
+			<!-- ECHELON B -->
+				<record id="grid_sal_grid_line_B_01" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_01" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">62732</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_02" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_02" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">76362</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_03" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_03" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">101414</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_04" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_04" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">116550</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_05" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_05" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">131878</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_06" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_06" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">158082</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_07" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_07" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">168616</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_08" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_08" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">232548</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_09" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_09" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">267234</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_10" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_10" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">305783</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_11" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_11" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">381577</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_B_12" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_12" />				
+					<field name="echelon_id" ref="grille_sal_echel_B" />	
+					<field name="sal_base">457370</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+			<!-- FIN ECHELON B -->
+			<!--  ECHELON C -->
+				<record id="grid_sal_grid_line_C_01" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_01" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">64987</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_02" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_02" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">81016</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_03" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_03" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">109574</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_04" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_04" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">124500</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_05" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_05" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">139104</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_06" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_06" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">165846</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_07" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_07" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">180936</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_08" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_08" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">247092</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_09" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_09" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">288732</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_10" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_10" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">320927</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_11" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_11" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">396722</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_C_12" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_12" />				
+					<field name="echelon_id" ref="grille_sal_echel_C" />	
+					<field name="sal_base">472550</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+			<!-- FIN ECHELON C -->
+			<!--  ECHELON D -->
+				<record id="grid_sal_grid_line_D_01" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_01" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">67243</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_02" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_02" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">85673</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_03" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_03" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">117732</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_04" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_04" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">132541</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_05" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_05" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">146368</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_06" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_06" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">173573</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_07" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_07" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">193293</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_08" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_08" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">261598</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_09" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_09" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">310229</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_10" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_10" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">336107</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_11" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_11" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">412010</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_D_12" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_12" />				
+					<field name="echelon_id" ref="grille_sal_echel_D" />	
+					<field name="sal_base">487728</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+			<!-- FIN ECHELON D -->
+			<!--   ECHELON E -->
+				<record id="grid_sal_grid_line_E_01" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_01" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">69498</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_02" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_02" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">90280</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_03" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_03" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">125845</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_04" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_04" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">141180</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_05" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_05" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">153593</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_06" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_06" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">181373</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_07" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_07" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">205649</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_08" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_08" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">276143</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_09" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_09" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">331728</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_10" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_10" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">351253</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_11" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_11" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">427035</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_E_12" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_12" />				
+					<field name="echelon_id" ref="grille_sal_echel_E" />	
+					<field name="sal_base">502873</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+			<!--  FIN ECHELON E -->
+			<!--   ECHELON F -->
+				<record id="grid_sal_grid_line_F_01" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_01" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">71754</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_02" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_02" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">94935</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_03" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_03" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">133974</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_04" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_04" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">148350</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_05" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_05" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">160820</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_06" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_06" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">189063</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_07" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_07" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">218005</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_08" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_08" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">290723</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_09" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_09" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">353225</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_10" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_10" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">366432</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_11" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_11" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">442225</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+				<record id="grid_sal_grid_line_F_12" model="hr.paie.grid.line">
+					<field name="category_id" ref="grille_sal_cat_12" />				
+					<field name="echelon_id" ref="grille_sal_echel_F" />	
+					<field name="sal_base">518051</field>
+					<field name="grid_id" ref="grid_sal_grid_sal" />					
+					<field name="company_id">1</field>
+				</record>
+			<!--  FIN ECHELON F -->
+		<!-- fin association -->
+		
+	</data>
+</odoo>

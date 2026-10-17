@@ -788,7 +788,7 @@ class AccountMove(models.Model):
         return fallback_type or picking_types[:1]
 
     def _primetech_apply_supplier_product_costs(self):
-        """Apply validated costs and manually entered physical data to products."""
+        """Apply validated costs and physical measures to the product card."""
         self.ensure_one()
         lines = self.invoice_line_ids.filtered(
             lambda line: line.display_type in (False, "product") and line.product_id
@@ -801,16 +801,15 @@ class AccountMove(models.Model):
                 product.standard_price = line.primetech_final_cost
             if line.primetech_final_sale_price > 0:
                 product.lst_price = line.primetech_final_sale_price
-            # Weight and volume remain editable on every invoice line.  When
-            # they were explicitly entered by the buyer, retain them on the
-            # product card so future supplier bills start with those values.
-            physical_values = {}
-            if line.primetech_weight_is_manual:
-                physical_values["weight"] = line.primetech_weight or 0.0
-            if line.primetech_volume_is_manual:
-                physical_values["volume"] = line.primetech_volume or 0.0
-            if physical_values:
-                product.write(physical_values)
+            # A supplier bill is the source of the latest actual packaging
+            # data.  Always copy the values held by its line: a future bill
+            # will then prefill them again from the article card.  Do not rely
+            # on transient onchange flags, which may not exist for imported
+            # or programmatically created invoices.
+            product.write({
+                "weight": line.primetech_weight or 0.0,
+                "volume": line.primetech_volume or 0.0,
+            })
 
     def _primetech_stock_invoice_lines(self):
         """Aggregate invoice product lines for stock-transfer synchronisation."""
@@ -1406,10 +1405,14 @@ class AccountMoveLine(models.Model):
 
     @api.onchange("product_id")
     def _onchange_primetech_supplier_last_price(self):
-        """Propose the last supplier price; the buyer may freely change it."""
+        """Propose supplier price and physical measures from the product card."""
         for line in self:
             if line.move_id.move_type not in ("in_invoice", "in_refund") or not line.product_id:
                 continue
+            # Weight and volume are snapshots on the supplier-bill line.  They
+            # start from the product card but deliberately remain editable.
+            line.primetech_weight = line.product_id.weight or 0.0
+            line.primetech_volume = line.product_id.volume or 0.0
             previous = line._primetech_get_last_supplier_line()
             if previous:
                 line.price_unit = line._primetech_last_supplier_price_in_invoice_currency(previous)
@@ -1454,24 +1457,24 @@ class AccountMoveLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if "primetech_weight" in vals:
-                vals["primetech_weight_manual"] = vals["primetech_weight"]
-                vals["primetech_weight_is_manual"] = True
-            if "primetech_volume" in vals:
-                vals["primetech_volume_manual"] = vals["primetech_volume"]
-                vals["primetech_volume_is_manual"] = True
+            product = self.env["product.product"].browse(vals["product_id"]).exists() if vals.get("product_id") else False
+            if product:
+                vals.setdefault("primetech_weight", product.weight or 0.0)
+                vals.setdefault("primetech_volume", product.volume or 0.0)
         lines = super().create(vals_list)
         return lines
 
     def write(self, vals):
         vals = dict(vals)
-        if "primetech_weight" in vals:
-            vals["primetech_weight_manual"] = vals["primetech_weight"]
-            vals["primetech_weight_is_manual"] = True
-        if "primetech_volume" in vals:
-            vals["primetech_volume_manual"] = vals["primetech_volume"]
-            vals["primetech_volume_is_manual"] = True
         result = super().write(vals)
+        if "product_id" in vals and not {"primetech_weight", "primetech_volume"}.intersection(vals):
+            for line in self.filtered(lambda item: item.product_id):
+                # Directly update the snapshots after an article change.  This
+                # bypasses this override and cannot overwrite a manual entry.
+                super(AccountMoveLine, line).write({
+                    "primetech_weight": line.product_id.weight or 0.0,
+                    "primetech_volume": line.product_id.volume or 0.0,
+                })
         return result
 
     def unlink(self):
@@ -1502,14 +1505,12 @@ class AccountMoveLine(models.Model):
         help="Si vide, l'emplacement de destination défini sur la facture est utilisé.",
     )
     primetech_weight = fields.Float(
-        string="Poids", compute="_compute_primetech_logistics", digits=(16, 6),
-        inverse="_inverse_primetech_weight", store=True,
+        string="Poids", digits=(16, 6), default=0.0,
     )
     primetech_weight_manual = fields.Float(digits=(16, 6), copy=False)
     primetech_weight_is_manual = fields.Boolean(copy=False)
     primetech_volume = fields.Float(
-        string="Volume", compute="_compute_primetech_logistics", digits=(16, 6),
-        inverse="_inverse_primetech_volume", store=True,
+        string="Volume", digits=(16, 6), default=0.0,
     )
     primetech_volume_manual = fields.Float(digits=(16, 6), copy=False)
     primetech_volume_is_manual = fields.Boolean(copy=False)
@@ -1611,8 +1612,7 @@ class AccountMoveLine(models.Model):
         "price_subtotal", "product_id.standard_price",
         "product_id.categ_id.primetech_cost_percentage",
         "product_id.categ_id.primetech_sale_percentage",
-        "primetech_weight_manual", "primetech_weight_is_manual",
-        "primetech_volume_manual", "primetech_volume_is_manual",
+        "primetech_weight", "primetech_volume",
         "primetech_final_cost_manual", "primetech_final_cost_is_manual",
         "primetech_final_sale_price_manual", "primetech_final_sale_price_is_manual",
         "move_id.primetech_weight_rate", "move_id.primetech_volume_rate",
@@ -1627,10 +1627,6 @@ class AccountMoveLine(models.Model):
             quantity = line.quantity or 0.0
             # Store the physical measure for one unit.  Totals and freight
             # calculations explicitly multiply it by the invoice quantity.
-            computed_weight = product.weight or 0.0
-            computed_volume = product.volume or 0.0
-            line.primetech_weight = line.primetech_weight_manual if line.primetech_weight_is_manual else computed_weight
-            line.primetech_volume = line.primetech_volume_manual if line.primetech_volume_is_manual else computed_volume
             line.primetech_stock_quantity = product.qty_available if product else 0.0
             previous = line._primetech_get_last_supplier_line()
             if previous:

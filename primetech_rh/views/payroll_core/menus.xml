@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Root Menus -->
+    <menuitem
+        id="menu_hr_payroll_root"
+        name="Paie"
+        sequence="45"
+        web_icon="payroll,static/description/icon.png"
+    />
+    <menuitem
+        id="menu_hr_payroll_configuration"
+        name="Configuration"
+        parent="menu_hr_payroll_root"
+        sequence="100"
+        groups="primetech_rh.group_payroll_manager"
+    />
+</odoo>

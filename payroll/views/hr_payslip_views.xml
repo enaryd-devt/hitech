@@ -10,15 +10,6 @@
                 <field name="name" />
                 <field name="date_from" optional="show" decoration-bf="1" />
                 <field name="date_to" optional="show" decoration-bf="1" />
-                <field name="currency_id" column_invisible="1" />
-                <field
-                    name="net_to_pay"
-                    widget="monetary"
-                    options="{'currency_field': 'currency_id'}"
-                    sum="Total net à payer"
-                    optional="show"
-                    readonly="1"
-                />
                 <field name="activity_ids" widget="list_activity" optional="show" />
                 <field
                     name="state"
@@ -84,6 +75,7 @@
         <field name="arch" type="xml">
             <form string="Payslip">
                 <header>
+                    <field name="allow_cancel_payslips" invisible="1" />
                     <button
                         string="Confirm"
                         name="action_payslip_done"
@@ -92,19 +84,10 @@
                         class="oe_highlight"
                     />
                     <button
-                        string="Imprimer le bulletin"
-                        name="action_print_payslip"
-                        type="object"
-                        icon="fa-print"
+                        string="Refund"
+                        name="refund_sheet"
                         invisible="state != 'done'"
-                        class="oe_highlight"
-                    />
-                    <button
-                        string="Remettre en brouillon"
-                        name="action_reopen_confirmed_payslip"
-                        type="object"
-                        invisible="state != 'done'"
-                        groups="payroll.group_payroll_manager"
+                        type='object'
                     />
                     <button
                         string="Compute Sheet"
@@ -167,24 +150,34 @@
                     <group name="top">
                         <group name="left">
                             <field name="employee_id" readonly="state != 'draft'" />
-                            <field name="contract_id" domain="[('employee_id','=',employee_id),('date_start','&lt;=',date_to),'|',('date_end','&gt;=',date_from),('date_end','=',False)]" context="{'default_employee_id': employee_id}" readonly="state != 'draft'" />
-                            <label for="date_from" string="Période de paie" />
-                            <div class="d-flex gap-2 align-items-center">
-                                <field name="date_from" string="Date de début" class="oe_inline" readonly="state != 'draft'" />
-                                <span class="text-muted">au</span>
-                                <field name="date_to" string="Date de fin" class="oe_inline" readonly="state != 'draft'" />
+                            <label for="date_from" string="Period" />
+                            <div>
+                                <field
+                                    name="date_from"
+                                    string="period"
+                                    widget="daterange"
+                                    class="oe_inline"
+                                    options="{'end_date_field': 'date_to'}"
+                                    readonly="state != 'draft'"
+                                />
                             </div>
-                            <field name="period_worked_days" readonly="1" />
-                            <field name="period_worked_hours" readonly="1" />
+                            <field name="date_to" invisible="True" />
+                            <field
+                                name="contract_id"
+                                domain="[('employee_id','=',employee_id),('date_start','&lt;=',date_to),'|',('date_end','&gt;=',date_from),('date_end','=',False)]"
+                                context="{'default_employee_id': employee_id}"
+                                readonly="state != 'draft'"
+                            />
                             <field name="number" />
-                            <field name="struct_id" force_save="1" invisible="1" />
-                            <field name="struct_ids" widget="many2many_tags" options="{'no_create_edit': True}" required="contract_id" readonly="state != 'draft'" string="Structures salariales" />
+                            <field
+                                name="struct_id"
+                                required="contract_id"
+                                force_save="1"
+                            />
                         </group>
                         <group name="right">
-                            <field name="company_id" invisible="1" />
-                            <!-- Anchor kept for the payroll_account inherited view. -->
-                            <field name="paid" invisible="1" />
-                            <field name="allow_cancel_payslips" invisible="1" />
+                            <field name="credit_note" readonly="state != 'draft'" />
+                            <field name="refunded_id" invisible="not refunded_id" />
                             <field name="compute_date" invisible="not compute_date" />
                         </group>
                     </group>
@@ -249,12 +242,6 @@
                             </field>
                         </page>
                         <page name="computation" string="Salary Computation">
-                            <field
-                                name="salary_kpi_html"
-                                widget="html"
-                                nolabel="1"
-                                readonly="1"
-                            />
                             <group>
                                 <field
                                     name="hide_child_lines"
@@ -285,19 +272,17 @@
                                     <field name="sequence" optional="hide" />
                                     <field name="parent_line_id" column_invisible="1" />
                                     <field name="parent_rule_id" column_invisible="1" />
-                                    <field name="code" readonly="1" optional="show" />
+                                    <field name="code" readonly="1" />
                                     <field
                                         name="salary_rule_id"
                                         readonly="1"
                                         column_invisible="1"
                                     />
-                                    <field name="category_id" readonly="1" optional="show" />
+                                    <field name="category_id" readonly="1" />
                                     <field name="name" />
-                                    <field name="quantity" readonly="1" optional="show" />
-                                    <field name="rate" readonly="1" optional="show" />
-                                    <field name="proration_percentage" string="Prorata (%)" readonly="1" optional="show" />
-                                    <field name="proration_base_amount" string="Base proratisée" readonly="1" optional="show" />
-                                    <field name="amount" readonly="1" optional="show" />
+                                    <field name="quantity" readonly="1" />
+                                    <field name="rate" readonly="1" />
+                                    <field name="amount" readonly="1" />
                                     <field
                                         name="total"
                                         decoration-danger="0 > total and parent_rule_id == False"
@@ -307,6 +292,32 @@
                                     <field name="currency_id" invisible="1" />
                                 </list>
                             </field>
+                        </page>
+                        <page name="accounting" string="Accounting Information">
+                            <group>
+                                <group string="Miscellaneous">
+                                    <field
+                                        name="company_id"
+                                        groups="base.group_multi_company"
+                                        readonly="state != 'draft'"
+                                    />
+                                    <field
+                                        name="payslip_run_id"
+                                        domain="[('state','=','draft')]"
+                                        readonly="state != 'draft'"
+                                    />
+                                </group>
+                                <group name="accounting" string="Accounting">
+                                    <field name="paid" readonly="1" />
+                                </group>
+                            </group>
+                            <div colspan="4">
+                                <field
+                                    name="note"
+                                    placeholder="Add an internal note..."
+                                    readonly="state != 'draft'"
+                                />
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -386,7 +397,7 @@
         </field>
     </record>
     <record id="hr_payslip_action" model="ir.actions.act_window">
-        <field name="name">Bulletins de paie</field>
+        <field name="name">Employee Payslips</field>
         <field name="res_model">hr.payslip</field>
         <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="hr_payslip_view_search" />
@@ -404,30 +415,8 @@
     </record>
     <menuitem
         id="hr_payslip_menu"
-        name="Bulletins de paie"
         action="hr_payslip_action"
         parent="payroll_menu_root"
         groups="payroll.group_payroll_user"
-        sequence="10"
     />
-    <menuitem
-        id="hr_payslip_payment_menu"
-        name="Paiements"
-        parent="payroll_menu_root"
-        groups="base.group_no_one"
-        sequence="20"
-    />
-    <record id="hr_payslip_payment_menu" model="ir.ui.menu">
-        <field name="action" eval="False" />
-    </record>
-    <menuitem
-        id="hr_payslip_refund_menu"
-        name="Avoirs de paie"
-        parent="payroll_menu_root"
-        groups="base.group_no_one"
-        sequence="30"
-    />
-    <record id="hr_payslip_refund_menu" model="ir.ui.menu">
-        <field name="action" eval="False" />
-    </record>
 </odoo>

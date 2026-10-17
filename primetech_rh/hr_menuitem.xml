@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <menuitem
+            id="menu_hr_ktco_root"
+            name="Human Ressources"
+            groups="hr.group_hr_user,base.group_user"
+            web_icon="hr,static/description/icon.png"
+            sequence="75"/>
+
+            <menuitem
+                id="hr.menu_hr_root"
+                name="Employees"
+                parent="menu_hr_ktco_root"
+                groups="hr.group_hr_manager,hr.group_hr_user,base.group_user"
+                sequence="1"/>
+
+                <menuitem
+                    id="hr.menu_view_employee_category_form"
+                    action="hr.open_view_categ_form"
+                    name="Employees's Categories"
+                    parent="hr.menu_human_resources_configuration"
+                    groups="base.group_no_one,hr.group_hr_user"
+                    sequence="1"/>
+
+                <menuitem
+                    id="menu_view_employee_echelon_form"
+                    action="action_hr_paie_echelon_tree"
+                    name="Employees's Echelons"
+                    parent="hr.menu_human_resources_configuration"
+                    groups="base.group_no_one,hr.group_hr_user"
+                    sequence="2"/>
+
+            <menuitem
+                name="Time Off"
+                id="hr_holidays.menu_hr_holidays_root"
+                sequence="95"
+                parent="menu_hr_ktco_root"
+                groups="base.group_user"/>
+
+            <menuitem
+                id="menu_hr_payroll_root"
+                name="Payroll"
+                sequence="105"
+                parent="menu_hr_ktco_root"
+                groups="primetech_rh.group_payroll_user,primetech_rh.group_payroll_manager"/>
+
+
+                <menuitem
+                    name="Indemnities and benefits"
+                    id="menu_hr_contract_inputs"
+                    parent="menu_hr_payroll_root"
+                    action="action_hr_contract_inputs_tree"
+                    groups="base.group_no_one"
+                    sequence="10"/>
+
+
+                    <menuitem
+                        name="Export DIPE"
+                        id="menu_hr_cpayroll_dipe"
+                        parent="menu_hr_payroll_root"
+                        action="action_view_wizard_payroll_dipe"
+                        groups="base.group_no_one,hr.group_hr_user"
+                        sequence="10"/>
+
+
+                    <!-- <menuitem
+                        name="Indemnities and benefits Types"
+                        id="menu_hr_rule_input"
+                        parent="menu_hr_payroll_root"
+                        action="action_hr_rule_input_tree"
+                        groups="base.group_no_one"
+                        sequence="3"/> -->
+
+                <menuitem
+                    id="menu_hr_payroll_configuration"
+                    name="Configuration"
+                    parent="menu_hr_payroll_root"
+                    sequence="90"
+                    groups="primetech_rh.group_payroll_manager"/>
+
+                <menuitem
+                    id="menu_hr_payroll_period_root"
+                    name="Payroll period"
+                    parent="menu_hr_payroll_configuration"
+                    sequence="1"
+                    groups="primetech_rh.group_payroll_manager"/>
+
+                    <menuitem
+                        id="menu_hr_payroll_exercice"
+                        name="Payroll Exercices"
+                        parent="menu_hr_payroll_period_root"
+                        sequence="1"
+                        groups="primetech_rh.group_payroll_manager"
+                        action="action_hr_pai_exercice_tree"/>
+
+                    <menuitem
+                        id="menu_hr_payroll_period"
+                        name="Periods"
+                        parent="menu_hr_payroll_period_root"
+                        sequence="2"
+                        groups="primetech_rh.group_payroll_manager"
+                        action="action_hr_pai_period_tree"/>
+
+                <menuitem
+                    id="menu_hr_paie_grid"
+                    name="Payroll grid"
+                    parent="menu_hr_payroll_configuration"
+                    sequence="2"
+                    groups="primetech_rh.group_payroll_manager"
+                    action="action_hr_paie_grid_tree"/>
+    </data>
+</odoo>

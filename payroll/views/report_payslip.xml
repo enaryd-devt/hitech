@@ -4,36 +4,31 @@
         <t t-call="web.external_layout">
             <div class="page pt-payroll-slip">
                 <style>
-                    .pt-payroll-slip { color: #111; font-family: Arial, sans-serif; font-size: 10.5px; line-height: 1.3; }
+                    .pt-payroll-slip { color: #111; font-family: Arial, sans-serif; font-size: 9px; line-height: 1.25; }
                     .pt-payroll-slip * { box-sizing: border-box; }
-                    .pt-payroll-slip .pt-slip-header { margin-bottom: 8px; overflow: hidden; border: 1.5px solid; border-radius: 9px; page-break-inside: avoid; }
-                    .pt-payroll-slip .pt-slip-hero { width: 100%; border-collapse: collapse; table-layout: fixed; color: #fff; }
-                    .pt-payroll-slip .pt-slip-hero td { padding: 0; vertical-align: middle; }
-                    .pt-payroll-slip .pt-hero-document { width: 55% !important; padding: 11px 16px 10px !important; }
-                    .pt-payroll-slip .pt-hero-employee { width: 45% !important; padding: 11px 15px 10px !important; border-left: 1px solid rgba(255, 255, 255, .85); }
-                    .pt-payroll-slip .pt-hero-title { display: block; margin-bottom: 5px; font-size: 22px; font-weight: 900; letter-spacing: .035em; line-height: 1; }
-                    .pt-payroll-slip .pt-hero-period { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; }
-                    .pt-payroll-slip .pt-hero-period strong { font-size: 11.5px; letter-spacing: .06em; }
-                    .pt-payroll-slip .pt-hero-name { display: block; overflow: hidden; font-size: 15px; font-weight: 900; line-height: 1.15; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
-                    .pt-payroll-slip .pt-hero-role { display: block; margin-top: 6px; font-size: 9px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
-                    .pt-payroll-slip .pt-slip-meta { width: 100%; border-collapse: collapse; table-layout: fixed; }
-                    .pt-payroll-slip .pt-slip-meta &gt; tbody &gt; tr &gt; td { width: 50%; padding: 10px 15px 9px; vertical-align: top; }
-                    .pt-payroll-slip .pt-slip-meta-left { border-right: 1px solid #d4dce6; }
-                    .pt-payroll-slip .pt-meta-row { display: table; width: 100%; min-height: 18px; margin-bottom: 3px; table-layout: fixed; font-size: 10px; line-height: 1.25; }
-                    .pt-payroll-slip .pt-meta-row &gt; span { display: table-cell; vertical-align: top; }
-                    .pt-payroll-slip .pt-meta-label { width: 31%; font-weight: 800; }
-                    .pt-payroll-slip .pt-meta-separator { width: 5%; font-weight: 800; text-align: center; }
-                    .pt-payroll-slip .pt-meta-value { width: 64%; }
-                    .pt-payroll-slip .pt-slip-number { margin-top: 5px; padding: 7px 10px; border-radius: 6px; background: #eef3f8; }
-                    .pt-payroll-slip .pt-slip-number .pt-meta-label { width: 30%; font-size: 11px; }
-                    .pt-payroll-slip .pt-slip-number .pt-meta-separator { width: 5%; font-size: 11px; }
-                    .pt-payroll-slip .pt-slip-number .pt-meta-value { width: 65%; font-size: 18px; font-weight: 900; letter-spacing: .04em; }
+                    .pt-payroll-slip .pt-top { display: table; width: 100%; table-layout: fixed; margin-bottom: 11px; }
+                    .pt-payroll-slip .pt-top-col { display: table-cell; width: 50%; vertical-align: top; }
+                    .pt-payroll-slip .pt-top-col:first-child { padding-right: 7px; }
+                    .pt-payroll-slip .pt-top-col:last-child { padding-left: 7px; }
+                    .pt-payroll-slip .pt-box { border: 1.4px solid #111; }
+                    .pt-payroll-slip .pt-company { min-height: 94px; padding: 8px 10px; }
+                    .pt-payroll-slip .pt-company strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; }
+                    .pt-payroll-slip .pt-company span { display: block; margin: 1px 0; }
+                    .pt-payroll-slip .pt-title { margin: 0; padding: 7px; border: 1.8px solid #111; font-size: 17px; font-weight: 800; letter-spacing: .06em; text-align: center; }
+                    .pt-payroll-slip .pt-box-row { display: table; width: 100%; min-height: 18px; padding: 2px 7px; table-layout: fixed; }
+                    .pt-payroll-slip .pt-box-row &gt; span { display: table-cell; vertical-align: top; }
+                    .pt-payroll-slip .pt-box-row &gt; span:first-child { width: 39%; font-weight: 700; }
+                    .pt-payroll-slip .pt-payment { border-top: 0; }
+                    .pt-payroll-slip .pt-employee { min-height: 82px; margin-top: 10px; padding: 10px; border-bottom: 3px solid #111; background: #dedede; text-align: center; }
+                    .pt-payroll-slip .pt-employee strong { display: block; font-size: 13px; text-transform: uppercase; }
+                    .pt-payroll-slip .pt-employee span { display: block; margin-top: 4px; }
+                    .pt-payroll-slip .pt-identity { min-height: 82px; margin-top: 10px; }
                     .pt-payroll-slip table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-                    .pt-payroll-slip .pt-lines { margin-top: 4px; border: 1.8px solid #111; page-break-inside: auto; }
+                    .pt-payroll-slip .pt-lines { margin-top: 13px; border: 1.8px solid #111; page-break-inside: auto; }
                     .pt-payroll-slip .pt-lines thead { display: table-header-group; }
                     .pt-payroll-slip .pt-lines tr { page-break-inside: avoid; }
-                    .pt-payroll-slip .pt-lines th { padding: 5px 3px; border: 1px solid #111; font-size: 9px; font-weight: 800; text-align: center; vertical-align: middle; }
-                    .pt-payroll-slip .pt-lines td { height: 23px; padding: 4px; border-right: 1px solid #111; font-size: 9.5px; vertical-align: middle; }
+                    .pt-payroll-slip .pt-lines th { padding: 4px 2px; border: 1px solid #111; font-size: 8px; font-weight: 800; text-align: center; vertical-align: middle; }
+                    .pt-payroll-slip .pt-lines td { height: 20px; padding: 3px; border-right: 1px solid #111; font-size: 8px; vertical-align: middle; }
                     .pt-payroll-slip .pt-lines tbody tr:last-child td { padding-bottom: 8px; }
                     .pt-payroll-slip .pt-code { width: 8%; }
                     .pt-payroll-slip .pt-name { width: 31%; }
@@ -42,65 +37,77 @@
                     .pt-payroll-slip .pt-value { width: 11%; }
                     .pt-payroll-slip .pt-number { text-align: right; white-space: nowrap; }
                     .pt-payroll-slip .pt-summary-line td { padding-top: 6px; border-top: 1px solid #111; font-weight: 800; }
-                    .pt-payroll-slip .pt-structure-subtotal td { padding: 6px 4px; border-top: 1.5px solid #111; border-bottom: 1.5px solid #111; background: #f2f2f2; font-size: 9.5px; font-weight: 800; }
                     .pt-payroll-slip .pt-totals { border: 1.8px solid #111; border-top: 0; page-break-inside: avoid; }
                     .pt-payroll-slip .pt-totals td { padding: 5px 3px; border-right: 1px solid #111; text-align: center; vertical-align: middle; }
-                    .pt-payroll-slip .pt-totals small { display: block; min-height: 22px; font-size: 8.5px; font-weight: 700; }
-                    .pt-payroll-slip .pt-totals strong { display: block; margin-top: 3px; font-size: 12px; white-space: nowrap; }
+                    .pt-payroll-slip .pt-totals small { display: block; min-height: 22px; font-size: 7.5px; font-weight: 700; }
+                    .pt-payroll-slip .pt-totals strong { display: block; margin-top: 3px; font-size: 10px; white-space: nowrap; }
                     .pt-payroll-slip .pt-totals .pt-net { border: 2px solid #111; background: #dedede; }
-                    .pt-payroll-slip .pt-totals .pt-net strong { font-size: 16px; }
+                    .pt-payroll-slip .pt-totals .pt-net strong { font-size: 14px; }
                     .pt-payroll-slip .pt-note { margin-top: 9px; padding: 6px; border: 1px solid #aaa; page-break-inside: avoid; }
-                    .pt-payroll-slip .pt-signatures { margin-top: 30px; page-break-inside: avoid; }
-                    .pt-payroll-slip .pt-signatures td { width: 33.33%; padding: 0 15px; text-align: center; vertical-align: top; }
-                    .pt-payroll-slip .pt-signature-title { display: block; color: #111; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-                    .pt-payroll-slip .pt-signature-line { display: block; height: 48px; margin-top: 8px; border-bottom: 1px solid #555; }
                 </style>
 
-                <t t-set="structure_groups" t-value="o._get_report_structure_groups()"/>
-                <t t-set="report_totals" t-value="o._dashboard_amounts()"/>
+                <t t-set="all_lines" t-value="o.line_ids.filtered(lambda line: line.appears_on_payslip)"/>
+                <t t-set="net_codes" t-value="('NET', 'SN', 'SAL_NET')"/>
                 <t t-set="gross_codes" t-value="('GROSS', 'BRUT', 'SAL_BRUT')"/>
-                <t t-set="gross_total" t-value="report_totals['gross']"/>
-                <t t-set="deduction_total" t-value="report_totals['deductions']"/>
-                <t t-set="employer_total" t-value="report_totals['employer']"/>
-                <t t-set="net_total" t-value="report_totals['net']"/>
+                <t t-set="summary_codes" t-value="gross_codes + net_codes"/>
+                <t t-set="report_lines" t-value="all_lines.filtered(lambda line: (line.code or '').upper() not in net_codes)"/>
+                <t t-set="calculation_lines" t-value="all_lines.filtered(lambda line: (line.code or '').upper() not in summary_codes and line.report_section != 'information')"/>
+                <t t-set="gross_total" t-value="0.0"/>
+                <t t-set="fallback_gross_total" t-value="0.0"/>
+                <t t-set="deduction_total" t-value="0.0"/>
+                <t t-set="employer_total" t-value="0.0"/>
+                <t t-set="net_total" t-value="0.0"/>
+                <t t-foreach="all_lines.filtered(lambda line: (line.code or '').upper() in gross_codes)" t-as="gross_line">
+                    <t t-set="gross_total" t-value="gross_total + abs(gross_line.total)"/>
+                </t>
+                <t t-foreach="calculation_lines" t-as="calc_line">
+                    <t t-if="calc_line.report_section == 'employer'" t-set="employer_total" t-value="employer_total + abs(calc_line.total)"/>
+                    <t t-elif="calc_line.report_section == 'deduction' or (calc_line.report_section == 'auto' and calc_line.total &lt; 0)" t-set="deduction_total" t-value="deduction_total + abs(calc_line.total)"/>
+                    <t t-else="" t-set="fallback_gross_total" t-value="fallback_gross_total + abs(calc_line.total)"/>
+                </t>
+                <t t-if="o.company_id.currency_id.is_zero(gross_total)">
+                    <t t-set="gross_total" t-value="fallback_gross_total"/>
+                </t>
+                <t t-foreach="all_lines.filtered(lambda line: (line.code or '').upper() in net_codes)" t-as="net_line">
+                    <t t-set="net_total" t-value="net_total + net_line.total"/>
+                </t>
+                <t t-if="o.company_id.currency_id.is_zero(net_total)">
+                    <t t-set="net_total" t-value="gross_total - deduction_total"/>
+                </t>
 
-                <t t-set="theme_primary" t-value="o.company_id.primary_color or '#714B67'"/>
-                <t t-set="theme_secondary" t-value="o.company_id.secondary_color or theme_primary"/>
-                <div class="pt-slip-header" t-att-style="'border-color: %s;' % theme_primary">
-                    <table class="pt-slip-hero" t-att-style="'background-color: ' + theme_primary + '; background-image: -webkit-linear-gradient(335deg, ' + theme_primary + ' 0%, ' + theme_secondary + ' 100%);'">
-                        <colgroup>
-                            <col style="width: 55%;"/>
-                            <col style="width: 45%;"/>
-                        </colgroup>
-                        <tbody>
-                            <tr>
-                                <td class="pt-hero-document" width="55%">
-                                    <strong class="pt-hero-title">BULLETIN DE PAIE</strong>
-                                    <span class="pt-hero-period">Période du <strong t-field="o.date_from"/> au <strong t-field="o.date_to"/></span>
-                                </td>
-                                <td class="pt-hero-employee" width="45%">
-                                    <strong class="pt-hero-name" t-field="o.employee_id.name"/>
-                                    <span class="pt-hero-role">Salarié</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="pt-slip-meta">
-                        <tbody>
-                            <tr>
-                                <td class="pt-slip-meta-left">
-                                    <div class="pt-meta-row"><span class="pt-meta-label">Période</span><span class="pt-meta-separator">:</span><span class="pt-meta-value">Du <span t-field="o.date_from"/> au <span t-field="o.date_to"/></span></div>
-                                    <div class="pt-meta-row pt-slip-number">
-                                        <span class="pt-meta-label">N° du bulletin</span><span class="pt-meta-separator">:</span><strong class="pt-meta-value" t-field="o.number" t-att-style="'color: %s;' % theme_primary"/>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="pt-meta-row"><span class="pt-meta-label">Département</span><span class="pt-meta-separator">:</span><strong class="pt-meta-value" t-field="o.employee_id.department_id"/></div>
-                                    <div class="pt-meta-row"><span class="pt-meta-label">Ancienneté</span><span class="pt-meta-separator">:</span><span class="pt-meta-value" t-field="o.contract_id.date_start"/></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="pt-top">
+                    <div class="pt-top-col">
+                        <div class="pt-box pt-company">
+                            <strong t-field="o.company_id.name"/>
+                            <span t-if="o.company_id.street"><span t-field="o.company_id.street"/></span>
+                            <span t-if="o.company_id.zip or o.company_id.city"><span t-field="o.company_id.zip"/> <span t-field="o.company_id.city"/></span>
+                            <span t-if="o.company_id.company_registry">RCCM : <span t-field="o.company_id.company_registry"/></span>
+                            <span t-if="o.company_id.vat">N° contribuable : <span t-field="o.company_id.vat"/></span>
+                            <span t-if="o.company_id.phone">Téléphone : <span t-field="o.company_id.phone"/></span>
+                        </div>
+                        <div class="pt-box pt-identity">
+                            <div class="pt-box-row"><span>Matricule / CNPS</span><span t-field="o.employee_id.identification_id"/></div>
+                            <div class="pt-box-row"><span>Emploi</span><span t-field="o.employee_id.job_id"/></div>
+                            <div class="pt-box-row"><span>Département</span><span t-field="o.employee_id.department_id"/></div>
+                            <div class="pt-box-row"><span>Date d’ancienneté</span><span t-field="o.contract_id.date_start"/></div>
+                            <div class="pt-box-row"><span>Structure</span><span t-field="o.struct_id"/></div>
+                        </div>
+                    </div>
+                    <div class="pt-top-col">
+                        <h1 class="pt-title">BULLETIN DE PAIE</h1>
+                        <div class="pt-box pt-payment">
+                            <div class="pt-box-row"><span>Période</span><span>Du <span t-field="o.date_from"/> au <span t-field="o.date_to"/></span></div>
+                            <div class="pt-box-row"><span>Paiement le</span><span t-field="o.date_to"/></div>
+                            <div class="pt-box-row"><span>Mode</span><span t-if="o.employee_id.bank_account_id">Virement bancaire</span><span t-else="">Espèces</span></div>
+                            <div class="pt-box-row"><span>Référence</span><span t-field="o.number"/></div>
+                        </div>
+                        <div class="pt-employee">
+                            <strong t-field="o.employee_id.name"/>
+                            <span t-field="o.employee_id.job_id"/>
+                            <span t-if="o.employee_id.work_contact_id"><span t-field="o.employee_id.work_contact_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": True}'/></span>
+                            <span t-if="o.employee_id.bank_account_id">Compte : <span t-field="o.employee_id.bank_account_id"/></span>
+                        </div>
+                    </div>
                 </div>
 
                 <table class="pt-lines">
@@ -121,29 +128,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-foreach="structure_groups" t-as="group">
-                            <t t-foreach="group['items']" t-as="item">
-                                <t t-set="line" t-value="item['line']"/>
-                                <tr t-att-class="'pt-summary-line' if item['kind'] == 'summary' else ''">
-                                    <td><span t-field="line.code"/></td>
-                                    <td><span t-field="line.name"/></td>
-                                    <td class="pt-number"><span t-esc="abs(line.amount)" t-options='{"widget": "float", "precision": 2}'/></td>
-                                    <td class="pt-number"><span t-if="item['kind'] in ('gain', 'deduction', 'summary')" t-esc="abs(line.rate)" t-options='{"widget": "float", "precision": 2}'/></td>
-                                    <td class="pt-number"><span t-if="item['kind'] in ('gain', 'summary')" t-esc="abs(line.total)" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                    <td class="pt-number"><span t-if="item['kind'] == 'deduction'" t-esc="abs(line.total)" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                    <td class="pt-number"><span t-if="item['kind'] == 'employer'" t-esc="abs(line.rate)" t-options='{"widget": "float", "precision": 2}'/></td>
-                                    <td class="pt-number"><span t-if="item['kind'] == 'employer'" t-esc="abs(line.total)" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                </tr>
-                            </t>
-                            <tr class="pt-structure-subtotal">
-                                <td colspan="4">SOUS-TOTAL · <span t-esc="group['name']"/></td>
-                                <td class="pt-number"><span t-if="group['gain_total']" t-esc="group['gain_total']" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td class="pt-number"><span t-if="group['deduction_total']" t-esc="group['deduction_total']" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td></td>
-                                <td class="pt-number"><span t-if="group['employer_total']" t-esc="group['employer_total']" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                            </tr>
-                        </t>
-                        <tr t-if="not structure_groups">
+                        <tr t-foreach="report_lines" t-as="line" t-att-class="'pt-summary-line' if (line.code or '').upper() in gross_codes else ''">
+                            <td><span t-field="line.code"/></td>
+                            <td><span t-field="line.name"/></td>
+                            <td class="pt-number"><span t-esc="abs(line.amount)" t-options='{"widget": "float", "precision": 2}'/></td>
+                            <td class="pt-number"><span t-if="line.report_section != 'information'" t-esc="abs(line.rate)" t-options='{"widget": "float", "precision": 2}'/></td>
+                            <td class="pt-number"><span t-if="line.report_section == 'gain' or (line.report_section == 'auto' and line.total &gt;= 0)" t-esc="abs(line.total)" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                            <td class="pt-number"><span t-if="line.report_section == 'deduction' or (line.report_section == 'auto' and line.total &lt; 0)" t-esc="abs(line.total)" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                            <td class="pt-number"><span t-if="line.report_section == 'employer'" t-esc="abs(line.rate)" t-options='{"widget": "float", "precision": 2}'/></td>
+                            <td class="pt-number"><span t-if="line.report_section == 'employer'" t-esc="abs(line.total)" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                        </tr>
+                        <tr t-if="not report_lines">
                             <td colspan="8" style="padding: 16px; text-align: center;">Aucune ligne salariale à afficher.</td>
                         </tr>
                     </tbody>
@@ -161,25 +156,6 @@
                 <div class="pt-note" t-if="o.note">
                     <strong>Observations :</strong> <span t-field="o.note"/>
                 </div>
-
-                <table class="pt-signatures">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <span class="pt-signature-title">Le Responsable RH</span>
-                                <span class="pt-signature-line"/>
-                            </td>
-                            <td>
-                                <span class="pt-signature-title">La Caisse</span>
-                                <span class="pt-signature-line"/>
-                            </td>
-                            <td>
-                                <span class="pt-signature-title">L'Employé</span>
-                                <span class="pt-signature-line"/>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </t>
     </template>

@@ -12,15 +12,12 @@ export class PayrollDashboard extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         const saved = this.readState();
-        const allowedPeriods = ["quarter", "semester", "year", "custom"];
-        const hasValidSavedPeriod = allowedPeriods.includes(saved.period);
-        const period = hasValidSavedPeriod ? saved.period : "quarter";
-        const range = this.periodRange(period);
+        const range = this.periodRange(saved.period || "month");
         this.state = useState({
             loading: true,
-            period,
-            dateFrom: (hasValidSavedPeriod && saved.dateFrom) || range.dateFrom,
-            dateTo: (hasValidSavedPeriod && saved.dateTo) || range.dateTo,
+            period: saved.period || "month",
+            dateFrom: saved.dateFrom || range.dateFrom,
+            dateTo: saved.dateTo || range.dateTo,
             data: null,
         });
         onWillStart(() => this.loadData());
@@ -57,17 +54,12 @@ export class PayrollDashboard extends Component {
             const month = Math.floor(today.getMonth() / 3) * 3;
             first = new Date(today.getFullYear(), month, 1);
             last = new Date(today.getFullYear(), month + 3, 0);
-        } else if (period === "semester") {
-            const month = today.getMonth() < 6 ? 0 : 6;
-            first = new Date(today.getFullYear(), month, 1);
-            last = new Date(today.getFullYear(), month + 6, 0);
         } else if (period === "year") {
             first = new Date(today.getFullYear(), 0, 1);
             last = new Date(today.getFullYear(), 11, 31);
         } else {
-            const month = Math.floor(today.getMonth() / 3) * 3;
-            first = new Date(today.getFullYear(), month, 1);
-            last = new Date(today.getFullYear(), month + 3, 0);
+            first = new Date(today.getFullYear(), today.getMonth(), 1);
+            last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         }
         return { dateFrom: this.toISO(first), dateTo: this.toISO(last) };
     }

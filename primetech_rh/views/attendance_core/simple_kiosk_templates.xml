@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="simple_kiosk_mode" name="Borne de présence PrimeTech">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <title>Borne de présence</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <style>
+                    body { background:#f4f7fb; font-family:Arial,sans-serif; }
+                    .pt-kiosk { max-width:1100px; margin:0 auto; padding:32px 20px; }
+                    .pt-kiosk header { text-align:center; margin-bottom:28px; color:#102a56; }
+                    .pt-kiosk h1 { margin:0 0 8px; font-size:30px; }
+                    .pt-kiosk p { margin:0; color:#60708e; }
+                    .pt-error { max-width:600px; margin:0 auto 20px; padding:12px 16px; border-radius:10px; background:#fff0f0; color:#b42318; text-align:center; }
+                    .pt-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
+                    .pt-card { background:white; border:1px solid #dce5f2; border-radius:14px; padding:18px; box-shadow:0 4px 16px rgba(28,55,90,.06); text-align:center; }
+                    .pt-card img { width:72px; height:72px; object-fit:cover; border-radius:50%; margin-bottom:10px; }
+                    .pt-card h2 { font-size:16px; margin:0 0 6px; color:#172b4d; }
+                    .pt-card input { width:100%; box-sizing:border-box; border:1px solid #ccd7e7; border-radius:8px; padding:9px; margin:8px 0; }
+                    .pt-card button { width:100%; border:0; border-radius:8px; background:#1769e0; color:white; padding:10px; font-weight:700; cursor:pointer; }
+                    .pt-empty { text-align:center; padding:40px; color:#60708e; }
+                </style>
+            </t>
+            <main class="pt-kiosk">
+                <header>
+                    <img t-if="company.logo" t-att-src="'/web/image/res.company/%s/logo' % company.id" style="max-height:70px;max-width:220px;margin-bottom:12px;"/>
+                    <h1>Borne de présence</h1>
+                    <p t-esc="company.name"/>
+                </header>
+                <div t-if="error == 'pin'" class="pt-error">Code PIN incorrect. Veuillez réessayer.</div>
+                <div t-if="not employees" class="pt-empty">Aucun employé n’est configuré pour cette société.</div>
+                <section class="pt-grid" t-else="">
+                    <article class="pt-card" t-foreach="employees" t-as="employee">
+                        <img t-if="employee.image_128" t-att-src="'/web/image/hr.employee/%s/image_128' % employee.id" alt="Photo"/>
+                        <h2 t-esc="employee.name"/>
+                        <form method="post" t-att-action="'/primetech_rh/kiosk/check/%s/%s' % (token, employee.id)">
+                            <input t-if="company.attendance_kiosk_use_pin" type="password" name="pin_code" placeholder="Code PIN" inputmode="numeric" required="required"/>
+                            <button type="submit">Pointer entrée / sortie</button>
+                        </form>
+                    </article>
+                </section>
+            </main>
+        </t>
+    </template>
+</odoo>

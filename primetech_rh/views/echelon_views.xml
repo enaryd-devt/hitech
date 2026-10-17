@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		
+        <!-- Form View -->
+        <record model="ir.ui.view" id="view_hr_paie_echelon_form">
+            <field name="name">.form</field>
+        	<field name="model">hr.paie.echelon</field>
+            <field name="type">form</field>
+        	<field name="arch" type="xml">
+                <form string="Pay echelon Form" version="7.0">
+        			<p class="oe_grey">
+                		Create / edit your payroll data
+           			</p>
+                	<sheet string="Pay echelon Form">
+						<group colspan="4" col="4">
+							<group colspan="2" col="2" string="General Information">
+								<field name="name" />
+								<field name="sequence"/>
+							</group>
+							<group colspan="2" col="2" string="Company and Status">
+								<field name="company_id" widget="selection" />
+								<field name="active"  />
+							</group>
+						</group>
+						<notebook>
+							<page string="Note">
+								<field name="note" nolabel="1"/>
+							</page>
+						</notebook>
+						
+					</sheet>
+                </form>
+            </field>
+        </record>
+
+		<!-- Tree View -->
+        <record model="ir.ui.view" id="view_hr_paie_echelon_tree">
+            <field name="name">hr.paie.echelon.tree</field>
+        	<field name="model">hr.paie.echelon</field>
+            <field name="type">list</field>
+        	<field name="arch" type="xml">
+				<list string="Payroll echelon">
+                    <field name="name"/>
+                    <field name="sequence"/>
+					<field name="company_id" invisible="True"/>
+            	</list>
+            </field>
+        </record>
+
+        <!-- actions paie.echelon -->
+		<record model="ir.actions.act_window" id="action_hr_paie_echelon_tree">
+			<field name="name">Echelons</field>
+			<field name="view_id" ref="view_hr_paie_echelon_tree" />
+			<field name="res_model">hr.paie.echelon</field>
+			<field name="view_mode">list,form</field>
+			<field name="help" type="html">
+				<p class="oe_view_nocontent_create"> 
+					<h2>
+						Payroll Echelons
+					</h2>
+                </p>
+			</field>
+		</record>
+
+        <record model="ir.ui.view" id="view_employee_category_form_inherit">
+            <field name="name">hr.employee.category.form.inherit</field>
+            <field name="model">hr.employee.category</field>
+            <field name="inherit_id" ref="hr.view_employee_category_form" />
+            <field name="arch" type="xml">
+                <form position="replace">
+                    <form string="Employee Category" version="14.0">
+                        <sheet>
+                            <group col="4" colspan="4">
+                                <field name="name" />
+                                <field name="sequence" />
+                            </group>
+                        </sheet>
+                    </form>
+                </form>
+            </field>
+        </record>
+	
+	</data>
+</odoo>

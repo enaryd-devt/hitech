@@ -129,19 +129,6 @@ class HrSalaryRule(models.Model):
         digits="Payroll Rate",
         help="For example, enter 50.0 to apply a percentage of 50%",
     )
-    percentage_base_source = fields.Selection(
-        [
-            ("contract_wage", "Salaire brut du contrat"),
-            ("custom", "Expression personnalisée"),
-        ],
-        string="Pourcentage basé sur",
-        compute="_compute_percentage_base_source",
-        inverse="_inverse_percentage_base_source",
-        help=(
-            "Choisissez « Salaire brut du contrat » pour utiliser automatiquement "
-            "le champ Salaire du contrat du salarié lors du calcul du bulletin."
-        ),
-    )
     amount_python_compute = fields.Text(
         string="Python Code",
         default="""# Available variables:
@@ -219,49 +206,6 @@ class HrSalaryRule(models.Model):
         localdict["result"] = None
         return localdict
 
-    @api.depends("amount_percentage_base")
-    def _compute_percentage_base_source(self):
-        for rule in self:
-            rule.percentage_base_source = (
-                "contract_wage"
-                if (rule.amount_percentage_base or "").strip() == "contract.wage"
-                else "custom"
-            )
-
-    def _inverse_percentage_base_source(self):
-        for rule in self:
-            if rule.percentage_base_source == "contract_wage":
-                rule.amount_percentage_base = "contract.wage"
-            elif (rule.amount_percentage_base or "").strip() == "contract.wage":
-                rule.amount_percentage_base = "0.0"
-
-    def _is_direct_period_proration_rule(self):
-        """Avoid applying the selected-period ratio twice to total rules."""
-        self.ensure_one()
-        expression = " ".join(filter(None, [
-            self.quantity,
-            self.amount_percentage_base,
-            self.amount_python_compute,
-        ]))
-        return not any(token in expression for token in (
-            "worked_days", "categories.", "rules.",
-        ))
-
-    def _uses_prorated_wage(self):
-        """Whether the rule already receives the prorated negotiated wage."""
-        self.ensure_one()
-        expression = " ".join(filter(None, [
-            self.quantity,
-            self.amount_percentage_base,
-            self.amount_python_compute,
-        ]))
-        return (
-            self.percentage_base_source == "contract_wage"
-            or "contract.wage" in expression
-            or "current_contract.base_salary" in expression
-            or "current_contract.prorated_wage" in expression
-        )
-
     def _compute_require_code_and_category(self):
         require = (
             self.env["ir.config_parameter"]
@@ -303,16 +247,11 @@ class HrSalaryRule(models.Model):
 
     def _compute_rule_percentage(self, localdict):
         try:
-            percentage_base = (
-                localdict["current_contract"].base_salary
-                if self.percentage_base_source == "contract_wage"
-                else float(safe_eval(self.amount_percentage_base, localdict))
-            )
             return {
                 "name": self.name,
                 "quantity": float(safe_eval(self.quantity, localdict)),
                 "rate": self.amount_percentage,
-                "amount": percentage_base,
+                "amount": float(safe_eval(self.amount_percentage_base, localdict)),
             }
         except Exception as ex:
             raise UserError(

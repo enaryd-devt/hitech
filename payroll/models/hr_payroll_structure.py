@@ -29,21 +29,6 @@ class HrPayrollStructure(models.Model):
         default=lambda self: self.env.company,
     )
     note = fields.Text(string="Description")
-    report_side = fields.Selection(
-        [
-            ("mixed", "Répartition selon les règles salariales"),
-            ("employee", "Part salariale"),
-            ("employer", "Part patronale"),
-        ],
-        string="Répartition sur le bulletin",
-        required=True,
-        default="mixed",
-        help=(
-            "Détermine les colonnes utilisées pour les éléments de cette structure "
-            "sur le bulletin imprimé. Le mode selon les règles conserve le classement "
-            "défini sur chaque règle salariale."
-        ),
-    )
     parent_id = fields.Many2one(
         "hr.payroll.structure", string="Parent", default=_get_parent
     )

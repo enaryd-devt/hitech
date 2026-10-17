@@ -76,6 +76,15 @@
     }
 }
 
+.o_payroll_refresh {
+    height: 38px;
+    border-radius: 8px;
+
+    i {
+        margin-right: 6px;
+    }
+}
+
 .o_payroll_loading {
     position: absolute;
     z-index: 20;
@@ -531,6 +540,7 @@
     .o_payroll_kpis { grid-template-columns: minmax(0, 1fr); }
     .o_payroll_filters { grid-template-columns: minmax(0, 1fr); }
     .o_payroll_filters label:first-child { grid-column: auto; }
+    .o_payroll_refresh span { display: inline; }
     .o_payroll_status_body { grid-template-columns: minmax(0, 1fr); justify-items: center; }
     .o_payroll_status_list { width: 100%; }
     .o_payroll_card_header { padding: 13px 13px 8px; }

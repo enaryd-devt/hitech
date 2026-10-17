@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="report_payslip_document">
+    <t t-call="web.external_layout_standard">
+        <t t-foreach="docs" t-as="o">
+            <div class="page">
+                <style>
+                    @page {
+                        size: A4;
+                        margin: 8mm 6mm 6mm 6mm; /* TOP RIGHT BOTTOM LEFT */
+                    }
+
+                    body {
+                        font-size: 10px;
+                        margin-top: -55px!important;
+                    }
+                </style>
+                    <style>
+                        .border-lb{
+                            border: 1px solid #000;
+                        }
+                        .border-rl{
+                            border-right: 1px solid #000;
+                            border-left: 1px solid #000;
+                        }
+                        .border-trl{
+                            border-top: 1px solid #000;
+                            border-right: 1px solid #000;
+                            border-left: 1px solid #000;
+                        }
+                        .border-bb{
+                            border: 1px solid #000;
+                            background-color:#9AE1BB;
+                        }
+                        .border-bb1{
+                            border-top: 1px solid #9AE1BB;
+                            border-right: 1px solid #000;
+                            border-left: 1px solid #000;
+                            background-color:#9AE1BB;
+                        }
+                        .space{
+                            color: #fff;
+                        }
+                        .spaceg{
+                            color: #9AE1BB;
+                        }
+                        .bold{
+                            font-weight: bold;
+                        }
+                        td{
+                            padding: 4px;
+                            font-size: 12px;
+                            vertical-align: middle;
+                        }
+                        img {
+                            display: block;
+                            margin-left: auto;
+                            margin-right: auto;
+                        }
+                    </style>
+                <table width="100%">
+                    <tr>
+                        <td width="20%"></td>
+                        <td width="13%"></td>
+                        <td width="5%"></td>
+                        <td width="5%"></td>
+                        <td width="5%"></td>
+                        <td width="6%"></td>
+                        <td width="7%"></td>
+                        <td width="3%"></td>
+                        <td width="11%"></td>
+                        <td width="7%"></td>
+                        <td width="18%"></td>
+                    </tr>
+                    <tr class="text-center">
+                        <td class="border-bb" style="font-size: 13px;">PAYSLIP</td>
+                        <td class="border-lb" colspan="6">
+                            <span class="space">--</span>Period from :<span class="space">--</span><b><span t-field="o.date_from" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b><span class="space">------</span>to<span class="space">--</span><b><span t-field="o.date_to" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b>
+                        </td>
+                        <td class="border-lb" colspan="4">
+                            <span class="space">---</span>Payment on :<span class="space">-</span><b><span t-field="o.date" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b><span class="space">----------------</span>by :
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border-lb" rowspan="3" style="font-size: 11px;vertical-align: top">
+                            <b><span t-field="o.company_id.name"/></b><br/>
+                            <span t-field="o.company_id.city"/><span class="space">-</span><span t-field="o.company_id.street"/><span class="space">-</span>(<span t-field="o.company_id.country_id.name"/>)<br/>
+                            <b>Tèl: <span t-field="o.company_id.phone"/></b><br/>
+                            <span t-field="o.company_id.zip"/><span class="space">-</span><span t-field="o.company_id.city"/>
+                        </td>
+                        <td class="border-lb text-center">
+                            <span>Matricule</span><br/>
+                            <span t-field="o.employee_id.matricule"/>
+                        </td>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Level</span><br/>
+                            <span t-field="o.echelon_id.name"/>
+                        </td>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Coefficient</span><br/>
+                            <span><span class="space">---</span></span>
+                        </td>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Indice</span><br/>
+                            <span t-field="o.category_id.name"/>
+                        </td>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Seniority</span><br/>
+                            <span t-esc="leaves(o.employee_id, o.date_to, o.date_from)['seniority']"/>
+                        </td>
+                        <td class="border-lb text-center">
+                            <span>Social Security N°</span><br/>
+                            <span t-field="o.employee_id.cnps"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border-lb text-center" colspan="4">
+                            <span>Category</span><br/>
+                            <span t-esc="cat[o.category_id.name]"/>
+                        </td>
+                        <td class="border-lb text-center" colspan="4">
+                            <span>Job Position</span><br/>
+                            <span style="text-transform: uppercase;" t-field="o.employee_id.job_id.name"/>
+                        </td>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Department</span><br/>
+                            <span style="text-transform: uppercase;" t-field="o.employee_id.department_id.name"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Qualification</span><br/>
+                            <span></span>
+                        </td>
+                        <td class="border-lb text-center" colspan="2">
+                            <span>Hourly</span><br/>
+                            <span>173,33</span>
+                        </td>
+                        <td class="border-lb" colspan="6">
+                            <span>CCN CN COMMERCE</span>
+                        </td>
+                    </tr>
+                </table>
+                <table width="100%">
+                    <tr>
+<!--                        <td colspan="4">-->
+<!--                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" class="float-left" style="max-height: 50px;" alt="Logo"/>-->
+<!--                        </td>-->
+                        <td class="border-bb1" colspan="4" rowspan="3">
+                            <span class="spaceg">-------</span><t t-if="o.employee_id.gender == 'female'">Mme</t><t t-if="o.employee_id.gender != 'female'">M</t><span class="spaceg">--------</span><span style="text-transform: uppercase;" t-field="o.employee_id.name"/>
+                            <br/>
+                            <span class="spaceg">-------</span><span style="text-transform: uppercase;" t-field="o.company_id.city"/>
+                        </td>
+                    </tr>
+                    <tr class="text-center">
+                        <td width="13%" class="text-center border-lb">
+                            <br/><span>Repos Comp.</span><br/>
+                            <span>Leaves</span>
+                        </td>
+                        <td width="10%" class="border-lb">
+                            <span class="text-center">Acquired</span><br/>
+                            <span class="text-right"></span><br/>
+                            <span class="text-right"></span>
+                        </td>
+                        <td width="10%" class="border-lb">
+                            <span class="text-center">Remaining to Take</span><br/>
+                            <span class="text-right"></span><br/>
+                            <span class="text-right"></span>
+                        </td>
+                        <td width="10%" class="border-lb">
+                            <span class="text-center">Take</span><br/>
+                            <span class="text-right"></span><br/>
+                            <span class="text-right"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>Leaves date</span><br/>
+                            <span></span>
+                        </td>
+                        <td>
+                            <span>from</span><br/>
+                            <span>to</span>
+                        </td>
+                        <td>
+                            <span>from</span><br/>
+                            <span>to</span>
+                        </td>
+                        <td>
+                            <span>from</span><br/>
+                            <span>to</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border-lb" colspan="5">
+                            <span>Comment : </span><br/>
+                            <span></span>
+                        </td>
+                        <td width="13%" class="border-lb">
+                            <span></span><br/>
+                            <span></span>
+                        </td>
+                        <td width="13%" class="border-lb">
+                            <span></span><br/>
+                            <span></span>
+                        </td>
+                        <td width="13%" class="border-lb">
+                            <span></span><br/>
+                            <span></span>
+                        </td>
+                    </tr>
+                </table>
+                <table width="100%">
+                    <tr class="text-center bold">
+                        <td width="5%" rowspan="2" class="border-lb">N°</td>
+                        <td width="24%" rowspan="2" class="border-lb">Designation</td>
+                        <td width="10%" rowspan="2" class="border-lb">Number</td>
+                        <td width="14%" rowspan="2" class="border-lb">Base</td>
+                        <td colspan="3" class="border-lb">Salary share</td>
+                        <td colspan="3" class="border-lb">Employer's share</td>
+                    </tr>
+                    <tr class="text-center bold">
+                        <td width="5%" class="border-lb">Rate</td>
+                        <td width="13%" class="border-lb">Gross</td>
+                        <td width="8%" class="border-lb">Deduction</td>
+                        <td width="5%" class="border-lb">Rate</td>
+                        <td width="8%" class="border-lb">Deduction(+)</td>
+                        <td width="8%" class="border-lb">Deduction(-)</td>
+                    </tr>
+                    <t t-set="base" t-value="o.line_ids.filtered(lambda line: line.code == 'BASE')[0]"/>
+                    <t t-set="worktime" t-value="sum([l.number_of_days for l in o.worked_days_line_ids.filtered(lambda line: line.code in ('WORK100'))])"/>
+                    <t t-set="saltax" t-value="o.line_ids.filtered(lambda line: line.code == 'SALTAX')[0].total"/>
+                    <t t-set="salco" t-value="o.line_ids.filtered(lambda line: line.code == 'SALCO')[0].total"/>
+                    <t t-set="ret_sal" t-value="o.line_ids.filtered(lambda line: line.code == 'T_SAL')[0].total"/>
+                    <t t-set="ret_pat" t-value="o.line_ids.filtered(lambda line: line.code == 'TOTAL_COT_PAT')[0].total"/>
+                    <t t-set="av_nat" t-value="sum([l.total for l in o.line_ids.filtered(lambda line: line.code == 'AVNAT')])"/>
+                    <t t-set="brut" t-value="o.line_ids.filtered(lambda line: line.code == 'BRUT')[0].total"/>
+                    <t t-set="net" t-value="o.line_ids.filtered(lambda line: line.code == 'NET')[0].total"/>
+                    <t t-set="contrib" t-value="sum([l.total for l in o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and line.salary_rule_id.contrib)])"/>
+                    <t t-set="round" t-value="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'ROUND')"/>
+                    <tr>
+                        <td class="border-rl text-right"><span t-field="base.payslip_code"/></td>
+                        <td class="border-rl"><span t-field="base.name"/></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(worktime).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(base.total).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                    </tr>
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.code != 'BASE' and line.category_id.code in ('GAINTAXCO', 'GAINTAX', 'GAINNOTAXCO', 'GAINCO')).sorted(key=lambda l: l.payslip_code)" t-as="line">
+                        <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
+                        <td class="border-rl"><span t-field="line.name"/></td>
+                        <td class="border-rl text-right"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.total).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                    </tr>
+                    <tr>
+                        <td class="border-rl"></td>
+                        <td class="border-rl bold text-center">Total gross</td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl text-right bold"><span t-esc="'{0:,.0f}'.format(brut).replace(',', ' ')"/></td>
+                        <td class="border-trl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl"></td>
+                        <td class="border-trl"></td>
+                    </tr>
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and line.salary_rule_id.contrib).sorted(key=lambda l: l.payslip_code)" t-as="line">
+                        <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
+                        <td class="border-rl"><span t-field="line.name"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.base).replace(',', ' ')"/></td>
+                        <td class="border-rl text-right">
+                            <t t-if="line.rate &lt; 100">
+                                <span t-field="line.rate"/>
+                            </t>
+                        </td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.total).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                    </tr>
+                    <tr>
+                        <td class="border-rl"></td>
+                        <td class="border-rl bold text-center">Total Contributions</td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl"></td>
+                        <td class="border-trl text-right bold"><span t-esc="'{0:,.0f}'.format(contrib).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl"></td>
+                        <td class="border-trl"></td>
+                    </tr>
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and not line.salary_rule_id.contrib).sorted(key=lambda l: l.payslip_code)" t-as="line">
+                        <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
+                        <td class="border-rl"><span t-field="line.name"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.base).replace(',', ' ')"/></td>
+                        <td class="border-rl text-right">
+                            <t t-if="line.rate &lt; 100">
+                                <span t-field="line.rate"/>
+                            </t>
+                        </td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.total).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                    </tr>
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'ROUND').sorted(key=lambda l: l.payslip_code)" t-as="line">
+                        <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
+                        <td class="border-rl bold"><span t-field="line.name"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl text-left right"><span t-esc="'{0:,.0f}'.format(line.total).replace(',', ' ')"/></td>
+                        <td class="border-trl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl"></td>
+                        <td class="border-trl"></td>
+                    </tr>
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_PAT').sorted(key=lambda l: l.payslip_code)" t-as="line">
+                        <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
+                        <td class="border-rl"><span t-field="line.name"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.base).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right">
+                            <t t-if="line.rate &lt; 100">
+                                <span t-field="line.rate"/>
+                            </t>
+                        </td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.total).replace(',', ' ')"/></td>
+                    </tr>
+                    <tr>
+                        <td class="border-rl"></td>
+                        <td class="border-rl bold text-center">Total mandatory deductions</td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl"></td>
+                        <td class="border-trl text-right bold"><span t-esc="'{0:,.0f}'.format(ret_sal).replace(',', ' ')"/></td>
+                        <td class="border-rl"></td>
+                        <td class="border-rl"></td>
+                        <td class="border-trl text-right bold"><span t-esc="'{0:,.0f}'.format(ret_pat).replace(',', ' ')"/></td>
+                    </tr>
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'AUTRE_RET')" t-as="line">
+                        <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
+                        <td class="border-rl"><span t-field="line.name"/></td>
+                        <td class="border-rl"/>
+                        <td class="border-rl text-right"/>
+                        <td class="border-rl text-right"/>
+                        <td class="border-rl"/>
+                        <td class="border-rl text-right"><span t-esc="'{0:,.0f}'.format(line.total).replace(',', ' ')"/></td>
+                        <td class="border-rl"/>
+                        <td class="border-rl"/>
+                        <td class="border-rl"/>
+                    </tr>
+                </table>
+                <table width="100%">
+                    <tr class="text-center bold">
+                        <td class="border-lb" width="6%">Cumuls</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Gross Salary</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Taxable Net</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Employee Contributions</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Employer Contributions</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Work Hours</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Hours Sup.</td>
+                        <td class="border-lb" style="vertical-align: top" width="11%">Benefits in kind</td>
+                        <td class="border-bb" width="17%">NET TO PAY</td>
+                    </tr>
+                    <tr>
+                        <td class="border-lb text-center bold">Period<br/>Year</td>
+                        <td class="border-lb text-right"><span t-esc="'{0:,.0f}'.format(brut).replace(',', ' ')"/><br/><b><span t-esc="'{0:,.0f}'.format(cumul('BRUT', o.date_to, o.employee_id)).replace(',', ' ')"/></b></td>
+                        <td class="border-lb text-right"><span t-esc="'{0:,.0f}'.format(salco).replace(',', ' ')"/><br/><b><span t-esc="'{0:,.0f}'.format(cumul('SALCO', o.date_to, o.employee_id)).replace(',', ' ')"/></b></td>
+                        <td class="border-lb text-right"><span t-esc="'{0:,.0f}'.format(ret_sal).replace(',', ' ')"/><br/><b><span t-esc="'{0:,.0f}'.format(cumul('T_SAL', o.date_to, o.employee_id)).replace(',', ' ')"/></b></td>
+                        <td class="border-lb text-right"><span t-esc="'{0:,.0f}'.format(ret_pat).replace(',', ' ')"/><br/><b><span t-esc="'{0:,.0f}'.format(cumul('TOTAL_COT_PAT', o.date_to, o.employee_id)).replace(',', ' ')"/></b></td>
+                        <td class="border-lb text-right">0<br/>0</td>
+                        <td class="border-lb text-right bold">0<br/>0</td>
+                        <td class="border-lb text-right"><span t-esc="'{0:,.0f}'.format(av_nat).replace(',', ' ')"/><br/><b><span t-esc="'{0:,.0f}'.format(cumul('AVNAT', o.date_to, o.employee_id)).replace(',', ' ')"/></b></td>
+                        <td class="border-lb text-right bold" style="vertical-align: bottom"><span t-esc="'{0:,.0f}'.format(net).replace(',', ' ')"/></td>
+                    </tr>
+                </table>
+                <p style="font-size: 12px;">Pour vous aider à faire valoir vos droits, conservez ce bulletin de paie sans limitation de durée.</p>
+            </div>
+        </t>
+    </t>
+</template>
+
+<template id="report_payslip">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            <t t-set="company" t-value="doc.company_id"/>
+            <t t-call="primetech_rh.report_payslip_document" t-lang="doc.employee_id.lang"/>
+        </t>
+    </t>
+</template>
+</odoo>

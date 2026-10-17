@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		
+        <!-- Form View -->
+        <record model="ir.ui.view" id="view_hr_paie_grid_form">
+            <field name="name">hr.paie.grid.form</field>
+        	<field name="model">hr.paie.grid</field>
+            <field name="type">form</field>
+        	<field name="arch" type="xml">
+                <form string="Pay grid Form" version="7.0">
+                    <header>
+                        <button string="Activate the grid" name="set_active" invisible="state != 'inactive'" type="object" groups="primetech_rh.group_payroll_manager" class="oe_highlight"/>
+                        <button string="Disable grid" name="set_inactive" invisible="state != 'active'" type="object" groups="primetech_rh.group_payroll_manager"/>
+                        <field name="state" widget="statusbar" statusbar_visible="inactive,active"/>
+                    </header>
+                	<sheet string="Pay grid Form">
+						<group>
+							<field name="name" />
+                            <field name="version"/>
+                            <field name="date_start"  />
+                            <field name="date_end"  />
+                            <field name="company_id" groups="base.group_multi_company" widget="selection" />
+						</group>
+						<notebook>
+							<page string="Grid Lines">
+								<field name="line_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="grid_id" invisible="1" />
+                                        <field name="category_id"/>
+                                        <field name="echelon_id"  />
+                                        <field name="sal_base"  />
+                                    </list>
+                                </field>
+							</page>
+						</notebook>
+						
+					</sheet>
+                </form>
+            </field>
+        </record>
+
+		<!-- Tree View -->
+        <record model="ir.ui.view" id="view_hr_paie_grid_tree">
+            <field name="name">hr.paie.grid.tree</field>
+        	<field name="model">hr.paie.grid</field>
+            <field name="type">list</field>
+        	<field name="arch" type="xml">
+				<list string="Payroll grid">
+                    <field name="name"/>
+                    <field name="version"/>
+                    <field name="date_start"  />
+                    <field name="date_end"  />
+                    <field name="state"  />
+					<field name="company_id" invisible="True"/>
+            	</list>
+            </field>
+        </record>
+
+        <!-- actions paie.grid -->
+		<record model="ir.actions.act_window" id="action_hr_paie_grid_tree">
+			<field name="name">grids</field>
+			<field name="view_id" ref="view_hr_paie_grid_tree" />
+			<field name="res_model">hr.paie.grid</field>
+			<field name="view_mode">list,form</field>
+			<field name="help" type="html">
+				<p class="oe_view_nocontent_create"> 
+					<h2>
+						Payroll grids
+					</h2>
+                </p>
+			</field>
+		</record>
+	
+	</data>
+</odoo>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		
+        <!-- Exercice Form View -->
+        <record model="ir.ui.view" id="view_hr_pai_exercice_form">
+            <field name="name">hr.pai.exercice.form</field>
+        	<field name="model">hr.pai.exercice</field>
+            <field name="type">form</field>
+        	<field name="arch" type="xml">
+                <form version="7.0">
+                    <header>
+                        <button string="Close" name="action_close" invisible="state != 'draft'" type="object" groups="hr.group_hr_manager"/>
+                        <button string="Generate periods" name="generate_periods" type="object" class="oe_highlight" groups="hr.group_hr_manager"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                	<sheet>
+						<group>
+							<group>
+								<field name="name" />
+								<field name="code"/>
+							</group>
+							<group>
+								<field name="date_start"  />
+								<field name="date_stop"  />
+							</group>
+						</group>
+						<notebook>
+							<page string="Periods">
+								<field name="period_ids" nolabel="1" colspan="4">
+                                    <list editable="bottom">
+                                        <field name="exercice_id" invisible="1"/>
+                                        <field name="code" />
+                                        <field name="date_start" />
+                                        <field name="date_stop" />
+                                        <field name="state" invisible="1"/>
+                                    </list>
+                                </field>
+							</page>
+						</notebook>
+						
+					</sheet>
+                </form>
+            </field>
+        </record>
+
+		<!-- Exercice Tree View -->
+        <record model="ir.ui.view" id="view_hr_pai_exercice_tree">
+            <field name="name">hr.pai.exercice.tree</field>
+        	<field name="model">hr.pai.exercice</field>
+            <field name="type">list</field>
+        	<field name="arch" type="xml">
+				<list>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="date_start"/>
+                    <field name="date_stop"/>
+                    <field name="state"/>
+            	</list>
+            </field>
+        </record>
+
+        <!-- actions pai.exercice -->
+		<record model="ir.actions.act_window" id="action_hr_pai_exercice_tree">
+			<field name="name">Payroll fiscal year</field>
+			<field name="view_id" ref="view_hr_pai_exercice_tree" />
+			<field name="res_model">hr.pai.exercice</field>
+			<field name="view_mode">list,form</field>
+		</record>
+		
+        <!-- Period Form View -->
+        <record model="ir.ui.view" id="view_hr_pai_period_form">
+            <field name="name">hr.pai.period.form</field>
+        	<field name="model">hr.pai.period</field>
+            <field name="type">form</field>
+        	<field name="arch" type="xml">
+                <form version="7.0">
+                    <header>
+                        <button string="Close" name="action_close" invisible="state != 'draft'" type="object" groups="hr.group_hr_manager"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                	<sheet>
+						<group>
+							<group>
+								<field name="exercice_id" />
+								<field name="name" />
+								<field name="code"/>
+							</group>
+							<group>
+								<field name="date_start"  />
+								<field name="date_stop"  />
+								<field name="is_13month"  />
+							</group>
+						</group>						
+					</sheet>
+                </form>
+            </field>
+        </record>
+
+		<!-- Period Tree View -->
+        <record model="ir.ui.view" id="view_hr_pai_period_tree">
+            <field name="name">hr.pai.period.tree</field>
+        	<field name="model">hr.pai.period</field>
+            <field name="type">list</field>
+        	<field name="arch" type="xml">
+				<list>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="exercice_id" />
+                    <field name="date_start"/>
+                    <field name="date_stop"/>
+                    <field name="is_13month" />
+                    <field name="state"/>
+            	</list>
+            </field>
+        </record>
+
+        <!-- actions pai.period -->
+		<record model="ir.actions.act_window" id="action_hr_pai_period_tree">
+			<field name="name">Payroll period</field>
+			<field name="view_id" ref="view_hr_pai_period_tree" />
+			<field name="res_model">hr.pai.period</field>
+			<field name="view_mode">list,form</field>
+		</record>
+	
+	</data>
+</odoo>

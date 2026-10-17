@@ -1,0 +1,38 @@
+.pt-actions button,
+.pt-actions .primary {
+    margin: 0 10px;
+    padding: 10px;
+    border: 1px solid #3e7bf1;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4d8aff, #3775ec);
+    color: #fff;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(55, 117, 236, .18);
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.pt-actions button:hover,
+.pt-actions .primary:hover {
+    background: linear-gradient(135deg, #5c95ff, #2f69dc);
+    color: #fff;
+    transform: translateX(5px) translateY(-1px);
+    box-shadow: 0 8px 16px rgba(55, 117, 236, .30);
+    filter: brightness(1.03);
+}
+
+.pt-actions button:active {
+    transform: translateX(2px) scale(.98);
+    box-shadow: 0 3px 7px rgba(55, 117, 236, .22);
+}
+
+.pt-actions i {
+    width: 20px;
+    transition: transform .2s ease;
+}
+
+.pt-actions button:hover i {
+    transform: scale(1.16) rotate(-5deg);
+}

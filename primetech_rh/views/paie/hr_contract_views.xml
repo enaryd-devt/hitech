@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="view_hr_contract_inherit_form" model="ir.ui.view">
+            <field name="name">hr.contract.inherit.form</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_form"></field>
+            <field name="arch" type="xml">
+                <field name="employee_id" position="after">
+                    <field name="category_id" required="1"/>
+                    <field name="echelon_id" required="1"/>
+                </field>
+                <group name="top_info" position="after">
+                    <group name="gross salary" string="Gross Salary">
+                        <field name="sal_gross" />
+                        <field name="seniority_base_amount" />
+                        <field name="seniority_bonus" />
+                    </group>
+                </group>
+                <notebook position="inside">
+                    <page string="Value of indemnities and benefits">
+                        <field name="input_values_ids" class="oe_inline oe_no_button" context="{'default_contract_id': id}">
+                            <list string="Entering values" editable="bottom" decoration-info="amount == 0" delete="true">
+                                <field name="rule_input_id" />
+                                <field name="name" />
+                                <field name="amount" />
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="view_hr_contract_inputs_tree">
+            <field name="name">hr.contract.inputs.tree</field>
+            <field name="model">hr.contract.inputs</field>
+            <field name="type">list</field>
+            <field name="arch" type="xml">
+                <list create="false">
+                    <field name="contract_id" />
+                    <field name="rule_input_id"/>
+                    <field name="amount" />
+                </list>
+            </field>
+        </record>
+
+        <record id="view_hr_contract_inputs_filter" model="ir.ui.view">
+            <field name="name">hr_contract.inputs_view_filter</field>
+            <field name="model">hr.contract.inputs</field>
+            <field name="arch" type="xml">
+                <search string="Variable Search">
+                    <field name="contract_id" />
+                    <field name="rule_input_id" />
+                    <separator />
+                    <group expand="0" string="Group By">
+                        <filter name="contract" string="Contract" context="{'group_by':'contract_id'}" />
+                        <filter name="rule_input" string="Prime" context="{'group_by':'rule_input_id'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="hr_contract_inputs_view_pivot" model="ir.ui.view">
+            <field name="name">hr.contract.inputs.view.pivot</field>
+            <field name="model">hr.contract.inputs</field>
+            <field name="arch" type="xml">
+                <pivot string="Indemnities and benefits Analysis">
+                    <field name="contract_id" type="row" />
+                    <field name="rule_input_id" type="col" />
+                    <field name="amount" type="measure" />
+                </pivot>
+            </field>
+        </record>
+
+        <!-- actions contract.inputs -->
+        <record model="ir.actions.act_window" id="action_hr_contract_inputs_tree">
+            <field name="name">Indemnities and benefits</field>
+            <field name="view_id" ref="view_hr_contract_inputs_tree" />
+            <field name="res_model">hr.contract.inputs</field>
+            <field name="domain">[('contract_id.state', '!=', 'closed')]</field>
+            <field name="view_mode">list,pivot</field>
+        </record>
+
+    </data>
+</odoo>

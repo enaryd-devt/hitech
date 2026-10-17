@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="view_employee_form_inherit">
+            <field name="name">hr.employee.form.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form" />
+            <field name="arch" type="xml">
+
+                <field name="category_ids" position="replace">
+                    <group>
+                        <group>
+                            <field name="matricule" />
+                        </group>
+
+                        <group>
+                            <field name="show_category" invisible="1" />
+                            <field name="except_cat" invisible="not show_category"/>
+                            <field name="category_id" invisible="(not show_category) or except_cat" options="{'no_create': True, 'no_open': True}" />
+                            <field name="echelon_id" invisible="(not show_category) or except_cat" required="not except_cat" options="{'no_create': True, 'no_open': True}" />
+                        </group>
+                    </group>
+                </field>
+
+                <field name="address_id" position="replace">
+                    <field name="address_id" invisible="1" context="{'show_address': 1}" options='{"always_reload": True, "highlight_first_line": True}' />
+                    <field name="cnps" />
+                </field>
+
+                <field name="work_email" position="after">
+                    <field name="lang" required="1" />
+                </field>
+
+                <page name="personal_information" position="inside">
+                    <notebook>
+                        <page name="contact" string="Contact persons">
+                            <field name="contact_ids">
+                                <list editable="bottom" mode="tree">
+                                    <field name="name" />
+                                    <field name="phone" />
+                                    <field name="link" />
+                                </list>
+                            </field>
+                        </page>
+
+                        <page name="childs" string="Birth certificate number list">
+                            <field name="childs_ids">
+                                <list editable="bottom" mode="tree">
+                                    <field name="name" />
+                                    <field name="nb_certif" />
+                                    <field name="birth_date" />
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </page>
+
+                <page name="personal_information" position="attributes">
+                    <attribute name="groups"></attribute>
+                    <attribute name="invisible">not show_category</attribute>
+                </page>
+
+                <page name="hr_settings" position="attributes">
+                    <attribute name="groups"></attribute>
+                    <attribute name="invisible">not show_category</attribute>
+                </page>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_employee_filter_inherit">
+            <field name="name">hr.employee.search.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_filter" />
+            <field name="arch" type="xml">
+                <field name="name" position="replace">
+                    <field name="name" string="Employees" filter_domain="['|',('matricule','ilike',self),('name','ilike',self)]" />
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_employee_tree_inherit">
+            <field name="name">hr.employee.tree.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_tree" />
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                    <field name="matricule" />
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_employee_kanban_inherit">
+            <field name="name">hr.employee.kanban.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.hr_kanban_view_employees" />
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <br />
+                    <field name="matricule" />
+                </field>
+            </field>
+        </record>
+
+        <record id="hr_contract_view_form_inherit" model="ir.ui.view">
+            <field name="name">hr.contract.view.form.inherit</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_form" />
+            <field name="arch" type="xml">
+                <field name="date_start" position="before">
+                    <field name="type" />
+                </field>
+                <field name="date_end" position="replace">
+                    <field name="date_end" required="type != 'cdi'" class="oe_inline" />
+                </field>
+            </field>
+        </record>
+
+        <record id="hr_contract_view_tree_inherit" model="ir.ui.view">
+            <field name="name">hr.contract.tree.inherit</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_tree" />
+            <field name="arch" type="xml">
+                <field name="date_start" position="before">
+                    <field name="type" />
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

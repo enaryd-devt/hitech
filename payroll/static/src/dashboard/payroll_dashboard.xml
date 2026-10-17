@@ -9,13 +9,14 @@
             <header class="o_payroll_header">
                 <div>
                     <h1>Tableau de bord</h1>
+                    <p t-if="state.data"><t t-esc="state.data.company"/> · <t t-esc="formatDate(state.dateFrom)"/> au <t t-esc="formatDate(state.dateTo)"/></p>
                 </div>
                 <div class="o_payroll_filters">
                     <label>
                         <span>Période</span>
                         <select t-att-value="state.period" t-on-change="onPeriodChange">
+                            <option value="month">Ce mois</option>
                             <option value="quarter">Ce trimestre</option>
-                            <option value="semester">Ce semestre</option>
                             <option value="year">Cette année</option>
                             <option value="custom">Période personnalisée</option>
                         </select>
@@ -28,6 +29,9 @@
                         <span>Au</span>
                         <input type="date" t-att-value="state.dateTo" t-on-change="(event) =&gt; this.onDateChange('dateTo', event)"/>
                     </label>
+                    <button class="btn btn-primary o_payroll_refresh" t-on-click="loadData" title="Actualiser">
+                        <i class="fa fa-refresh"/><span>Actualiser</span>
+                    </button>
                 </div>
             </header>
 

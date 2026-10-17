@@ -42,18 +42,6 @@ class HrPayslipLine(models.Model):
         related="contract_id.currency_id", store=True, readonly=True
     )
     amount = fields.Monetary(currency_field="currency_id")
-    proration_percentage = fields.Float(
-        string="Prorata (%)",
-        digits=(16, 2),
-        readonly=True,
-        help="Pourcentage de la base mensuelle de 30 jours appliqué à la ligne.",
-    )
-    proration_base_amount = fields.Monetary(
-        string="Montant de base proratisé",
-        currency_field="currency_id",
-        readonly=True,
-        help="Salaire net négocié ramené à la période du bulletin avant l'application des règles salariales.",
-    )
     quantity = fields.Float(digits="Payroll", default=1.0)
     total = fields.Monetary(
         compute="_compute_total",
