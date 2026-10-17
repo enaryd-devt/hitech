@@ -1,0 +1,173 @@
+/** @odoo-module **/
+
+import { Component, onWillStart, useState } from "@odoo/owl";
+import { CashMovePopup } from "@point_of_sale/app/navbar/cash_move_popup/cash_move_popup";
+import { Navbar } from "@point_of_sale/app/navbar/navbar";
+import { usePos } from "@point_of_sale/app/store/pos_hook";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { registry } from "@web/core/registry";
+import { _t } from "@web/core/l10n/translation";
+import { patch } from "@web/core/utils/patch";
+import { useService } from "@web/core/utils/hooks";
+
+// Bypass the POS/IoT printer on purpose: customer-payment receipts must open
+// the browser's native print dialog.
+async function printCustomerReceiptInBrowser(printer, receipt, headerData) {
+    receipt.cashier_name = receipt.cashier_name || "";
+    const el = await printer.renderer.toHtml(CustomerCashPaymentReceipt, { receipt, headerData });
+    printer.printWeb(el);
+}
+
+export class CustomerCashPaymentReceipt extends Component {
+    static template = "primetech_pos_customer_cash_payment.CustomerCashPaymentReceipt";
+    static props = { receipt: Object, headerData: Object };
+    formatAccountBalance(value) {
+        // Accounting residuals are positive for a debit balance and negative
+        // for a credit balance.  The receipt deliberately displays the
+        // opposite convention requested for the partner account: debit (-),
+        // credit (+).
+        return this.env.utils.formatCurrency(-(value || 0));
+    }
+    formatAmount(value) {
+        return this.env.utils.formatCurrency(Math.abs(value || 0));
+    }
+}
+
+export class CustomerCashPaymentsScreen extends Component {
+    static template = "primetech_pos_customer_cash_payment.CustomerCashPaymentsScreen";
+    setup() {
+        this.pos = usePos();
+        this.orm = useService("orm");
+        this.printer = useService("printer");
+        // Template event handlers can invoke this method as a detached
+        // function; bind it so the printer service remains available.
+        this.print = this.print.bind(this);
+        this.state = useState({ payments: [], loading: true, page: 0, pageSize: 150, total: 0, searchTerm: "" });
+        this.loadPayments = this.loadPayments.bind(this);
+        this.refresh = this.refresh.bind(this);
+        this.changePage = this.changePage.bind(this);
+        this.onSearchInput = this.onSearchInput.bind(this);
+        this.loadSequence = 0;
+        onWillStart(() => this.loadPayments());
+    }
+    get totalPages() {
+        return Math.max(1, Math.ceil(this.state.total / this.state.pageSize));
+    }
+    async loadPayments() {
+        const sequence = ++this.loadSequence;
+        this.state.loading = true;
+        const result = await this.orm.call("pos.session", "pos_customer_payment_list", [
+            this.pos.session.id,
+            this.state.page * this.state.pageSize,
+            this.state.pageSize,
+            this.state.searchTerm,
+        ]);
+        if (sequence !== this.loadSequence) return;
+        this.state.payments = result.payments;
+        this.state.total = result.total;
+        this.state.loading = false;
+    }
+    async changePage(direction) {
+        const page = this.state.page + direction;
+        if (page < 0 || page >= this.totalPages) return;
+        this.state.page = page;
+        await this.loadPayments();
+    }
+    async refresh() {
+        await this.loadPayments();
+    }
+    onSearchInput(event) {
+        this.state.searchTerm = event.target.value;
+        this.state.page = 0;
+        // Refresh for every inserted or deleted character without flooding
+        // the server while the cashier is typing quickly.
+        window.clearTimeout(this.searchTimer);
+        this.searchTimer = window.setTimeout(() => this.loadPayments(), 180);
+    }
+    format(value) {
+        return this.env.utils.formatCurrency(value || 0);
+    }
+    async print(payment) {
+        payment.cashier_name = this.pos.get_cashier()?.name || "";
+        await printCustomerReceiptInBrowser(this.printer, payment, this.pos.getReceiptHeaderData());
+    }
+    back() {
+        this.pos.showScreen("ProductScreen");
+    }
+}
+
+registry.category("pos_screens").add("CustomerCashPaymentsScreen", CustomerCashPaymentsScreen);
+
+patch(CashMovePopup.prototype, {
+    setup() {
+        super.setup(...arguments);
+        this.state.partner_id = "";
+        this.state.pos_payment_method_id = "";
+        this.state.partner_type = "customer";
+        this.partnerPaymentModes = useState({ items: [], loading: true });
+        this.partnerPaymentOrm = useService("orm");
+        onWillStart(async () => {
+            const items = await this.partnerPaymentOrm.call(
+                "pos.session", "pos_customer_payment_methods", [this.pos.session.id]
+            );
+            this.partnerPaymentModes.items = items;
+            this.partnerPaymentModes.loading = false;
+            this.state.pos_payment_method_id = items[0]?.id || "";
+        });
+    },
+    get customerPartners() {
+        return (this.pos.models["res.partner"]?.getAll?.() || [])
+            .filter((partner) => !partner.company_id || partner.company_id === this.pos.company.id)
+            .sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+    },
+    async confirm() {
+        const partnerId = Number(this.state.partner_id);
+        if (!partnerId) {
+            return super.confirm(...arguments);
+        }
+        const amount = Number.parseFloat(this.state.amount);
+        if (!amount || amount <= 0) {
+            this.notification.add(_t("Saisissez un montant supérieur à zéro."), { type: "danger" });
+            return;
+        }
+        const paymentMethodId = Number(this.state.pos_payment_method_id);
+        if (!paymentMethodId) {
+            this.notification.add(_t("Sélectionnez un mode de paiement."), { type: "danger" });
+            return;
+        }
+        const paymentType = this.state.type === "in" ? "inbound" : "outbound";
+        try {
+            const receipt = await this.pos.data.call(
+                "pos.session",
+                "create_customer_cash_payment",
+                [[this.pos.session.id], partnerId, paymentType, amount, this.state.reason.trim(), paymentMethodId, this.state.partner_type],
+                {}, true
+            );
+            this.props.close();
+            this.dialog.add(ConfirmationDialog, {
+                title: _t("Imprimer le reçu de paiement ?"),
+                body: _t("Voulez-vous imprimer le reçu de paiement maintenant ?"),
+                confirmLabel: _t("Imprimer"),
+                cancelLabel: _t("Non"),
+            confirm: () => printCustomerReceiptInBrowser(
+                this.printer,
+                { ...receipt, cashier_name: this.pos.get_cashier()?.name || "" },
+                    this.pos.getReceiptHeaderData()
+                ),
+            });
+            this.notification.add(_t("Paiement et lettrage enregistrés."), { type: "success" });
+        } catch (error) {
+            this.notification.add(error.message || _t("Le paiement client n'a pas pu être enregistré."), { type: "danger" });
+            throw error;
+        }
+    },
+});
+
+patch(Navbar.prototype, {
+    setup() {
+        super.setup(...arguments);
+    },
+    showCustomerCashPayments() {
+        this.pos.showScreen("CustomerCashPaymentsScreen");
+    },
+});

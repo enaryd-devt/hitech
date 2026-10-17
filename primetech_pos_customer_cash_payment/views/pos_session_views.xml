@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_session_view_form_customer_cash_payment" model="ir.ui.view">
+        <field name="name">pos.session.form.customer.cash.payment</field>
+        <field name="model">pos.session</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(action_pos_customer_cash_payments)d" type="action" string="Paiements clients POS" class="oe_stat_button" icon="fa-money" context="{'search_default_pos_customer_cash': 1}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

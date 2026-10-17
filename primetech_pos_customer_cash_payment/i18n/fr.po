@@ -1,0 +1,202 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#   * primetech_pos_customer_cash_payment
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: primetech_pos_customer_cash_payment
+#: model:ir.model.fields,field_description:primetech_pos_customer_cash_payment.field_account_payment__pos_customer_cash_payment
+msgid "Customer payment from POS cash"
+msgstr "Paiement client en espèces depuis le point de vente"
+
+#. module: primetech_pos_customer_cash_payment
+#: model:ir.model.fields,field_description:primetech_pos_customer_cash_payment.field_account_payment__pos_balance_before
+msgid "Balance before payment"
+msgstr "Solde avant paiement"
+
+#. module: primetech_pos_customer_cash_payment
+#: model:ir.model.fields,field_description:primetech_pos_customer_cash_payment.field_account_payment__pos_balance_after
+msgid "Balance after payment"
+msgstr "Solde après paiement"
+
+#. module: primetech_pos_customer_cash_payment
+#: model:ir.actions.act_window,name:primetech_pos_customer_cash_payment.action_pos_customer_cash_payments
+#: model_terms:ir.ui.view,arch_db:primetech_pos_customer_cash_payment.pos_session_view_form_customer_cash_payment
+msgid "POS Customer Payments"
+msgstr "Paiements clients POS"
+
+#. module: primetech_pos_customer_cash_payment
+#: model_terms:ir.ui.view,arch_db:primetech_pos_customer_cash_payment.view_account_payment_search_pos_customer_cash
+msgid "POS customer cash"
+msgstr "Espèces client POS"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "Configure an inbound and outbound payment method on the POS cash journal."
+msgstr "Configurez une méthode de paiement entrant et sortant sur le journal de caisse du POS."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "The POS session is no longer open."
+msgstr "La session du point de vente n'est plus ouverte."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "The payment amount must be greater than zero."
+msgstr "Le montant du paiement doit être supérieur à zéro."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "Please select a customer."
+msgstr "Veuillez sélectionner un client."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "There is no cash payment method for this POS session."
+msgstr "Aucune méthode de paiement en espèces n'est configurée pour cette session POS."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "Configure a suspense account on the POS cash journal."
+msgstr "Configurez un compte d'attente sur le journal de caisse du POS."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/models/pos_session.py:0
+msgid "POS customer cash payment"
+msgstr "Paiement client en espèces au POS"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Company owes customer"
+msgstr "L'entreprise doit au client"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Customer owes company"
+msgstr "Le client doit à l'entreprise"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Enter an amount greater than zero."
+msgstr "Saisissez un montant supérieur à zéro."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Print payment receipt?"
+msgstr "Imprimer le reçu de paiement ?"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Do you want to print the customer payment receipt now?"
+msgstr "Voulez-vous imprimer le reçu de paiement client maintenant ?"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Print"
+msgstr "Imprimer"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "No"
+msgstr "Non"
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "Customer payment recorded."
+msgstr "Paiement client enregistré."
+
+#. module: primetech_pos_customer_cash_payment
+#: code:addons/primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js:0
+msgid "The customer payment could not be recorded."
+msgstr "Le paiement client n'a pas pu être enregistré."
+
+#. module: primetech_pos_customer_cash_payment
+#: model_terms:ir.ui.view,arch_db:primetech_pos_customer_cash_payment.cash_customer_payment
+msgid "Cash movement without customer"
+msgstr "Mouvement de caisse sans client"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Customer (creates an accounting payment)"
+msgstr "Client (crée un paiement comptable)"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "CUSTOMER PAYMENT"
+msgstr "PAIEMENT CLIENT"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Customer"
+msgstr "Client"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Balance before"
+msgstr "Solde avant"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Amount paid"
+msgstr "Montant versé"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Balance after"
+msgstr "Solde après"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Reason"
+msgstr "Motif"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Loading…"
+msgstr "Chargement…"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Date"
+msgstr "Date"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Amount"
+msgstr "Montant"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "No customer payment in this session."
+msgstr "Aucun paiement client dans cette session."
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Close"
+msgstr "Fermer"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Customer POS Payments"
+msgstr "Paiements clients POS"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "payments"
+msgstr "paiements"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Lines"
+msgstr "Lignes"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Apply"
+msgstr "Appliquer"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "No customer payment for this point of sale."
+msgstr "Aucun paiement client pour ce point de vente."
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Page"
+msgstr "Page"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Previous"
+msgstr "Précédent"
+
+#. module: primetech_pos_customer_cash_payment
+msgid "Next"
+msgstr "Suivant"

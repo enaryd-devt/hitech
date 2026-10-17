@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.CashMovePopup" t-inherit-mode="extension" owl="1">
+        <t position="before">
+        <div class="row g-2 mb-2">
+            <div class="col form-floating">
+                <select class="form-select" id="pos-customer-cash-partner" t-model="state.partner_id">
+                    <option value="">Mouvement de caisse sans client</option>
+                    <t t-foreach="customerPartners" t-as="partner" t-key="partner.id">
+                        <option t-att-value="partner.id"><t t-esc="partner.display_name || partner.name"/></option>
+                    </t>
+                </select>
+                <label for="pos-customer-cash-partner">Partenaire (crée un paiement comptable)</label>
+            </div>
+            <div class="col form-floating">
+                <select class="form-select" id="pos-partner-payment-method" t-model="state.pos_payment_method_id" t-att-disabled="partnerPaymentModes.loading">
+                    <option value="">Choisir un mode de paiement</option>
+                    <t t-foreach="partnerPaymentModes.items" t-as="method" t-key="method.id">
+                        <option t-att-value="method.id"><t t-esc="method.name"/></option>
+                    </t>
+                </select>
+                <label for="pos-partner-payment-method">Mode de paiement</label>
+            </div>
+            <div class="col form-floating">
+                <select class="form-select" id="pos-partner-account-type" t-model="state.partner_type">
+                    <option value="customer">Compte client</option>
+                    <option value="supplier">Compte fournisseur</option>
+                </select>
+                <label for="pos-partner-account-type">Compte de lettrage</label>
+            </div>
+        </div>
+        </t>
+    </t>
+
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension" owl="1">
+        <DropdownItem t-if="showCashMoveButton" position="after">
+            <DropdownItem onSelected="() => this.showCustomerCashPayments()">Paiements partenaires POS</DropdownItem>
+        </DropdownItem>
+    </t>
+
+    <t t-name="primetech_pos_customer_cash_payment.CustomerCashPaymentReceipt">
+        <div class="pos-receipt customer-cash-payment-receipt">
+            <div class="customer-cash-payment-receipt__header">
+                <img t-if="props.headerData.company.logo" class="customer-cash-payment-receipt__logo" t-att-src="props.headerData.company.logo" alt="Logo"/>
+                <div class="customer-cash-payment-receipt__company">
+                    <strong t-esc="props.headerData.company.name"/>
+                    <span t-if="props.headerData.company.phone" t-esc="'Tél. : ' + props.headerData.company.phone"/>
+                    <span t-if="props.headerData.company.vat" t-esc="'N° TVA : ' + props.headerData.company.vat"/>
+                    <span t-if="props.headerData.company.email" t-esc="props.headerData.company.email"/>
+                </div>
+            </div>
+            <div class="customer-cash-payment-receipt__title">PAIEMENT <span t-esc="'N° ' + props.receipt.name"/></div>
+
+            <section class="customer-cash-payment-receipt__customer-card">
+                <div class="customer-cash-payment-receipt__customer">
+                    <span>Partenaire</span>
+                    <strong t-esc="props.receipt.partner_name"/>
+                </div>
+                <div class="customer-cash-payment-receipt__meta">
+                    <span>Date et heure</span><strong t-esc="props.receipt.date"/>
+                    <span t-esc="props.receipt.payment_type === 'inbound' ? 'Encaissé par' : 'Payé par'"/><strong t-esc="props.receipt.cashier_name || '—'"/>
+                </div>
+            </section>
+
+            <section class="customer-cash-payment-receipt__summary">
+                <div class="customer-cash-payment-receipt__line"><span>Solde avant</span><strong t-esc="formatAccountBalance(props.receipt.balance_before)"/></div>
+                <div class="customer-cash-payment-receipt__paid"><span t-esc="props.receipt.payment_type === 'inbound' ? 'Montant encaissé' : 'Montant versé'"/><strong t-esc="formatAmount(props.receipt.amount)"/></div>
+                <div class="customer-cash-payment-receipt__line"><span>Solde après paiement</span><strong t-esc="formatAccountBalance(props.receipt.balance_after)"/></div>
+                <div t-if="props.receipt.reason" class="customer-cash-payment-receipt__line"><span>Motif</span><strong t-esc="props.receipt.reason"/></div>
+            </section>
+
+            <div class="customer-cash-payment-receipt__thanks">Merci pour votre confiance !</div>
+        </div>
+    </t>
+
+    <t t-name="primetech_pos_customer_cash_payment.CustomerCashPaymentsScreen">
+        <div class="customer-cash-payments-screen screen">
+            <div class="customer-cash-payments-screen__header">
+                <button class="btn customer-cash-payments-screen__back" t-on-click="back"><i class="fa fa-arrow-left"/> Retour au POS</button>
+                <div><span>Point de vente</span><h4>Paiements partenaires</h4></div>
+            </div>
+            <main class="customer-cash-payments">
+                <div class="customer-cash-payments__search">
+                    <i class="fa fa-search"/>
+                    <input class="form-control" type="search" placeholder="Rechercher un client, un numéro ou un motif…" t-att-value="state.searchTerm" t-on-input="onSearchInput"/>
+                    <button t-if="state.searchTerm" class="btn btn-link" title="Effacer la recherche" t-on-click="() => { state.searchTerm = ''; state.page = 0; loadPayments(); }"><i class="fa fa-times"/></button>
+                    <button class="btn customer-cash-payments__refresh" t-att-disabled="state.loading" title="Actualiser les paiements" t-on-click="refresh"><i t-att-class="{ 'fa': true, 'fa-refresh': true, 'fa-spin': state.loading }"/></button>
+                </div>
+                <div t-if="state.loading" class="customer-cash-payments__loading"><i class="fa fa-circle-o-notch fa-spin"/><span>Chargement des paiements…</span></div>
+                <div t-else="" class="customer-cash-payments__table-wrap">
+                    <table class="customer-cash-payments__table">
+                        <thead><tr><th>Date</th><th>Référence</th><th>Partenaire</th><th class="text-end">Montant</th><th aria-label="Actions"/></tr></thead>
+                        <tbody>
+                            <tr t-foreach="state.payments" t-as="payment" t-key="payment.id">
+                                <td class="customer-cash-payments__date" t-esc="payment.date"/>
+                                <td><span class="customer-cash-payments__reference" t-esc="payment.name"/></td>
+                                <td><span class="customer-cash-payments__customer" t-esc="payment.partner_name"/><small t-if="payment.reason" t-esc="payment.reason"/></td>
+                                <td t-att-class="{ 'customer-cash-payments__amount': true, 'customer-cash-payments__amount--outbound': payment.payment_type === 'outbound' }" t-esc="format(payment.amount)"/>
+                                <td class="text-end"><button class="btn customer-cash-payments__print" title="Réimprimer le reçu" t-on-click="() => print(payment)"><i class="fa fa-print"/><span>Imprimer</span></button></td>
+                            </tr>
+                            <tr t-if="!state.payments.length"><td colspan="5"><div class="customer-cash-payments__empty"><i class="fa fa-folder-open-o"/><strong>Aucun paiement trouvé</strong><span>Essayez une autre recherche ou enregistrez un nouveau paiement partenaire.</span></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+            <footer class="customer-cash-payments-screen__footer">
+                <span class="customer-cash-payments__page">Page <t t-esc="state.page + 1"/> sur <t t-esc="totalPages"/></span>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light" t-att-disabled="state.page === 0" t-on-click="() => changePage(-1)">Précédent</button>
+                    <button class="btn btn-light" t-att-disabled="state.page + 1 >= totalPages" t-on-click="() => changePage(1)">Suivant</button>
+                </div>
+            </footer>
+        </div>
+    </t>
+</templates>
