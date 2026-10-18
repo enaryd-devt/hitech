@@ -350,7 +350,9 @@ class hr_employee(models.Model):
         }
 
     def _compute_show_category(self):
-        show_category = self.env['res.users'].has_group('hr.group_hr_user')
+        # has_group() must be called on the current user record, not on an
+        # empty res.users recordset.
+        show_category = self.env.user.has_group('hr.group_hr_user')
         for employee in self:
             if show_category or employee.user_id == self.env.user:
                 employee.show_category = True
