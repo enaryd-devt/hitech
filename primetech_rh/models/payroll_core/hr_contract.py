@@ -13,6 +13,16 @@ class HrContract(models.Model):
     _description = "Employee Contract"
 
     struct_id = fields.Many2one("hr.payroll.structure", string="Salary Structure")
+    # Odoo 18's contract form supports several applicable salary structures.
+    # Keep the historical struct_id above for the integrated payroll engine
+    # and expose the native-compatible field required by the standard view.
+    struct_ids = fields.Many2many(
+        "hr.payroll.structure",
+        "primetech_hr_contract_payroll_structure_rel",
+        "contract_id",
+        "structure_id",
+        string="Salary Structures",
+    )
     schedule_pay = fields.Selection(
         [
             ("monthly", "Monthly"),
