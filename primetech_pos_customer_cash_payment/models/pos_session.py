@@ -96,7 +96,7 @@ class PosSession(models.Model):
             raise UserError(_("La session du point de vente n'est plus ouverte."))
         if payment_type not in ("inbound", "outbound") or amount <= 0:
             raise ValidationError(_("Le montant du paiement doit être supérieur à zéro."))
-        if partner_type not in ("customer", "supplier"):
+        if partner_type not in ("customer", "supplier", "manual", False, ""):
             raise ValidationError(_("Veuillez sélectionner le compte client ou fournisseur à lettrer."))
         partner = self.env["res.partner"].browse(partner_id).exists()
         if not partner:
@@ -112,11 +112,12 @@ class PosSession(models.Model):
             raise UserError(_("Configurez un compte d'attente sur le journal de caisse du POS."))
 
         before = session._pos_customer_balance(partner)
+        manual_reconciliation = partner_type in ("manual", False, "")
         payment = self.env["account.payment"].create({
             "payment_type": payment_type,
             # This controls the receivable/payable account selected by Odoo for
             # the payment and therefore the account reconciled below.
-            "partner_type": partner_type,
+            "partner_type": "customer" if manual_reconciliation else partner_type,
             "partner_id": partner.commercial_partner_id.id,
             "amount": amount,
             "currency_id": session.currency_id.id,
@@ -128,13 +129,16 @@ class PosSession(models.Model):
             "memo": reason or _("Paiement partenaire au POS"),
             "pos_session_id": session.id,
             "pos_customer_cash_payment": True,
+            "pos_payment_method_id": pos_payment_method.id,
+            "pos_manual_reconciliation": manual_reconciliation,
             "pos_balance_before": before,
         })
         payment.action_post()
         # The payment is matched from the oldest invoice to the newest.  If no
         # invoice is open, no reconciliation happens: it remains an open credit
         # (or debit) on the selected partner account for a future invoice.
-        session._reconcile_partner_payment(payment)
+        if not manual_reconciliation:
+            session._reconcile_partner_payment(payment)
 
         # This line is deliberately retained for the cash journal: POS closing uses it to calculate the
         # physical cash expected in the drawer.  It clears the payment's suspense
@@ -168,6 +172,9 @@ class PosSession(models.Model):
             "balance_before": payment.pos_balance_before,
             "balance_after": payment.pos_balance_after,
             "payment_type": payment.payment_type,
+            "manual_reconciliation": payment.pos_manual_reconciliation,
+            "payment_method_name": payment.pos_payment_method_id.name or payment.journal_id.name,
+            "reconciliation_account": _("Lettrage manuel") if payment.pos_manual_reconciliation else (_("Compte client") if payment.partner_type == "customer" else _("Compte fournisseur")),
             "reason": payment.payment_reference or "",
             # Keep the original payment timestamp when displaying or reprinting
             # an entry from the POS history.
