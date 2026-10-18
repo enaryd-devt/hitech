@@ -28,6 +28,14 @@ class HrContract(models.Model):
         default="monthly",
         help="Defines the frequency of the wage payment.",
     )
+    # Field expected by the Odoo 18 contract form.  It is kept on the
+    # integrated payroll contract so the standard salary view remains valid
+    # even when the standalone payroll addon is not installed.
+    payroll_payment_day = fields.Integer(
+        string="Payment Day",
+        default=1,
+        help="Day of the month used for the scheduled salary payment.",
+    )
     resource_calendar_id = fields.Many2one(
         required=True, help="Employee's working schedule."
     )
