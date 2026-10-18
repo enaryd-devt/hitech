@@ -33,7 +33,6 @@
     # always loaded
     'data': [
         # Gestion des présences intégrée.
-        'views/attendance_core/menu_parent.xml',
         # Moteur de paie intégré : le module est désormais autonome et ne
         # nécessite plus l'addon payroll séparé.
         'security/payroll_core/hr_payroll_security.xml',
@@ -76,6 +75,7 @@
         'security/ir.model.access.csv',
         'hr_report.xml',
         'hr_menuitem.xml',
+        'views/attendance_core/menu_parent.xml',
         'views/dashboard_views.xml',
 
     ],
