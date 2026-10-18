@@ -72,6 +72,24 @@ class PosSession(models.Model):
         return [{"id": method.id, "name": method.name} for method in session.config_id.payment_method_ids.filtered("journal_id")]
 
     @api.model
+    def pos_customer_payment_partners(self, session_id, search_term="", offset=0, limit=100):
+        """Search every active contact available to the POS user, by pages."""
+        session = self.browse(session_id).exists()
+        if not session:
+            return {"partners": [], "has_more": False}
+        # display_name is computed/non-stored in Odoo 18 and cannot be used
+        # in a SQL ORDER BY.
+        domain = [("active", "=", True)]
+        if search_term:
+            domain += ["|", "|", "|", "|", ("name", "ilike", search_term), ("phone", "ilike", search_term), ("mobile", "ilike", search_term), ("email", "ilike", search_term), ("ref", "ilike", search_term)]
+        partners = self.env["res.partner"].search(domain, order="name, id", offset=offset, limit=limit + 1)
+        has_more = len(partners) > limit
+        return {
+            "partners": partners[:limit].read(["display_name", "name", "phone", "mobile", "email", "ref"]),
+            "has_more": has_more,
+        }
+
+    @api.model
     def create_customer_cash_payment(self, session_id, partner_id, payment_type, amount, reason="", pos_payment_method_id=False, partner_type=False):
         session = self.browse(session_id).exists()
         if not session or session.state not in ("opened", "opening_control"):

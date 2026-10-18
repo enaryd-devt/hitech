@@ -9,6 +9,36 @@
     &__footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 32px; background: #fff; border-top: 1px solid #e5eaf0; }
 }
 
+.pos-customer-cash-partner-selector {
+    position: relative; z-index: 2140; min-width: 0;
+    > .form-label { display: none; }
+    &__trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; height: calc(3.5rem + 2px); padding-top: 1.625rem; color: #34455f; font-size: 12px; text-align: left; }
+    &__trigger > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    &__trigger > i { margin-left: 8px; color: #788ba6; font-size: 10px; transition: transform .18s ease; }
+    &__trigger > i.is-open { transform: rotate(180deg); }
+    &__menu { position: absolute; z-index: 2141; top: 100%; right: 0; left: 0; margin-top: 4px; overflow: hidden; border: 1px solid #cfdbe9; border-radius: 7px; background: #fff; box-shadow: 0 10px 26px rgba(33, 55, 83, .18); }
+    &__search { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 7px; padding: 8px; border-bottom: 1px solid #e5ebf3; background: #f8faff; }
+    &__search i { color: #6b88ad; }
+    &__search input { min-width: 0; flex: 1; padding: 5px 2px; border: 0; outline: 0; background: transparent; color: #354966; font-size: 12px; }
+    &__results { max-height: 255px; overflow-y: auto; }
+    &__item { display: flex; flex-direction: column; width: 100%; padding: 8px 10px; border: 0; border-bottom: 1px solid #f0f3f7; background: #fff; color: #354966; text-align: left; cursor: pointer; }
+    &__item:hover { background: #eff6ff; color: #1e5d9f; }
+    &__item strong { font-size: 12px; font-weight: 600; }
+    &__item small { margin-top: 2px; color: #8391a4; font-size: 10px; }
+    &__status { padding: 13px; color: #718198; font-size: 11px; text-align: center; }
+}
+
+// The cash-move dialog is a Bootstrap modal.  Its content/body must not clip
+// the partner directory: the latter deliberately opens above the form fields.
+.o_dialog:has(.pos-customer-cash-partner-selector) {
+    .modal,
+    .modal-dialog,
+    .modal-content,
+    .modal-body {
+        overflow: visible !important;
+    }
+}
+
 .customer-cash-payments {
     width: calc(100% - 48px); max-width: 1120px; margin: 28px auto; color: #263346; border: 1px solid #e3e9f1; border-radius: 14px; background: #fff; box-shadow: 0 8px 26px rgba(40, 62, 91, .06); overflow: hidden;
     &__search { display: flex; align-items: center; gap: 8px; margin: 10px 14px 8px; padding: 0 9px; border: 1px solid #dce3ec; border-radius: 7px; background: #fff; }

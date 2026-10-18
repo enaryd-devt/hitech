@@ -3,14 +3,31 @@
     <t t-inherit="point_of_sale.CashMovePopup" t-inherit-mode="extension" owl="1">
         <t position="before">
         <div class="row g-2 mb-2">
-            <div class="col form-floating">
-                <select class="form-select" id="pos-customer-cash-partner" t-model="state.partner_id">
-                    <option value="">Mouvement de caisse sans client</option>
-                    <t t-foreach="customerPartners" t-as="partner" t-key="partner.id">
-                        <option t-att-value="partner.id"><t t-esc="partner.display_name || partner.name"/></option>
-                    </t>
-                </select>
-                <label for="pos-customer-cash-partner">Partenaire (crée un paiement comptable)</label>
+            <div class="col form-floating pos-customer-cash-partner-selector">
+                <label class="form-label">Partenaire (crée un paiement comptable)</label>
+                <button type="button" class="form-select pos-customer-cash-partner-selector__trigger" t-on-click="togglePartnerPicker">
+                    <span t-if="selectedPartner" t-esc="selectedPartner.display_name || selectedPartner.name"/>
+                    <span t-else="" class="text-muted">Choisissez un partenaire</span>
+                    <i class="fa fa-chevron-down" t-att-class="{ 'is-open': partnerDirectory.open }"/>
+                </button>
+                <label>Partenaire</label>
+                <div t-if="partnerDirectory.open" class="pos-customer-cash-partner-selector__menu">
+                    <div class="pos-customer-cash-partner-selector__search">
+                        <i class="fa fa-search"/>
+                        <input type="search" placeholder="Nom, téléphone, e-mail ou référence…" t-model="partnerDirectory.search" t-on-input="onPartnerSearch" autofocus="autofocus"/>
+                    </div>
+                    <div class="pos-customer-cash-partner-selector__results" t-on-scroll="onPartnerListScroll">
+                        <button t-if="!partnerDirectory.search" type="button" class="pos-customer-cash-partner-selector__item" t-on-click="() => this.selectPartner({ id: 0, name: '' })"><span>Mouvement sans partenaire</span></button>
+                        <t t-foreach="partnerDirectory.items" t-as="partner" t-key="partner.id">
+                            <button type="button" class="pos-customer-cash-partner-selector__item" t-on-click="() => this.selectPartner(partner)">
+                                <strong t-esc="partner.display_name || partner.name"/>
+                                <small t-if="partner.phone || partner.mobile || partner.email" t-esc="partner.phone || partner.mobile || partner.email"/>
+                            </button>
+                        </t>
+                        <div t-if="partnerDirectory.loading" class="pos-customer-cash-partner-selector__status"><i class="fa fa-spinner fa-spin"/> Chargement…</div>
+                        <div t-elif="!partnerDirectory.items.length" class="pos-customer-cash-partner-selector__status">Aucun contact trouvé.</div>
+                    </div>
+                </div>
             </div>
             <div class="col form-floating">
                 <select class="form-select" id="pos-partner-payment-method" t-model="state.pos_payment_method_id" t-att-disabled="partnerPaymentModes.loading">

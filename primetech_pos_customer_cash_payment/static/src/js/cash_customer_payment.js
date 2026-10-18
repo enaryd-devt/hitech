@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onWillStart, useExternalListener, useState } from "@odoo/owl";
 import { CashMovePopup } from "@point_of_sale/app/navbar/cash_move_popup/cash_move_popup";
 import { Navbar } from "@point_of_sale/app/navbar/navbar";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
@@ -105,20 +105,61 @@ patch(CashMovePopup.prototype, {
         this.state.pos_payment_method_id = "";
         this.state.partner_type = "customer";
         this.partnerPaymentModes = useState({ items: [], loading: true });
+        this.partnerDirectory = useState({ items: [], loading: false, search: "", open: false, offset: 0, hasMore: true });
         this.partnerPaymentOrm = useService("orm");
+        this.onPartnerDocumentClick = this.onPartnerDocumentClick.bind(this);
+        useExternalListener(document, "click", this.onPartnerDocumentClick, { capture: true });
         onWillStart(async () => {
-            const items = await this.partnerPaymentOrm.call(
-                "pos.session", "pos_customer_payment_methods", [this.pos.session.id]
-            );
+            const items = await this.partnerPaymentOrm.call("pos.session", "pos_customer_payment_methods", [this.pos.session.id]);
             this.partnerPaymentModes.items = items;
             this.partnerPaymentModes.loading = false;
             this.state.pos_payment_method_id = items[0]?.id || "";
         });
     },
-    get customerPartners() {
-        return (this.pos.models["res.partner"]?.getAll?.() || [])
-            .filter((partner) => !partner.company_id || partner.company_id === this.pos.company.id)
-            .sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+    get selectedPartner() {
+        const partnerId = Number(this.state.partner_id);
+        return this.partnerDirectory.items.find((partner) => partner.id === partnerId);
+    },
+    async loadPartners(reset = false) {
+        if (this.partnerDirectory.loading || (!reset && !this.partnerDirectory.hasMore)) return;
+        if (reset) {
+            this.partnerDirectory.items = [];
+            this.partnerDirectory.offset = 0;
+            this.partnerDirectory.hasMore = true;
+        }
+        this.partnerDirectory.loading = true;
+        try {
+            const result = await this.partnerPaymentOrm.call(
+                "pos.session", "pos_customer_payment_partners",
+                [this.pos.session.id, this.partnerDirectory.search, this.partnerDirectory.offset, 100]
+            );
+            this.partnerDirectory.items.push(...result.partners);
+            this.partnerDirectory.offset += result.partners.length;
+            this.partnerDirectory.hasMore = result.has_more;
+        } finally {
+            this.partnerDirectory.loading = false;
+        }
+    },
+    async togglePartnerPicker() {
+        this.partnerDirectory.open = !this.partnerDirectory.open;
+        if (this.partnerDirectory.open && !this.partnerDirectory.items.length) await this.loadPartners(true);
+    },
+    onPartnerDocumentClick(event) {
+        if (!event.target.closest(".pos-customer-cash-partner-selector")) {
+            this.partnerDirectory.open = false;
+        }
+    },
+    onPartnerSearch() {
+        clearTimeout(this._partnerSearchTimer);
+        this._partnerSearchTimer = setTimeout(() => this.loadPartners(true), 220);
+    },
+    async onPartnerListScroll(ev) {
+        const target = ev.currentTarget;
+        if (target.scrollTop + target.clientHeight >= target.scrollHeight - 28) await this.loadPartners();
+    },
+    selectPartner(partner) {
+        this.state.partner_id = String(partner.id);
+        this.partnerDirectory.open = false;
     },
     async confirm() {
         const partnerId = Number(this.state.partner_id);

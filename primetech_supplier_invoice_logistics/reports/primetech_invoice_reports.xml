@@ -72,7 +72,7 @@
                     <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="Hitech DZ"/>
                 </div>
                 <div class="pt-hitech-header__body">
-                    <div class="pt-hitech-header__title">HIGHT-TECH- <b>DZ SARL</b></div>
+                    <div class="pt-hitech-header__title">HIGH-TECH- <b>DZ SARL</b></div>
                     <div class="pt-hitech-header__accent"/>
                     <div class="pt-hitech-header__contacts">
                         <div class="pt-hitech-header__phone">
