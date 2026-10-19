@@ -123,7 +123,7 @@
             <div class="primetech-mm-ticket-footer"><i class="fa fa-check-circle-o"/><strong>Merci de votre confiance</strong><span>Conservez ce ticket comme justificatif.</span></div>
             <div class="primetech-mm-ticket-rule dotted"/>
             <div class="primetech-mm-ticket-bottom"><span><i class="fa fa-calendar"/> <t t-esc="props.receipt.date or ''"/></span><span><i class="fa fa-file-text-o"/> <t t-esc="props.receipt.reference"/></span></div>
-            <div t-if="props.receipt.printed_by" class="text-center small mt-2">Imprimé par <strong t-esc="props.receipt.printed_by"/></div>
+            <div t-if="props.receipt.printed_by" class="primetech-mm-ticket-row"><i class="fa fa-print"/><span>Imprimé par</span><strong t-esc="props.receipt.printed_by"/></div>
         </div>
     </t>
 
