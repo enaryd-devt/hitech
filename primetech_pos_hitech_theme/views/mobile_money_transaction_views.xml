@@ -14,6 +14,7 @@
                 <field name="primetech_mobile_money_payment_method_id" string="Mode de paiement" optional="show"/>
                 <field name="primetech_mobile_money_provider" string="Portefeuille"/>
                 <field name="primetech_mobile_money_operation" string="Opération"/>
+                <field name="primetech_mobile_money_employee_id" string="Validée par" optional="show"/>
                 <field name="amount" sum="Total"/>
                 <field name="primetech_mobile_money_session_id" string="Session PDV" optional="hide"/>
             </list>
@@ -28,6 +29,7 @@
                 <field name="payment_ref" string="Numéro, référence, motif ou téléphone"/>
                 <field name="partner_id" string="Client / contact"/>
                 <field name="primetech_mobile_money_payment_method_id" string="Mode de paiement"/>
+                <field name="primetech_mobile_money_employee_id" string="Caissier"/>
                 <separator/>
                 <filter string="Orange Money" name="orange" domain="[('primetech_mobile_money_provider','=','orange')]"/>
                 <filter string="MTN MoMo" name="momo" domain="[('primetech_mobile_money_provider','=','momo')]"/>
@@ -41,6 +43,7 @@
                     <filter string="Opération" name="group_operation" context="{'group_by':'primetech_mobile_money_operation'}"/>
                     <filter string="Date" name="group_date" context="{'group_by':'date'}"/>
                     <filter string="Session PDV" name="group_session" context="{'group_by':'primetech_mobile_money_session_id'}"/>
+                    <filter string="Caissier" name="group_employee" context="{'group_by':'primetech_mobile_money_employee_id'}"/>
                 </group>
             </search>
         </field>

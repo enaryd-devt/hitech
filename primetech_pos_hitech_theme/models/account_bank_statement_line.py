@@ -4,6 +4,15 @@ from odoo import fields, models
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
+    primetech_mobile_money_employee_id = fields.Many2one(
+        "hr.employee",
+        string="Opérateur Mobile Money",
+        readonly=True,
+        copy=False,
+        index=True,
+        help="Employé connecté au POS lors de la validation de la transaction.",
+    )
+
     primetech_mobile_money_session_id = fields.Many2one(
         "pos.session",
         string="Session PDV Mobile Money",

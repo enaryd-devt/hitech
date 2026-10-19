@@ -34,6 +34,7 @@ export class PrimetechMobileMoneyTransactionScreen extends Component {
         this.pos = usePos();
         this.printer = useService("printer");
         this.notification = useService("notification");
+        this.action = useService("action");
         this.state = useState({
             search: "", provider: "all", operation: "all", dateFrom: "", dateTo: "",
             transactions: [], loading: true,
@@ -78,10 +79,16 @@ export class PrimetechMobileMoneyTransactionScreen extends Component {
             operation: transaction.operation,
             amount: Math.abs(transaction.amount),
             reason: transaction.reason || "",
+            served_by: transaction.served_by || "",
+            printed_by: this.pos.get_cashier()?.name || "",
             date: transaction.date || "",
         }, this.pos.getReceiptHeaderData());
     }
     printReport() {
+        // Let the manager define the period, cashier, wallet and operation
+        // in the dedicated report assistant before generating the PDF.
+        this.action.doAction("primetech_pos_hitech_theme.action_primetech_mobile_money_report_wizard");
+        return;
         const ids = this.state.transactions.map((transaction) => transaction.id);
         if (!ids.length) {
             this.notification.add(_t("Aucune transaction à imprimer."), { type: "warning" });
@@ -139,10 +146,11 @@ export class PrimetechMobileMoneyPopup extends Component {
             const result = await this.pos.data.call(
                 "pos.session",
                 "primetech_mobile_money_transfer",
-                [[this.pos.session.id], this.state.paymentMethodId, this.state.operation, amount, this.state.reason.trim()],
+                [[this.pos.session.id], this.state.paymentMethodId, this.state.operation, amount, this.state.reason.trim(), this.pos.get_cashier()?.id || false],
                 {},
                 true
             );
+            result.printed_by = this.pos.get_cashier()?.name || "";
             this.notification.add(
                 _t("Transaction %(operation)s %(provider)s de %(amount)s enregistrée. Nouveau solde %(provider)s : %(balance)s.", {
                     operation: result.operation,

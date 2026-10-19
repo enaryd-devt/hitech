@@ -113,6 +113,7 @@ class PosSession(models.Model):
             "operation": transaction.primetech_mobile_money_operation == "withdrawal" and _("Retrait") or _("Dépôt"),
             "amount": transaction.amount,
             "reason": transaction.primetech_mobile_money_reason or "",
+            "served_by": transaction.primetech_mobile_money_employee_id.name or "",
         } for transaction in transactions]
 
     def get_closing_control_data(self):
@@ -244,7 +245,7 @@ class PosSession(models.Model):
         return True
 
     @api.model
-    def primetech_mobile_money_transfer(self, session_id, payment_method_id, operation, amount, reason=""):
+    def primetech_mobile_money_transfer(self, session_id, payment_method_id, operation, amount, reason="", employee_id=False):
         """Transfer funds between POS cash and an Orange/MTN mobile wallet."""
         session = self.browse(session_id).exists()
         if not session or session.state != "opened":
@@ -314,6 +315,9 @@ class PosSession(models.Model):
                     requested=amount,
                 ))
 
+        employee = self.env["hr.employee"].browse(employee_id).exists()
+        if not employee:
+            employee = self.env.user.employee_id
         provider_label = _("Orange Money") if provider == "orange" else _("MTN MoMo")
         operation_label = _("Retrait") if operation == "withdrawal" else _("Dépôt")
         reference = _("%(operation)s %(provider)s - %(session)s", operation=operation_label, provider=provider_label, session=session.name)
@@ -343,6 +347,7 @@ class PosSession(models.Model):
             "primetech_mobile_money_operation": operation,
             "primetech_mobile_money_payment_method_id": payment_method.id,
             "primetech_mobile_money_reason": reason.strip(),
+            "primetech_mobile_money_employee_id": employee.id,
             "amount": mobile_amount,
             "date": fields.Date.context_today(session),
             "payment_ref": reference,
@@ -367,6 +372,7 @@ class PosSession(models.Model):
             "operation": operation_label,
             "amount": amount,
             "reason": reason,
+            "served_by": employee.name or self.env.user.name,
             "date": fields.Datetime.to_string(fields.Datetime.now()),
             "balances": self.primetech_mobile_money_balances(session.id),
         }

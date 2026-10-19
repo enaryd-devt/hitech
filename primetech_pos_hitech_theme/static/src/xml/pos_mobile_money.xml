@@ -118,10 +118,12 @@
             <div class="primetech-mm-ticket-row"><i class="fa fa-exchange"/><span>Opération</span><strong t-esc="props.receipt.operation"/></div>
             <div t-if="props.receipt.reason" class="primetech-mm-ticket-row"><i class="fa fa-phone"/><span>Motif / téléphone</span><strong t-esc="props.receipt.reason"/></div>
             <div class="primetech-mm-ticket-total"><i class="fa fa-database"/><span>Montant</span><strong t-esc="format(props.receipt.amount)"/></div>
+            <div t-if="props.receipt.served_by" class="primetech-mm-ticket-row"><i class="fa fa-user"/><span>Servi par</span><strong t-esc="props.receipt.served_by"/></div>
             <div class="primetech-mm-ticket-rule dotted"/>
             <div class="primetech-mm-ticket-footer"><i class="fa fa-check-circle-o"/><strong>Merci de votre confiance</strong><span>Conservez ce ticket comme justificatif.</span></div>
             <div class="primetech-mm-ticket-rule dotted"/>
             <div class="primetech-mm-ticket-bottom"><span><i class="fa fa-calendar"/> <t t-esc="props.receipt.date or ''"/></span><span><i class="fa fa-file-text-o"/> <t t-esc="props.receipt.reference"/></span></div>
+            <div t-if="props.receipt.printed_by" class="text-center small mt-2">Imprimé par <strong t-esc="props.receipt.printed_by"/></div>
         </div>
     </t>
 
@@ -144,8 +146,8 @@
                 <div t-if="state.loading" class="text-center p-5"><i class="fa fa-spinner fa-spin me-2"/>Chargement des transactions…</div>
                 <div t-elif="!state.transactions.length" class="text-center text-muted p-5">Aucune transaction trouvée.</div>
                 <table t-else="" class="table table-hover align-middle bg-white">
-                    <thead><tr><th>Date</th><th>Référence / numéro</th><th>Client / contact</th><th>Mode</th><th>Portefeuille</th><th>Opération</th><th class="text-end">Montant</th><th/></tr></thead>
-                    <tbody><tr t-foreach="state.transactions" t-as="transaction" t-key="transaction.id"><td t-esc="transaction.date"/><td t-esc="transaction.reference"/><td t-esc="transaction.partner or '-'"/><td t-esc="transaction.payment_method or '-'"/><td t-esc="transaction.provider"/><td><span class="badge" t-att-class="transaction.operation === 'Retrait' ? 'text-bg-danger' : 'text-bg-success'" t-esc="transaction.operation"/></td><td class="text-end fw-bold" t-esc="format(Math.abs(transaction.amount))"/><td class="text-end"><button class="btn btn-sm btn-light" title="Imprimer le ticket" t-on-click="() => this.printTransaction(transaction)"><i class="fa fa-print"/></button></td></tr></tbody>
+                    <thead><tr><th>Date</th><th>Référence / numéro</th><th>Client / contact</th><th>Employé</th><th>Mode</th><th>Portefeuille</th><th>Opération</th><th class="text-end">Montant</th><th/></tr></thead>
+                    <tbody><tr t-foreach="state.transactions" t-as="transaction" t-key="transaction.id"><td t-esc="transaction.date"/><td t-esc="transaction.reference"/><td t-esc="transaction.partner or '-'"/><td t-esc="transaction.served_by or '-'"/><td t-esc="transaction.payment_method or '-'"/><td t-esc="transaction.provider"/><td><span class="badge" t-att-class="transaction.operation === 'Retrait' ? 'text-bg-danger' : 'text-bg-success'" t-esc="transaction.operation"/></td><td class="text-end fw-bold" t-esc="format(Math.abs(transaction.amount))"/><td class="text-end"><button class="btn btn-sm btn-light" title="Imprimer le ticket" t-on-click="() => this.printTransaction(transaction)"><i class="fa fa-print"/></button></td></tr></tbody>
                 </table>
             </div>
         </div>
