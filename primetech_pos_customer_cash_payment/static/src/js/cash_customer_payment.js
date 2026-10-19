@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useExternalListener, useState } from "@odoo/owl";
+import { Component, onWillStart, useExternalListener, useRef, useState } from "@odoo/owl";
 import { CashMovePopup } from "@point_of_sale/app/navbar/cash_move_popup/cash_move_popup";
 import { Navbar } from "@point_of_sale/app/navbar/navbar";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
@@ -106,6 +106,7 @@ patch(CashMovePopup.prototype, {
         this.state.partner_type = "";
         this.partnerPaymentModes = useState({ items: [], loading: true });
         this.partnerDirectory = useState({ items: [], loading: false, search: "", open: false, offset: 0, hasMore: true });
+        this.partnerSearchInput = useRef("partnerSearchInput");
         this.partnerPaymentOrm = useService("orm");
         this.onPartnerDocumentClick = this.onPartnerDocumentClick.bind(this);
         useExternalListener(document, "click", this.onPartnerDocumentClick, { capture: true });
@@ -144,7 +145,11 @@ patch(CashMovePopup.prototype, {
     },
     async togglePartnerPicker() {
         this.partnerDirectory.open = !this.partnerDirectory.open;
-        if (this.partnerDirectory.open && !this.partnerDirectory.items.length) await this.loadPartners(true);
+        if (this.partnerDirectory.open) {
+            if (!this.partnerDirectory.items.length) await this.loadPartners(true);
+            // Wait for Owl to render the dropdown before focusing its input.
+            requestAnimationFrame(() => this.partnerSearchInput.el?.focus());
+        }
     },
     onPartnerDocumentClick(event) {
         if (!event.target.closest(".pos-customer-cash-partner-selector")) {

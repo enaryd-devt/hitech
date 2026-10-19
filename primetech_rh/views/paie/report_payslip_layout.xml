@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Gabarit autonome du bulletin : aucune dépendance à un module de facturation. -->
+    <record id="paperformat_primetech_payslip" model="report.paperformat">
+        <field name="name">Bulletin de paie PrimeTech A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">24</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">32</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <template id="report_payslip_header">
+        <style type="text/css">
+            .pt-rh-header { border-bottom:1px solid #0868c9; color:#17213c; font-family:Arial,sans-serif; height:48mm; margin:0; padding-bottom:2px; width:100%; }
+            .pt-rh-header__main { display:table; height:35mm; table-layout:fixed; width:100%; }
+            .pt-rh-header__logo { display:table-cell; text-align:center; vertical-align:middle; width:27%; }
+            .pt-rh-header__logo img { max-height:34mm; max-width:100%; }
+            .pt-rh-header__body { border-left:1mm solid #0968c7; display:table-cell; padding-left:5mm; vertical-align:middle; width:73%; }
+            .pt-rh-header__title { color:#075fc2; font-size:39pt; font-weight:900; letter-spacing:-1.7px; line-height:1; white-space:nowrap; }
+            .pt-rh-header__title b { color:#ff7200; }
+            .pt-rh-header__accent { display:table; height:2px; margin:2mm 0; width:100%; }
+            .pt-rh-header__accent:before { background:#0868c9; content:''; display:table-cell; width:48%; }
+            .pt-rh-header__accent:after { background:#ff7200; content:''; display:table-cell; width:52%; }
+            .pt-rh-header__contacts { display:table; table-layout:fixed; width:100%; }
+            .pt-rh-header__phone, .pt-rh-header__online { display:table-cell; font-size:11pt; line-height:1.45; vertical-align:top; width:50%; }
+            .pt-rh-header__online { border-left:1px solid #0868c9; padding-left:5mm; }
+            .pt-rh-header strong { color:#0868c9; }
+            .pt-rh-header .pt-rh-orange { color:#ff7200; }
+            .pt-rh-header__services { border-top:2px solid #0868c9; color:#17213c; font-size:9.5pt; margin-top:3mm; padding:2mm 3mm 0; white-space:nowrap; }
+            .pt-rh-header__services strong { font-size:13pt; }
+        </style>
+        <div class="pt-rh-header">
+            <div class="pt-rh-header__main">
+                <div class="pt-rh-header__logo"><img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Logo"/></div>
+                <div class="pt-rh-header__body">
+                    <div class="pt-rh-header__title">HIGH-TECH- <b>DZ SARL</b></div>
+                    <div class="pt-rh-header__accent"/>
+                    <div class="pt-rh-header__contacts">
+                        <div class="pt-rh-header__phone">
+                            <div><strong>&#9679; Services clients Number one:</strong> 657878693</div>
+                            <div><strong class="pt-rh-orange">&#9679; Services clients ancien troisième:</strong> 659595814</div>
+                            <div><strong>&#9679; Direction:</strong> (+237) 679 576 626 - 655 502 254</div>
+                        </div>
+                        <div class="pt-rh-header__online">
+                            <div><strong class="pt-rh-orange">Email:</strong> hightechdz9@gmail.com</div>
+                            <div><strong>Site web :</strong> www.ngmangang.com</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-rh-header__services"><strong>SERVICES:</strong>&#160; COMMERCE GÉNÉRAL &#160; &#9679; &#160; VIDÉOS SURVEILLANCE &#160; &#9679; &#160; IMPORT-EXPORT &#160; &#9679; &#160; MAINTENANCE &#160; &#9679; &#160; VENTE DU MATÉRIEL INFORMATIQUE ET ACCESSOIRES (GROS ET DÉTAIL)</div>
+        </div>
+    </template>
+
+    <template id="report_payslip_footer">
+        <style type="text/css">
+            .pt-rh-footer { color:#07509a; font-family:Arial,sans-serif; font-size:8pt; text-align:center; width:100%; }
+            .pt-rh-footer__rule { border-top:1px solid #07509a; margin-bottom:2mm; }
+            .pt-rh-footer__content { line-height:1.35; text-align:center; width:100%; }
+            .pt-rh-footer__configured { font-weight:600; }
+            .pt-rh-footer__page { display:block; font-size:7pt; margin-top:1mm; }
+        </style>
+        <div class="pt-rh-footer">
+            <div class="pt-rh-footer__rule"/>
+            <div class="pt-rh-footer__content">
+                <div t-if="company.report_footer" class="pt-rh-footer__configured" t-field="company.report_footer"/>
+                <div t-else="" class="pt-rh-footer__configured"><span t-esc="company.name"/></div>
+                <span class="pt-rh-footer__page">Page <span class="page"/> / <span class="topage"/></span>
+            </div>
+        </div>
+    </template>
+
+    <!-- Dérivation privée : seuls les bulletins utilisent ce layout. -->
+    <template id="report_payslip_external_layout" inherit_id="web.external_layout_striped" primary="True">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]" position="replace">
+            <div t-attf-class="o_company_#{company.id}_layout header"><t t-call="primetech_rh.report_payslip_header"/></div>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'footer')]" position="replace">
+            <div t-attf-class="footer o_company_#{company.id}_layout"><t t-call="primetech_rh.report_payslip_footer"/></div>
+        </xpath>
+    </template>
+</odoo>

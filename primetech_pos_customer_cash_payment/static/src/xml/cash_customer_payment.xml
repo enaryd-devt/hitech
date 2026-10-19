@@ -14,7 +14,7 @@
                 <div t-if="partnerDirectory.open" class="pos-customer-cash-partner-selector__menu">
                     <div class="pos-customer-cash-partner-selector__search">
                         <i class="fa fa-search"/>
-                        <input type="search" placeholder="Nom, t&#233;l&#233;phone, e-mail ou r&#233;f&#233;rence&#8230;" t-model="partnerDirectory.search" t-on-input="onPartnerSearch" autofocus="autofocus"/>
+                        <input t-ref="partnerSearchInput" type="search" placeholder="Nom, t&#233;l&#233;phone, e-mail ou r&#233;f&#233;rence&#8230;" t-model="partnerDirectory.search" t-on-input="onPartnerSearch"/>
                     </div>
                     <div class="pos-customer-cash-partner-selector__results" t-on-scroll="onPartnerListScroll">
                         <button t-if="!partnerDirectory.search" type="button" class="pos-customer-cash-partner-selector__item" t-on-click="() => this.selectPartner({ id: 0, name: '' })"><span>Mouvement sans partenaire</span></button>
@@ -131,4 +131,3 @@
         </div>
     </t>
 </templates>
-

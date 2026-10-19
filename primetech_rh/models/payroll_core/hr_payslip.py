@@ -96,6 +96,12 @@ class HrPayslip(models.Model):
         copy=False,
         default=lambda self: self.env.company,
     )
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        related="company_id.currency_id",
+        readonly=True,
+    )
     worked_days_line_ids = fields.One2many(
         "hr.payslip.worked_days",
         "payslip_id",

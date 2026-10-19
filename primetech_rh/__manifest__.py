@@ -54,6 +54,8 @@
         'views/payroll_core/report_contributionregister.xml',
         'views/payroll_core/report_payslip.xml',
         'views/payroll_core/report_payslipdetails.xml',
+        # Gabarit autonome du bulletin, chargé avant son action de rapport.
+        'views/paie/report_payslip_layout.xml',
         'report/payroll_core/report.xml',
         'views/payroll_core/res_config_settings_views.xml',
         'wizard/payroll_core/hr_payroll_send_email.xml',

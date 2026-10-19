@@ -104,10 +104,13 @@ class HrPayslip(models.Model):
     def get_inputs(self, contracts, date_from, date_to):
         res = []
 
-        structure_ids = contracts.get_all_structures()
-        rule_ids = self.env['hr.payroll.structure'].browse(structure_ids).get_all_rules()
-        sorted_rule_ids = [id for id, sequence in sorted(rule_ids, key=lambda x:x[1])]
-        inputs = self.env['hr.salary.rule'].browse(sorted_rule_ids).mapped('input_ids')
+        # ``get_all_structures`` returns an Odoo recordset.  The legacy
+        # implementation passed that recordset back to ``browse()``, which
+        # makes PostgreSQL try to adapt ``hr.payroll.structure`` as an SQL id.
+        # Work directly with recordsets (Odoo 18 API).
+        structures = contracts.get_all_structures()
+        rule_ids = structures.get_all_rules()
+        inputs = rule_ids.mapped("input_ids")
 
         for contract in contracts:
             contract_input_value = {}
@@ -228,12 +231,9 @@ class HrPayslip(models.Model):
         baselocaldict = {'categories': categories, 'rules': rules, 'payslip': payslips, 'worked_days': worked_days, 'inputs': inputs}
         #get the ids of the structures on the contracts and their parent id as well
         contracts = self.env['hr.contract'].browse(contract_ids)
-        structure_ids = contracts.get_all_structures()
-        #get the rules of the structure and thier children
-        rule_ids = self.env['hr.payroll.structure'].browse(structure_ids).get_all_rules()
-        #run the rules by sequence
-        sorted_rule_ids = [id for id, sequence in sorted(rule_ids, key=lambda x:x[1])]
-        sorted_rules = self.env['hr.salary.rule'].browse(sorted_rule_ids)
+        structures = contracts.get_all_structures()
+        # Get and order the rules directly from the structure recordset.
+        sorted_rules = structures.get_all_rules().sorted("sequence")
 
         for contract in contracts:
             employee = contract.employee_id

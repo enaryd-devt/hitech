@@ -20,6 +20,7 @@
         </field>
         <field name="binding_model_id" ref="model_hr_payslip" />
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_primetech_payslip"/>
     </record>
     <record id="payslip_details_report" model="ir.actions.report">
         <field name="name">Détail du bulletin de paye</field>

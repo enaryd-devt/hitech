@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 <template id="report_payslip_document">
-    <t t-call="web.external_layout_standard">
+    <t t-call="web.html_container">
         <t t-foreach="docs" t-as="o">
+            <t t-set="company" t-value="o.company_id"/>
+            <t t-call="primetech_rh.report_payslip_external_layout">
             <div class="page">
                 <style>
-                    @page {
-                        size: A4;
-                        margin: 8mm 6mm 6mm 6mm; /* TOP RIGHT BOTTOM LEFT */
-                    }
-
-                    body {
-                        font-size: 10px;
-                        margin-top: -55px!important;
-                    }
+                    /* L'en-tête et le pied sont fournis par le même layout
+                       externe que les factures PrimeTech. */
+                    .page { font-size: 10px; }
                 </style>
                     <style>
                         .border-lb{
@@ -78,7 +74,7 @@
                             <span class="space">--</span>Period from :<span class="space">--</span><b><span t-field="o.date_from" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b><span class="space">------</span>to<span class="space">--</span><b><span t-field="o.date_to" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b>
                         </td>
                         <td class="border-lb" colspan="4">
-                            <span class="space">---</span>Payment on :<span class="space">-</span><b><span t-field="o.date" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b><span class="space">----------------</span>by :
+                            <span class="space">---</span>Payment on :<span class="space">-</span><b><span t-field="o.date_to" t-options='{"widget": "date","format": "dd/MM/yyyy"}'/></b><span class="space">----------------</span>by :
                         </td>
                     </tr>
                     <tr>
@@ -250,7 +246,7 @@
                         <td class="border-rl"></td>
                         <td class="border-rl"></td>
                     </tr>
-                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.code != 'BASE' and line.category_id.code in ('GAINTAXCO', 'GAINTAX', 'GAINNOTAXCO', 'GAINCO')).sorted(key=lambda l: l.payslip_code)" t-as="line">
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.code != 'BASE' and line.category_id.code in ('GAINTAXCO', 'GAINTAX', 'GAINNOTAXCO', 'GAINCO')).sorted(key=lambda l: l.payslip_code or '')" t-as="line">
                         <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
                         <td class="border-rl"><span t-field="line.name"/></td>
                         <td class="border-rl text-right"></td>
@@ -274,7 +270,7 @@
                         <td class="border-trl"></td>
                         <td class="border-trl"></td>
                     </tr>
-                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and line.salary_rule_id.contrib).sorted(key=lambda l: l.payslip_code)" t-as="line">
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and line.salary_rule_id.contrib).sorted(key=lambda l: l.payslip_code or '')" t-as="line">
                         <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
                         <td class="border-rl"><span t-field="line.name"/></td>
                         <td class="border-rl"></td>
@@ -302,7 +298,7 @@
                         <td class="border-trl"></td>
                         <td class="border-trl"></td>
                     </tr>
-                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and not line.salary_rule_id.contrib).sorted(key=lambda l: l.payslip_code)" t-as="line">
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_SAL' and not line.salary_rule_id.contrib).sorted(key=lambda l: l.payslip_code or '')" t-as="line">
                         <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
                         <td class="border-rl"><span t-field="line.name"/></td>
                         <td class="border-rl"></td>
@@ -318,7 +314,7 @@
                         <td class="border-rl"></td>
                         <td class="border-rl"></td>
                     </tr>
-                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'ROUND').sorted(key=lambda l: l.payslip_code)" t-as="line">
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'ROUND').sorted(key=lambda l: l.payslip_code or '')" t-as="line">
                         <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
                         <td class="border-rl bold"><span t-field="line.name"/></td>
                         <td class="border-rl"></td>
@@ -330,7 +326,7 @@
                         <td class="border-trl"></td>
                         <td class="border-trl"></td>
                     </tr>
-                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_PAT').sorted(key=lambda l: l.payslip_code)" t-as="line">
+                    <tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip and line.category_id.code == 'COTI_PAT').sorted(key=lambda l: l.payslip_code or '')" t-as="line">
                         <td class="border-rl text-right"><span t-field="line.payslip_code"/></td>
                         <td class="border-rl"><span t-field="line.name"/></td>
                         <td class="border-rl"></td>
@@ -399,14 +395,12 @@
             </div>
         </t>
     </t>
+    </t>
 </template>
 
 <template id="report_payslip">
-    <t t-call="web.html_container">
-        <t t-foreach="docs" t-as="doc">
-            <t t-set="company" t-value="doc.company_id"/>
-            <t t-call="primetech_rh.report_payslip_document" t-lang="doc.employee_id.lang"/>
-        </t>
-    </t>
+    <!-- Ne force pas la langue du salarié : le PDF suit la langue active
+         de l'utilisateur qui lance l'impression. -->
+    <t t-call="primetech_rh.report_payslip_document"/>
 </template>
 </odoo>

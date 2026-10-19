@@ -480,7 +480,7 @@ msgid "CREDIT. FONC. PATR."
 msgstr ""
 
 #. module: primetech_rh
-#: model_terms:ir.ui.view,arch_db:primetech_rh.view_hr_payslip_inherit_form
+#: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_view_form
 msgid "Cancel Payslip"
 msgstr "Annuler la fiche de paie"
 
@@ -539,7 +539,7 @@ msgid "Company and Status"
 msgstr "Société et statut"
 
 #. module: primetech_rh
-#: model_terms:ir.ui.view,arch_db:primetech_rh.view_hr_payslip_inherit_form
+#: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_view_form
 msgid "Compute Sheet"
 msgstr "Calculer la feuille"
 
@@ -551,7 +551,7 @@ msgid "Compute seniority off all contracts"
 msgstr "Calculer l'ancienneté sur tous les contrats"
 
 #. module: primetech_rh
-#: model_terms:ir.ui.view,arch_db:primetech_rh.view_hr_payslip_inherit_form
+#: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_view_form
 msgid "Confirm"
 msgstr "Confirmer"
 
@@ -1397,7 +1397,7 @@ msgstr "Lots de bulletins de paie"
 #. module: primetech_rh
 #: model:ir.model,name:primetech_rh.model_hr_payslip_line
 msgid "Payslip Line"
-msgstr "Ligne de bulletin de salaire"
+msgstr "Ligne de bulletin de paie"
 
 #. module: primetech_rh
 #: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
@@ -1522,7 +1522,7 @@ msgid "Rate"
 msgstr "Taux"
 
 #. module: primetech_rh
-#: model_terms:ir.ui.view,arch_db:primetech_rh.view_hr_payslip_inherit_form
+#: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_view_form
 msgid "Refund"
 msgstr "Avoir"
 
@@ -1629,7 +1629,7 @@ msgid "Sequence"
 msgstr "Séquence"
 
 #. module: primetech_rh
-#: model_terms:ir.ui.view,arch_db:primetech_rh.view_hr_payslip_inherit_form
+#: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_view_form
 msgid "Set to Draft"
 msgstr "Remettre en Brouillon"
 
@@ -3180,7 +3180,7 @@ msgstr "Structures des bulletins"
 #: model:ir.model,name:primetech_rh.model_hr_payslip
 #: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_view_form
 msgid "Payslip"
-msgstr "Feuille de paye"
+msgstr "Bulletin de paie"
 
 #. module: payroll
 #. odoo-python
@@ -3218,7 +3218,7 @@ msgstr "Entrée du bulletin"
 #. module: payroll
 #: model:ir.model.fields,field_description:primetech_rh.field_hr_payslip__input_line_ids
 msgid "Payslip Inputs"
-msgstr "Entrées du bulletin de salaire"
+msgstr "Entrées du bulletin de paie"
 
 #. module: payroll
 #: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_line_view_form
@@ -3526,7 +3526,7 @@ msgstr "Définition de la formule des règles salariales (Python)"
 #. odoo-python
 #: code:addons/primetech_rh/models/hr_payslip.py:0
 msgid "Salary Slip of %(name)s for %(dt)s"
-msgstr "Bulletin de salaire de %(name)s pour %(dt)s"
+msgstr "Bulletin de paie de %(name)s pour %(dt)s"
 
 #. module: payroll
 #: model:ir.model,name:primetech_rh.model_hr_payroll_structure
@@ -3834,3 +3834,183 @@ msgstr "le résultat sera affecté à une variable"
 #: model_terms:ir.ui.view,arch_db:primetech_rh.hr_payslip_line_view_form
 msgid "total_net"
 msgstr "total net"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "PAYSLIP"
+msgstr "BULLETIN DE PAIE"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Period from :"
+msgstr "Période du :"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Payment on :"
+msgstr "Paiement le :"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Level"
+msgstr "Niveau"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Seniority"
+msgstr "Ancienneté"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Social Security N°"
+msgstr "N° de sécurité sociale"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Category"
+msgstr "Catégorie"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Job Position"
+msgstr "Poste"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Department"
+msgstr "Service"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Qualification"
+msgstr "Qualification"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Hourly"
+msgstr "Horaire"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Leaves"
+msgstr "Congés"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Acquired"
+msgstr "Acquis"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Remaining to Take"
+msgstr "Reste à prendre"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Take"
+msgstr "Pris"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Leaves date"
+msgstr "Dates de congé"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Comment :"
+msgstr "Commentaire :"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Number"
+msgstr "Nombre"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Salary share"
+msgstr "Part salariale"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Employer's share"
+msgstr "Part patronale"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Rate"
+msgstr "Taux"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Gross"
+msgstr "Brut"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Deduction"
+msgstr "Retenue"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Total gross"
+msgstr "Total brut"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Total Contributions"
+msgstr "Total des cotisations"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Total mandatory deductions"
+msgstr "Total des retenues obligatoires"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Gross Salary"
+msgstr "Salaire brut"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Taxable Net"
+msgstr "Net imposable"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Employee Contributions"
+msgstr "Cotisations salariales"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Employer Contributions"
+msgstr "Cotisations patronales"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Work Hours"
+msgstr "Heures travaillées"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Hours Sup."
+msgstr "Heures sup."
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Benefits in kind"
+msgstr "Avantages en nature"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "NET TO PAY"
+msgstr "NET À PAYER"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Period"
+msgstr "Période"
+
+#. module: primetech_rh
+#: model_terms:ir.ui.view,arch_db:primetech_rh.report_payslip_document
+msgid "Year"
+msgstr "Année"
