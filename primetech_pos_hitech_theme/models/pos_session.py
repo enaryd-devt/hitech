@@ -106,6 +106,9 @@ class PosSession(models.Model):
         return [{
             "id": transaction.id,
             "date": fields.Date.to_string(transaction.date),
+            "date_time": fields.Datetime.context_timestamp(
+                self, transaction.create_date
+            ).strftime("%d/%m/%Y %H:%M:%S"),
             "reference": transaction.payment_ref or "/",
             "partner": transaction.partner_id.name or "",
             "payment_method": transaction.primetech_mobile_money_payment_method_id.name or "",
@@ -374,5 +377,8 @@ class PosSession(models.Model):
             "reason": reason,
             "served_by": employee.name or self.env.user.name,
             "date": fields.Datetime.to_string(fields.Datetime.now()),
+            "date_time": fields.Datetime.context_timestamp(
+                self, mobile_line.create_date
+            ).strftime("%d/%m/%Y %H:%M:%S"),
             "balances": self.primetech_mobile_money_balances(session.id),
         }

@@ -118,12 +118,12 @@
             <div class="primetech-mm-ticket-row"><i class="fa fa-exchange"/><span>Opération</span><strong t-esc="props.receipt.operation"/></div>
             <div t-if="props.receipt.reason" class="primetech-mm-ticket-row"><i class="fa fa-phone"/><span>Motif / téléphone</span><strong t-esc="props.receipt.reason"/></div>
             <div class="primetech-mm-ticket-total"><i class="fa fa-database"/><span>Montant</span><strong t-esc="format(props.receipt.amount)"/></div>
-            <div t-if="props.receipt.served_by" class="primetech-mm-ticket-row"><i class="fa fa-user"/><span>Servi par</span><strong t-esc="props.receipt.served_by"/></div>
             <div class="primetech-mm-ticket-rule dotted"/>
             <div class="primetech-mm-ticket-footer"><i class="fa fa-check-circle-o"/><strong>Merci de votre confiance</strong><span>Conservez ce ticket comme justificatif.</span></div>
             <div class="primetech-mm-ticket-rule dotted"/>
             <div class="primetech-mm-ticket-bottom"><span><i class="fa fa-calendar"/> <t t-esc="props.receipt.date or ''"/></span><span><i class="fa fa-file-text-o"/> <t t-esc="props.receipt.reference"/></span></div>
-            <div t-if="props.receipt.printed_by" class="primetech-mm-ticket-row"><i class="fa fa-print"/><span>Imprimé par</span><strong t-esc="props.receipt.printed_by"/></div>
+            <div t-if="props.receipt.served_by" class="primetech-mm-ticket-row"><i class="fa fa-user"/><span>Servi par</span><strong t-esc="props.receipt.served_by"/></div>
+            <div t-if="props.receipt.printed_by" class="primetech-mm-ticket-print-meta"><i class="fa fa-print"/> Imprimé par <strong t-esc="props.receipt.printed_by"/></div>
         </div>
     </t>
 

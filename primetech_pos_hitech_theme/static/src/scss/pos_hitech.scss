@@ -553,6 +553,8 @@ html.primetech-pos-dark {
     .primetech-mm-ticket-footer { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 0 5px; text-align: center; font-size: 8px; }
     .primetech-mm-ticket-footer i { margin-bottom: 1px; font-size: 18px; } .primetech-mm-ticket-footer strong { font-size: 9px; }
     .primetech-mm-ticket-bottom { display: flex; justify-content: space-between; gap: 4px; font-size: 7px; } .primetech-mm-ticket-bottom i { margin-right: 2px; }
+    .primetech-mm-ticket-print-meta { padding-top: 2px; text-align: right; font-size: 7px; color: #555; }
+    .primetech-mm-ticket-print-meta strong { font-size: 7px; }
 }
 
 .primetech-mobile-money-dialog {

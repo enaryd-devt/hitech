@@ -19,11 +19,18 @@ class PrimetechMobileMoneyReportWizard(models.TransientModel):
         required=True,
         default="all",
     )
-    employee_id = fields.Many2one("hr.employee", string="Caissier")
+    employee_ids = fields.Many2many("hr.employee", string="Caissiers")
+    wallet_ids = fields.Many2many(
+        "pos.payment.method",
+        string="Portefeuilles",
+        domain="[('primetech_mobile_money_type', 'in', ('orange', 'momo'))]",
+    )
+    # Kept temporarily for already-open wizard views cached by the web
+    # client.  The current form uses the multi-selection fields above.
+    employee_id = fields.Many2one("hr.employee", string="Caissier (ancien)")
     payment_method_id = fields.Many2one(
         "pos.payment.method",
-        string="Mode de paiement / portefeuille",
-        domain="[('primetech_mobile_money_type', 'in', ('orange', 'momo'))]",
+        string="Mode de paiement (ancien)",
     )
 
     def action_print_report(self):
@@ -39,10 +46,10 @@ class PrimetechMobileMoneyReportWizard(models.TransientModel):
             domain.append(("primetech_mobile_money_provider", "=", self.provider))
         if self.operation != "all":
             domain.append(("primetech_mobile_money_operation", "=", self.operation))
-        if self.employee_id:
-            domain.append(("primetech_mobile_money_employee_id", "=", self.employee_id.id))
-        if self.payment_method_id:
-            domain.append(("primetech_mobile_money_payment_method_id", "=", self.payment_method_id.id))
+        if self.employee_ids:
+            domain.append(("primetech_mobile_money_employee_id", "in", self.employee_ids.ids))
+        if self.wallet_ids:
+            domain.append(("primetech_mobile_money_payment_method_id", "in", self.wallet_ids.ids))
         transactions = self.env["account.bank.statement.line"].search(domain, order="date, id")
         deposits = sum(abs(line.amount) for line in transactions if line.primetech_mobile_money_operation == "deposit")
         withdrawals = sum(abs(line.amount) for line in transactions if line.primetech_mobile_money_operation == "withdrawal")
@@ -51,9 +58,10 @@ class PrimetechMobileMoneyReportWizard(models.TransientModel):
         ).report_action(transactions, data={
             "date_from": self.date_from.isoformat(),
             "date_to": self.date_to.isoformat(),
-            "employee": self.employee_id.name or _("Tous les caissiers"),
-            "wallet": self.payment_method_id.name or _("Tous les portefeuilles"),
+            "employee": ", ".join(self.employee_ids.mapped("name")) or _("Tous les caissiers"),
+            "wallet": ", ".join(self.wallet_ids.mapped("name")) or dict(self._fields["provider"].selection).get(self.provider),
             "operation": dict(self._fields["operation"].selection).get(self.operation),
+            "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "total_count": len(transactions),
             "deposits": deposits,
             "withdrawals": withdrawals,

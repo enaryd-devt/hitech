@@ -81,7 +81,7 @@ export class PrimetechMobileMoneyTransactionScreen extends Component {
             reason: transaction.reason || "",
             served_by: transaction.served_by || "",
             printed_by: this.pos.get_cashier()?.name || "",
-            date: transaction.date || "",
+            date: transaction.date_time || transaction.date || "",
         }, this.pos.getReceiptHeaderData());
     }
     printReport() {
