@@ -13,6 +13,7 @@ class ProductProduct(models.Model):
             operation in ("create", "write", "unlink")
             and not self.env.is_superuser()
             and not self.env.user.has_group("product.group_product_manager")
+            and not self.env.user.has_group("stock.group_stock_manager")
         ):
             if raise_exception:
                 raise AccessError(_(

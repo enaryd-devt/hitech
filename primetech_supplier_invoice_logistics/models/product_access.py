@@ -20,6 +20,9 @@ class PrimetechLimitedProductAccess(models.AbstractModel):
             and not self.env.user.has_group(
                 "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
             )
+            and not self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_product_manager"
+            )
         ):
             raise AccessError(_(
                 "Le profil Utilisateur des factures fournisseurs logistiques "
@@ -48,6 +51,9 @@ class ProductTemplate(models.Model):
             )
             and not self.env.user.has_group(
                 "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+            )
+            and not self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_product_manager"
             )
         )
 
@@ -86,6 +92,9 @@ class ProductProduct(models.Model):
             )
             and not self.env.user.has_group(
                 "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+            )
+            and not self.env.user.has_group(
+                "primetech_supplier_invoice_logistics.group_supplier_invoice_product_manager"
             )
         )
 
