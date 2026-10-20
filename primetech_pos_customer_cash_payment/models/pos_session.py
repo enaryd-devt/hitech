@@ -5,6 +5,14 @@ from odoo.exceptions import UserError, ValidationError
 class PosSession(models.Model):
     _inherit = "pos.session"
 
+    def _check_customer_cash_payment_access(self):
+        """Keep cash operations unavailable to POS sellers, even by RPC."""
+        if self.env.user.has_group("primetech_pos_hitech_theme.group_pos_seller"):
+            raise UserError(_(
+                "Le rôle vendeur ne peut pas effectuer de mouvement de caisse "
+                "ni consulter les paiements partenaires POS."
+            ))
+
     def _pos_partner_global_balance(self, partner):
         """Return the partner's global customer and supplier position.
 
@@ -102,6 +110,7 @@ class PosSession(models.Model):
     @api.model
     def pos_customer_payment_methods(self, session_id):
         """Payment modes enabled on this POS and usable for partner payments."""
+        self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         if not session:
             raise UserError(_("La session du point de vente n'est plus ouverte."))
@@ -110,6 +119,7 @@ class PosSession(models.Model):
     @api.model
     def pos_customer_payment_partners(self, session_id, search_term="", offset=0, limit=100):
         """Search every active contact available to the POS user, by pages."""
+        self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         if not session:
             return {"partners": [], "has_more": False}
@@ -128,6 +138,7 @@ class PosSession(models.Model):
     @api.model
     def pos_partner_global_balance(self, session_id, partner_id):
         """Provide the live global partner position to the POS JavaScript UI."""
+        self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         partner = self.env["res.partner"].browse(partner_id).exists()
         if not session or not partner:
@@ -147,6 +158,7 @@ class PosSession(models.Model):
 
     @api.model
     def create_customer_cash_payment(self, session_id, partner_id, payment_type, amount, reason="", pos_payment_method_id=False, partner_type=False):
+        self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         if not session or session.state not in ("opened", "opening_control"):
             raise UserError(_("La session du point de vente n'est plus ouverte."))
@@ -288,6 +300,7 @@ class PosSession(models.Model):
     @api.model
     def pos_customer_payment_list(self, session_id, offset=0, limit=150, search_term=""):
         """Return paginated customer payments for every session of this POS."""
+        self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         if not session:
             raise UserError(_("La session du point de vente n'est plus ouverte."))

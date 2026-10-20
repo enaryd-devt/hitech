@@ -3,6 +3,7 @@
 import { Component, onWillStart, useExternalListener, useRef, useState } from "@odoo/owl";
 import { CashMovePopup } from "@point_of_sale/app/navbar/cash_move_popup/cash_move_popup";
 import { Navbar } from "@point_of_sale/app/navbar/navbar";
+import { PosStore } from "@point_of_sale/app/store/pos_store";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { Dialog } from "@web/core/dialog/dialog";
@@ -156,6 +157,19 @@ export class CustomerCashPaymentsScreen extends Component {
 
 registry.category("pos_screens").add("CustomerCashPaymentsScreen", CustomerCashPaymentsScreen);
 
+patch(PosStore.prototype, {
+    showScreen(name, props) {
+        if (name === "CustomerCashPaymentsScreen" && this.primetechIsSeller()) {
+            this.env.services.notification.add(
+                _t("Le rôle vendeur ne peut pas consulter les paiements partenaires POS."),
+                { type: "warning" }
+            );
+            return;
+        }
+        return super.showScreen(name, props);
+    },
+});
+
 patch(CashMovePopup.prototype, {
     setup() {
         super.setup(...arguments);
@@ -232,6 +246,13 @@ patch(CashMovePopup.prototype, {
         this.partnerDirectory.open = false;
     },
     async confirm() {
+        if (this.pos.primetechIsSeller()) {
+            this.notification.add(
+                _t("Le rôle vendeur ne peut pas effectuer de mouvement de caisse."),
+                { type: "danger" }
+            );
+            return;
+        }
         const partnerId = Number(this.state.partner_id);
         if (!partnerId) {
             return super.confirm(...arguments);
@@ -285,7 +306,17 @@ patch(Navbar.prototype, {
     setup() {
         super.setup(...arguments);
     },
+    get showCashMoveButton() {
+        return super.showCashMoveButton && !this.pos.primetechIsSeller();
+    },
     showCustomerCashPayments() {
+        if (this.pos.primetechIsSeller()) {
+            this.env.services.notification.add(
+                _t("Le rôle vendeur ne peut pas consulter les paiements partenaires POS."),
+                { type: "warning" }
+            );
+            return;
+        }
         this.pos.showScreen("CustomerCashPaymentsScreen");
     },
 });

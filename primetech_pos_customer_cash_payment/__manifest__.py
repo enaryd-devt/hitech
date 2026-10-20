@@ -5,7 +5,7 @@
     "category": "Point of Sale",
     "author": "PrimeTech Services",
     "license": "LGPL-3",
-    "depends": ["point_of_sale", "account"],
+    "depends": ["point_of_sale", "account", "primetech_pos_hitech_theme"],
     "data": [
         "security/ir.model.access.csv",
         "views/partner_balance_receipt_wizard_views.xml",
