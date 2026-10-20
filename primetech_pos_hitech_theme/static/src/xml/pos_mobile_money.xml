@@ -92,7 +92,7 @@
             <section class="primetech-mm-section">
                 <div class="primetech-mm-section-title"><i class="fa fa-exchange"/>Portefeuille source</div>
                 <div class="row g-3">
-                    <div class="col-6" t-foreach="state.balances.wallets" t-as="wallet" t-key="wallet.id"><button class="primetech-mm-choice" t-on-click="() => state.paymentMethodId = wallet.id" t-att-class="{'is-selected': state.paymentMethodId === wallet.id, 'momo': wallet.provider === 'momo', 'orange': wallet.provider === 'orange'}"><i t-att-class="state.paymentMethodId === wallet.id ? 'fa fa-dot-circle-o' : 'fa fa-circle-o'"/><img t-att-src="wallet.provider === 'momo' ? '/primetech_pos_hitech_theme/static/src/img/mtn_momo.jpg' : '/primetech_pos_hitech_theme/static/src/img/orange_money.jpg'" t-att-alt="wallet.name"/><span><strong t-esc="wallet.name"/><small>Mobile Money</small></span></button></div>
+                    <div class="col-4" t-foreach="state.balances.wallets" t-as="wallet" t-key="wallet.id"><button class="primetech-mm-choice" t-on-click="() => state.paymentMethodId = wallet.id" t-att-class="{'is-selected': state.paymentMethodId === wallet.id, 'momo': wallet.provider === 'momo', 'orange': wallet.provider === 'orange'}"><i t-att-class="state.paymentMethodId === wallet.id ? 'fa fa-dot-circle-o' : 'fa fa-circle-o'"/><img t-att-src="wallet.provider === 'momo' ? '/primetech_pos_hitech_theme/static/src/img/mtn_momo.jpg' : '/primetech_pos_hitech_theme/static/src/img/orange_money.jpg'" t-att-alt="wallet.name"/><span><strong t-esc="wallet.name"/><small>Mobile Money</small></span></button></div>
                 </div>
             </section>
             <section class="primetech-mm-section">
@@ -102,8 +102,10 @@
                     <div class="col-6"><button t-on-click="() => state.operation = 'deposit'" t-att-class="{'is-selected': state.operation === 'deposit'}" class="primetech-mm-operation deposit"><i class="fa fa-arrow-down"/><span><strong>Dépôt</strong><small>Portefeuille → Espèces</small></span></button></div>
                 </div>
             </section>
-            <section class="primetech-mm-section"><label class="primetech-mm-section-title" for="primetech-mobile-money-amount"><i class="fa fa-database"/>Montant</label><div class="input-group input-group-lg"><input id="primetech-mobile-money-amount" class="form-control" type="number" min="0" step="0.01" t-model="state.amount" placeholder="Montant" autofocus="autofocus"/><span class="input-group-text">FCFA</span></div></section>
-            <section class="primetech-mm-section"><label class="primetech-mm-section-title" for="primetech-mobile-money-reason"><i class="fa fa-phone"/>Motif / numéro de téléphone</label><div class="input-group input-group-lg"><span class="input-group-text"><i class="fa fa-phone"/></span><input id="primetech-mobile-money-reason" class="form-control" t-model="state.reason" placeholder="Motif ou numéro de téléphone (facultatif)"/></div></section>
+            <div class="row g-2 primetech-mm-entry-fields">
+                <div class="col-6"><section class="primetech-mm-section"><label class="primetech-mm-section-title" for="primetech-mobile-money-amount"><i class="fa fa-database"/>Montant</label><div class="input-group input-group-lg"><input id="primetech-mobile-money-amount" class="form-control" type="number" min="0" step="0.01" t-model="state.amount" placeholder="Montant" autofocus="autofocus"/><span class="input-group-text">FCFA</span></div></section></div>
+                <div class="col-6"><section class="primetech-mm-section"><label class="primetech-mm-section-title" for="primetech-mobile-money-reason"><i class="fa fa-phone"/>Motif / numéro de téléphone</label><div class="input-group input-group-lg"><span class="input-group-text"><i class="fa fa-phone"/></span><input id="primetech-mobile-money-reason" class="form-control" t-model="state.reason" placeholder="Motif ou numéro de téléphone (facultatif)"/></div></section></div>
+            </div>
             <t t-set-slot="footer"><div class="primetech-mm-footer"><button class="btn btn-primary" t-att-disabled="state.saving" t-on-click="confirm"><i class="fa fa-check-circle"/>Valider</button><button class="btn btn-light" t-att-disabled="state.saving" t-on-click="props.close"><i class="fa fa-times"/>Annuler</button></div></t>
         </Dialog>
     </t>

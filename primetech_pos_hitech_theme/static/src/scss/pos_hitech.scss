@@ -541,7 +541,7 @@ html.primetech-pos-dark {
     background: #fff !important; font-family: Arial, Helvetica, sans-serif; font-size: 10px; line-height: 1.18;
     br { display: none; }
     .pos-receipt-logo { display: block; width: auto; max-width: 105px; max-height: 52px; margin: 0 auto 3px; filter: grayscale(1); }
-    .pos-receipt-header { color: #080808 !important; } .pos-receipt-contact { font-size: 8px; line-height: 1.18; text-align: center; } .pos-receipt-contact .cashier { margin-top: 3px; } .pos-receipt-contact .cashier div:first-child { font-size: 7px; line-height: 1; }
+    .pos-receipt-header { color: #080808 !important; } .pos-receipt-contact { font-size: 8px; line-height: 1.18; text-align: center; } .pos-receipt-contact .cashier { display: none; }
     .primetech-mm-ticket-heading { margin: 5px 0 7px; padding: 7px 6px 6px; border-radius: 4px; background: #f2f2f2; text-align: center; text-transform: uppercase; font-size: 14px; font-weight: 800; }
     .primetech-mm-ticket-heading small { display: block; margin-top: 2px; font-size: 9px; font-weight: 400; text-transform: none; }
     .primetech-mm-ticket-rule { height: 1px; margin: 5px 0; background: #222; }
@@ -563,31 +563,31 @@ html.primetech-pos-dark {
     --mm-muted: #7482a6;
     --mm-border: #e5ecf8;
 
-    .modal-header { padding: 16px 24px 10px; border: 0; }
+    .modal-header { padding: 10px 18px 6px; border: 0; }
     .modal-body {
-        padding: 12px 24px 14px;
+        padding: 7px 18px 9px;
         background: #fff;
     }
-    .modal-footer { padding: 0 24px 18px; border: 0; }
-    .primetech-mm-header { display: flex; align-items: center; gap: 16px; color: var(--mm-navy); }
-    .primetech-mm-header h3 { margin: 0; font-weight: 800; font-size: 24px; }
-    .primetech-mm-header p { margin: 2px 0 0; color: var(--mm-muted); font-size: 16px; }
-    .primetech-mm-header-icon { position: relative; display: grid; width: 62px; height: 62px; place-items: center; border-radius: 13px; background: #e5eeff; color: var(--mm-blue); font-size: 31px; }
+    .modal-footer { padding: 0 18px 10px; border: 0; }
+    .primetech-mm-header { display: flex; align-items: center; gap: 11px; color: var(--mm-navy); }
+    .primetech-mm-header h3 { margin: 0; font-weight: 800; font-size: 20px; }
+    .primetech-mm-header p { margin: 1px 0 0; color: var(--mm-muted); font-size: 13px; }
+    .primetech-mm-header-icon { position: relative; display: grid; width: 48px; height: 48px; place-items: center; border-radius: 11px; background: #e5eeff; color: var(--mm-blue); font-size: 24px; }
     .primetech-mm-header-icon .fa-lock { position: absolute; right: 12px; bottom: 12px; font-size: 15px; }
-    .primetech-mm-section { margin: 0 0 7px; padding: 16px 18px; border: 1px solid var(--mm-border); border-radius: 15px; background: linear-gradient(120deg, #fbfdff, #f7faff); box-shadow: 0 4px 15px rgba(35, 75, 142, .04); }
-    .primetech-mm-section-title { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; color: var(--mm-navy); font-size: 17px; font-weight: 800; }
+    .primetech-mm-section { margin: 0 0 6px; padding: 10px 12px; border: 1px solid var(--mm-border); border-radius: 12px; background: linear-gradient(120deg, #fbfdff, #f7faff); box-shadow: 0 4px 15px rgba(35, 75, 142, .04); }
+    .primetech-mm-section-title { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; color: var(--mm-navy); font-size: 15px; font-weight: 800; }
     .primetech-mm-section-title > .fa { color: var(--mm-blue); font-size: 19px; }
     .primetech-mm-section-title small { margin-left: auto; padding: 7px 11px; border-radius: 9px; background: #eef5ff; color: #2c62bc; font-size: 11px; font-weight: 500; }
-    .primetech-mm-balance { display: grid; grid-template-columns: 38px 1fr; grid-template-rows: 22px 25px; align-items: center; min-height: 70px; padding: 10px; border-radius: 11px; }
+    .primetech-mm-balance { display: grid; grid-template-columns: 32px 1fr; grid-template-rows: 18px 21px; align-items: center; min-height: 58px; padding: 8px; border-radius: 10px; }
     .primetech-mm-balance > i, .primetech-mm-balance > img { grid-row: 1 / 3; width: 36px; max-height: 36px; object-fit: contain; color: #e51d3c; font-size: 29px; }
     .primetech-mm-balance span { color: #4f5f87; font-size: 13px; }
     .primetech-mm-balance strong { color: var(--mm-navy); font-size: 17px; }
     .primetech-mm-balance.cash { background: #fff0f2; } .primetech-mm-balance.momo { background: #fff9df; } .primetech-mm-balance.orange { background: #fff4e8; }
     .primetech-mm-balance.is-debited strong { color: #e61d3d; }
-    .primetech-mm-choice, .primetech-mm-operation { display: flex; width: 100%; min-height: 70px; align-items: center; gap: 15px; padding: 11px 16px; border: 1px solid #dbe4f3; border-radius: 12px; background: #fff; color: var(--mm-navy); text-align: left; transition: all 170ms ease; }
+    .primetech-mm-choice, .primetech-mm-operation { display: flex; width: 100%; min-height: 58px; align-items: center; gap: 9px; padding: 8px 10px; border: 1px solid #dbe4f3; border-radius: 10px; background: #fff; color: var(--mm-navy); text-align: left; transition: all 170ms ease; }
     .primetech-mm-choice:hover, .primetech-mm-operation:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgba(20, 55, 110, .10); }
     .primetech-mm-choice > .fa { color: #c6d2e8; font-size: 23px; } .primetech-mm-choice.is-selected > .fa { color: #2870f7; }
-    .primetech-mm-choice img { width: 52px; height: 34px; object-fit: contain; }
+    .primetech-mm-choice img { width: 38px; height: 28px; object-fit: contain; }
     .primetech-mm-choice span, .primetech-mm-operation span { display: flex; flex-direction: column; }
     .primetech-mm-choice small, .primetech-mm-operation small { color: var(--mm-muted); font-size: 13px; }
     .primetech-mm-choice.momo.is-selected { border: 2px solid #fbbd14; background: #fffdf5; } .primetech-mm-choice.orange.is-selected { border: 2px solid #ff7900; background: #fffaf5; }
@@ -595,7 +595,8 @@ html.primetech-pos-dark {
     .primetech-mm-operation.withdrawal > .fa { background: #e91d40; } .primetech-mm-operation.deposit > .fa { background: #06a960; }
     .primetech-mm-operation.withdrawal.is-selected { border: 2px solid #ef2949; background: #fff7f8; } .primetech-mm-operation.deposit.is-selected { border: 2px solid #49bf8a; background: #f7fffb; }
     .primetech-mm-section .input-group-text { border-color: #cbd7ec; background: #f1f5fc; color: #64759a; font-size: 14px; }
-    .primetech-mm-section .form-control { border-color: #cbd7ec; font-size: 16px; }
+    .primetech-mm-section .form-control { border-color: #cbd7ec; font-size: 15px; }
+    .primetech-mm-entry-fields .primetech-mm-section { height: 100%; }
     .primetech-mm-footer { display: flex; gap: 12px; width: 100%; } .primetech-mm-footer .btn { min-width: 160px; padding: 12px 23px; border-radius: 10px; font-weight: 750; } .primetech-mm-footer .btn i { margin-right: 14px; }
 
     .border.rounded.bg-light {
