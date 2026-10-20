@@ -296,6 +296,11 @@ class PosSession(models.Model):
         transfer_account = config.primetech_mobile_money_transfer_account_id or cash_journal.suspense_account_id
         if not transfer_account:
             raise UserError(_("Configurez le compte de transfert Mobile Money ou le compte d'attente du journal de caisse."))
+        # The transfer account is the manual-reconciliation clearing account.
+        # It must therefore be reconcilable so the generated lines can be
+        # matched later from Accounting.
+        if not transfer_account.reconcile:
+            transfer_account.sudo().write({"reconcile": True})
 
         # A withdrawal pays out physical cash; a deposit pays out the selected
         # mobile wallet.  Check the relevant balance before posting either
@@ -335,7 +340,7 @@ class PosSession(models.Model):
         # POS cashiers do not need accounting write access: their authorised
         # transaction is posted server-side after the POS permission check.
         statement_line_model = self.env["account.bank.statement.line"].sudo()
-        cash_line = statement_line_model.create({
+        statement_line_model.create({
             "pos_session_id": session.id,
             "journal_id": cash_journal.id,
             "amount": cash_amount,
@@ -356,13 +361,10 @@ class PosSession(models.Model):
             "payment_ref": reference,
             "counterpart_account_id": transfer_account.id,
         })
-        if transfer_account.reconcile:
-            clearing_lines = cash_line.move_id.line_ids.filtered(
-                lambda line: line.account_id == transfer_account and not line.reconciled
-            ) | mobile_line.move_id.line_ids.filtered(
-                lambda line: line.account_id == transfer_account and not line.reconciled
-            )
-            clearing_lines.reconcile()
+        # Do not reconcile the transfer-account lines here.  Just like a
+        # native incoming/outgoing cash move, a POS Mobile Money transaction
+        # must remain visible in the reconciliation widget until an accountant
+        # explicitly matches it.
         # The mobile statement line is posted on the wallet journal, therefore
         # it effectively changes its balance. Flush and recompute the POS cash
         # balance before returning the updated figures to the POS interface.
