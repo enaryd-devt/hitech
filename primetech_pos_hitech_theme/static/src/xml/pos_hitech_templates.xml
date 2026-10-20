@@ -207,7 +207,8 @@
                 </section>
 
                 <footer class="primetech-receipt-footer">
-                    <strong>MERCI POUR VOTRE VISITE</strong>
+                    <strong>Merci de votre confiance</strong>
+                    <span>Conservez ce ticket comme justificatif</span>
                     <span t-if="props.data.footer" t-esc="props.data.footer"/>
                     <span t-esc="props.data.name"/>
                     <span t-esc="props.data.date"/>
