@@ -184,8 +184,13 @@ class PosSession(models.Model):
             "payment_type": payment_type,
             # This controls the receivable/payable account selected by Odoo for
             # the payment and therefore the account reconciled below.
+            # Without an explicitly selected reconciliation account, the cash
+            # direction determines the open partner account: incoming cash is
+            # a customer payment; outgoing cash is a supplier payment.
             "partner_type": (
-                "customer" if manual_reconciliation else reconciliation_partner_type
+                ("customer" if payment_type == "inbound" else "supplier")
+                if manual_reconciliation
+                else reconciliation_partner_type
             ),
             "partner_id": partner.commercial_partner_id.id,
             "amount": amount,
