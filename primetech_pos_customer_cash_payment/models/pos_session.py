@@ -225,26 +225,23 @@ class PosSession(models.Model):
                 # entry displayed in the reconciliation kanban.  It must
                 # carry the POS reason just like the partner payment line.
                 "date": fields.Date.context_today(session), "payment_ref": reconciliation_label,
-                # For an automatic invoice settlement, the statement entry is
-                # a technical cash movement only.  Without a selected account
-                # it follows the native cash flow and keeps the chosen partner
-                # visible as an outstanding reconciliation item.
-                "partner_id": (
-                    False
-                    if not manual_reconciliation
-                    else partner.commercial_partner_id.id
-                ),
+                # The statement line only represents the physical cash move.
+                # Even when the cashier leaves the reconciliation account
+                # empty, the *payment* already owns the open partner line.
+                # Assigning the partner here gives the reconciliation widget a
+                # second candidate payment and it may create a duplicate move
+                # when that technical line is matched later.
+                "partner_id": False,
                 "counterpart_account_id": suspense_account.id,
             })
             suspense_lines = payment.move_id.line_ids.filtered(lambda line: line.account_id == suspense_account and not line.reconciled) | statement_line.move_id.line_ids.filtered(lambda line: line.account_id == suspense_account and not line.reconciled)
-            # Only a payment explicitly tied to a customer/supplier account
-            # clears this technical bridge automatically.  Otherwise retain
-            # the native pending cash movement for later manual matching.
-            if not manual_reconciliation:
-                if suspense_lines and not suspense_account.reconcile:
-                    suspense_account.sudo().write({"reconcile": True})
-                if suspense_lines:
-                    suspense_lines.reconcile()
+            # This bridge must always be cleared.  The sole pending item in a
+            # manual-reconciliation flow is the receivable/payable line of the
+            # account payment, never the technical cash statement line.
+            if suspense_lines and not suspense_account.reconcile:
+                suspense_account.sudo().write({"reconcile": True})
+            if suspense_lines:
+                suspense_lines.reconcile()
         # Every accounting entry of this operation now exists; the value shown
         # on the receipt is the real balance after this incoming/outgoing payment.
         after, after_direction = session._pos_partner_global_balance(partner)
