@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_partner_balance_ticket" model="report.paperformat">
+        <field name="name">Recu solde partenaire A6</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_width">105</field><field name="page_height">148</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">5</field><field name="margin_bottom">5</field>
+        <field name="margin_left">5</field><field name="margin_right">5</field>
+        <field name="header_line" eval="False"/><field name="header_spacing">0</field><field name="dpi">90</field>
+    </record>
+    <record id="action_report_partner_balance_ticket" model="ir.actions.report">
+        <field name="name">Recu solde partenaire</field>
+        <field name="model">primetech.partner.balance.receipt.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_pos_customer_cash_payment.report_partner_balance_ticket</field>
+        <field name="report_file">primetech_pos_customer_cash_payment.report_partner_balance_ticket</field>
+        <field name="paperformat_id" ref="paperformat_partner_balance_ticket"/>
+        <field name="print_report_name">'Solde - %s' % (object.partner_id.display_name)</field>
+    </record>
+    <template id="report_partner_balance_document">
+        <div class="page" style="font-family:Arial,sans-serif; color:#334155; padding:1mm;">
+            <div style="padding:5mm; border:1px solid #e2e8f0; border-radius:5px; background:#fff;">
+                <div style="text-align:center; padding-bottom:4mm; border-bottom:1px solid #e8efea;">
+                    <div style="font-size:9px; letter-spacing:1px; color:#708078; text-transform:uppercase;">Situation partenaire</div>
+                    <div style="font-size:16px; font-weight:600; color:#3f6d55; margin-top:1mm;">Recu de solde</div>
+                </div>
+                <div style="margin-top:5mm; padding:3mm 4mm; background:#f8faf9; border-radius:3px;">
+                    <div style="font-size:8px; color:#718096;">PARTENAIRE</div>
+                    <div style="font-size:12px; font-weight:600; margin-top:1mm;"><span t-field="o.partner_id"/></div>
+                </div>
+                <table style="width:100%; margin-top:4mm; border-collapse:collapse; font-size:9px;">
+                    <tr><td style="padding:2mm 0; color:#718096;">Date</td><td style="padding:2mm 0; text-align:right; font-weight:600;"><span t-field="o.date"/></td></tr>
+                    <tr><td style="padding:2mm 0; color:#718096;">Situation</td><td style="padding:2mm 0; text-align:right; font-weight:600;"><span t-esc="wizard.balance_direction"/></td></tr>
+                </table>
+                <div style="margin-top:5mm; padding:5mm 3mm; text-align:center; border-radius:4px; background:#edf5ef;">
+                    <div style="font-size:9px; color:#617167;">SOLDE GLOBAL</div>
+                    <div style="font-size:18px; font-weight:600; color:#2f6b48; margin-top:2mm;"><span t-esc="'{:,.0f}'.format(wizard.balance_amount or 0.0).replace(',', ' ')"/> <span t-esc="o.currency_id.name"/></div>
+                </div>
+                <div style="margin-top:13mm; display:flex; justify-content:space-between; text-align:center; font-size:8px; color:#52635a;">
+                    <div style="width:40%;"><div>Imprime par</div><div style="font-weight:600; color:#334155; margin-top:2mm;"><span t-field="o.create_uid"/></div><div style="border-top:1px solid #94a3b8; margin-top:12mm; padding-top:2mm;">Signature</div></div>
+                    <div style="width:40%;"><div>Le partenaire</div><div style="border-top:1px solid #94a3b8; margin-top:19mm; padding-top:2mm;">Signature</div></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="report_partner_balance_ticket">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="wizard"><t t-set="o" t-value="wizard._get_payment_receipt_proxy()"/><t t-call="primetech_pos_customer_cash_payment.report_partner_balance_document"/></t></t>
+    </template>
+</odoo>

@@ -20,6 +20,11 @@ class Contract(models.Model):
 
     _inherit = "hr.contract" 
 
+    def action_primetech_set_draft(self):
+        """Return an active, expired or cancelled contract to draft for editing."""
+        self.write({"state": "draft"})
+        return True
+
     type = fields.Selection([('cdd', 'CDD'),
                              ('cdi', 'CDI'),
                              ('consultant', 'Consultant'),

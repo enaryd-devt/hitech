@@ -5,6 +5,24 @@
         <field name="model">hr.contract</field>
         <field name="inherit_id" ref="hr_contract.hr_contract_view_form" />
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_primetech_set_draft"
+                        type="object"
+                        string="Remettre en brouillon"
+                        class="btn-secondary"
+                        icon="fa-undo"
+                        invisible="state == 'draft'"
+                        groups="hr_contract.group_hr_contract_manager"/>
+            </xpath>
+            <!-- A confirmed contract is read-only until a manager explicitly
+                 returns it to draft.  This keeps the confirmation meaningful
+                 while preserving a controlled correction workflow. -->
+            <xpath expr="//header/field[@name='state']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//sheet//field[not(@readonly) and @name != 'state' and @name != 'contracts_count']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
             <xpath expr="//group[@name='salary']" position="inside">
                 <field name="schedule_pay" />
                 <field name="struct_id" required="1" />

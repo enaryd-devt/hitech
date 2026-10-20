@@ -81,9 +81,9 @@
             </section>
 
             <section class="customer-cash-payment-receipt__summary">
-                <div class="customer-cash-payment-receipt__line"><span>Solde avant</span><strong t-esc="formatAccountBalance(props.receipt.balance_before)"/></div>
+                <div class="customer-cash-payment-receipt__line"><span t-esc="'Solde global avant — ' + (props.receipt.balance_before_label || '')"/><strong t-esc="formatAccountBalance(props.receipt.balance_before)"/></div>
                 <div class="customer-cash-payment-receipt__paid"><span t-esc="props.receipt.payment_type === 'inbound' ? 'Montant encaissé' : 'Montant versé'"/><strong t-esc="formatAmount(props.receipt.amount)"/></div>
-                <div class="customer-cash-payment-receipt__line"><span>Solde après paiement</span><strong t-esc="formatAccountBalance(props.receipt.balance_after)"/></div>
+                <div class="customer-cash-payment-receipt__line"><span t-esc="'Solde global après paiement — ' + (props.receipt.balance_after_label || '')"/><strong t-esc="formatAccountBalance(props.receipt.balance_after)"/></div>
                 <div t-if="props.receipt.reason" class="customer-cash-payment-receipt__line"><span>Motif</span><strong t-esc="props.receipt.reason"/></div>
             </section>
 
@@ -91,11 +91,57 @@
         </div>
     </t>
 
+    <t t-name="primetech_pos_customer_cash_payment.PartnerBalanceReceipt">
+        <div class="pos-receipt customer-cash-payment-receipt">
+            <div class="customer-cash-payment-receipt__header">
+                <img t-if="props.headerData.company.logo" class="customer-cash-payment-receipt__logo" t-att-src="props.headerData.company.logo" alt="Logo"/>
+                <div class="customer-cash-payment-receipt__company"><strong t-esc="props.headerData.company.name"/></div>
+            </div>
+            <div class="customer-cash-payment-receipt__title">SOLDE PARTENAIRE</div>
+            <section class="customer-cash-payment-receipt__customer-card">
+                <div class="customer-cash-payment-receipt__customer"><span>Partenaire</span><strong t-esc="props.balance.partner_name"/></div>
+            </section>
+            <section class="customer-cash-payment-receipt__summary">
+                <div class="customer-cash-payment-receipt__paid"><span t-esc="props.balance.direction"/><strong t-esc="formatAmount(props.balance.amount)"/></div>
+            </section>
+            <div class="customer-cash-payment-receipt__thanks">Situation globale du partenaire</div>
+        </div>
+    </t>
+
+    <t t-name="primetech_pos_customer_cash_payment.PartnerBalancePopup">
+        <Dialog title="'Solde partenaire'" size="'md'">
+            <div class="p-2">
+                <label class="form-label">Rechercher un partenaire</label>
+                <input class="form-control" type="search" autofocus="autofocus" placeholder="Nom, téléphone, e-mail ou référence…" t-att-value="state.search" t-on-input="onSearchInput"/>
+                <div class="list-group mt-3" style="max-height: 260px; overflow-y: auto;">
+                    <button t-foreach="state.partners" t-as="partner" t-key="partner.id" type="button" class="list-group-item list-group-item-action" t-att-class="{'active': state.selectedPartner &amp;&amp; state.selectedPartner.id === partner.id}" t-on-click="() => selectPartner(partner)">
+                        <strong t-esc="partner.display_name || partner.name"/>
+                        <small class="d-block" t-if="partner.phone || partner.mobile || partner.email" t-esc="partner.phone || partner.mobile || partner.email"/>
+                    </button>
+                    <div t-if="state.loading" class="text-center text-muted p-3"><i class="fa fa-spinner fa-spin"/> Chargement…</div>
+                    <div t-if="!state.loading &amp;&amp; !state.partners.length" class="text-center text-muted p-3">Aucun partenaire trouvé.</div>
+                </div>
+                <div t-if="state.balance" class="border rounded bg-light mt-3 p-3 text-center">
+                    <div class="fw-semibold" t-esc="state.balance.direction"/>
+                    <div t-att-class="{'fs-4': true, 'fw-bold': true, 'text-success': state.balance.direction_code === 'company_owes', 'text-dark': state.balance.direction_code !== 'company_owes'}" t-esc="env.utils.formatCurrency(state.balance.amount || 0)"/>
+                    <small class="text-muted">Solde global client et fournisseur</small>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">Annuler</button>
+                <button class="btn btn-primary" t-att-disabled="!state.balance" t-on-click="print"><i class="fa fa-print"/> Imprimer</button>
+            </t>
+        </Dialog>
+    </t>
+
     <t t-name="primetech_pos_customer_cash_payment.CustomerCashPaymentsScreen">
         <div class="customer-cash-payments-screen screen">
             <div class="customer-cash-payments-screen__header">
                 <button class="btn customer-cash-payments-screen__back" t-on-click="back"><i class="fa fa-arrow-left"/> Retour au POS</button>
                 <div><span>Point de vente</span><h4>Paiements partenaires</h4></div>
+                <button class="btn customer-cash-payments-screen__partner-balance" t-on-click="openPartnerBalanceWizard">
+                    <i class="fa fa-balance-scale"/> Solde partenaire
+                </button>
             </div>
             <main class="customer-cash-payments">
                 <div class="customer-cash-payments__search">

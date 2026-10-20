@@ -5,13 +5,12 @@ from odoo.exceptions import UserError, ValidationError
 class PosSession(models.Model):
     _inherit = "pos.session"
 
-    def _pos_customer_balance(self, partner):
-        """Return the live open balance of the partner's accounting account.
+    def _pos_partner_global_balance(self, partner):
+        """Return the partner's global customer and supplier position.
 
-        ``amount_residual`` is essential: summing the line balance would show
-        the original invoice amount after a partial reconciliation.  This
-        includes every posted open receivable/payable line of the commercial
-        partner: invoices, payments and statement-related entries.
+        A partner can be both customer and supplier.  The receipt must reflect
+        the net of both ledgers, not just the account selected for a payment.
+        ``amount_residual`` keeps partial reconciliations accurate.
         """
         self.ensure_one()
         commercial_partner = partner.commercial_partner_id
@@ -22,7 +21,12 @@ class PosSession(models.Model):
             ("reconciled", "=", False),
             ("account_id.account_type", "in", ("asset_receivable", "liability_payable")),
         ])
-        return sum(lines.mapped("amount_residual"))
+        signed_balance = sum(lines.mapped("amount_residual"))
+        if not signed_balance:
+            direction = "settled"
+        else:
+            direction = "partner_owes" if signed_balance > 0 else "company_owes"
+        return abs(signed_balance), direction
 
     def _get_payment_method_line(self, journal, payment_type):
         lines = journal.inbound_payment_method_line_ids if payment_type == "inbound" else journal.outbound_payment_method_line_ids
@@ -122,6 +126,26 @@ class PosSession(models.Model):
         }
 
     @api.model
+    def pos_partner_global_balance(self, session_id, partner_id):
+        """Provide the live global partner position to the POS JavaScript UI."""
+        session = self.browse(session_id).exists()
+        partner = self.env["res.partner"].browse(partner_id).exists()
+        if not session or not partner:
+            raise ValidationError(_("Veuillez sélectionner un partenaire."))
+        amount, direction = session._pos_partner_global_balance(partner)
+        labels = {
+            "partner_owes": _("Le partenaire nous doit"),
+            "company_owes": _("Nous devons au partenaire"),
+            "settled": _("Solde réglé"),
+        }
+        return {
+            "partner_name": partner.commercial_partner_id.display_name,
+            "amount": amount,
+            "direction": labels[direction],
+            "direction_code": direction,
+        }
+
+    @api.model
     def create_customer_cash_payment(self, session_id, partner_id, payment_type, amount, reason="", pos_payment_method_id=False, partner_type=False):
         session = self.browse(session_id).exists()
         if not session or session.state not in ("opened", "opening_control"):
@@ -143,7 +167,7 @@ class PosSession(models.Model):
         if journal == session.cash_journal_id and not suspense_account:
             raise UserError(_("Configurez un compte d'attente sur le journal de caisse du POS."))
 
-        before = session._pos_customer_balance(partner)
+        before, before_direction = session._pos_partner_global_balance(partner)
         # The reconciliation account is deliberately chosen by the cashier.
         # If it is Client or Fournisseur, the payment is reconciled below;
         # when it is empty/manual, no invoice is touched.
@@ -177,6 +201,7 @@ class PosSession(models.Model):
             "pos_payment_method_id": pos_payment_method.id,
             "pos_manual_reconciliation": manual_reconciliation,
             "pos_balance_before": before,
+            "pos_balance_before_direction": before_direction,
         })
         payment.action_post()
         reconciliation_label = " - ".join(
@@ -222,7 +247,11 @@ class PosSession(models.Model):
                     suspense_lines.reconcile()
         # Every accounting entry of this operation now exists; the value shown
         # on the receipt is the real balance after this incoming/outgoing payment.
-        payment.pos_balance_after = session._pos_customer_balance(partner)
+        after, after_direction = session._pos_partner_global_balance(partner)
+        payment.write({
+            "pos_balance_after": after,
+            "pos_balance_after_direction": after_direction,
+        })
         return self._payment_receipt_values(payment)
 
     @api.model
@@ -235,6 +264,13 @@ class PosSession(models.Model):
             "amount": payment.amount,
             "balance_before": payment.pos_balance_before,
             "balance_after": payment.pos_balance_after,
+            "balance_before_label": payment._pos_balance_direction_label(
+                payment.pos_balance_before_direction
+            ),
+            "balance_after_label": payment._pos_balance_direction_label(
+                payment.pos_balance_after_direction
+            ),
+            "partner_type": payment.partner_type,
             "payment_type": payment.payment_type,
             "manual_reconciliation": payment.pos_manual_reconciliation,
             "payment_method_name": payment.pos_payment_method_id.name or payment.journal_id.name,

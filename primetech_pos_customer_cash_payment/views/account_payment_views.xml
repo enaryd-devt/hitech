@@ -10,6 +10,25 @@
             </filter>
         </field>
     </record>
+    <record id="view_account_payment_tree_partner_balance" model="ir.ui.view">
+        <field name="name">account.payment.list.partner.balance</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_tree"/>
+        <field name="active" eval="True"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/header" position="inside">
+                <button name="%(action_partner_balance_receipt_wizard)d" type="action"
+                        string="Solde partenaire" display="always" class="btn-secondary"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_account_payment_form_partner_balance" model="ir.ui.view">
+        <field name="name">account.payment.form.partner.balance.disabled</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" eval="False"/>
+        <field name="active" eval="False"/>
+        <field name="arch" type="xml"><form/></field>
+    </record>
     <record id="action_pos_customer_cash_payments" model="ir.actions.act_window">
         <field name="name">Paiements clients POS</field>
         <field name="res_model">account.payment</field>

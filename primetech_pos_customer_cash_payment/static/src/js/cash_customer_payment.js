@@ -5,6 +5,7 @@ import { CashMovePopup } from "@point_of_sale/app/navbar/cash_move_popup/cash_mo
 import { Navbar } from "@point_of_sale/app/navbar/navbar";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { Dialog } from "@web/core/dialog/dialog";
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
@@ -22,14 +23,66 @@ export class CustomerCashPaymentReceipt extends Component {
     static template = "primetech_pos_customer_cash_payment.CustomerCashPaymentReceipt";
     static props = { receipt: Object, headerData: Object };
     formatAccountBalance(value) {
-        // Accounting residuals are positive for a debit balance and negative
-        // for a credit balance.  The receipt deliberately displays the
-        // opposite convention requested for the partner account: debit (-),
-        // credit (+).
-        return this.env.utils.formatCurrency(-(value || 0));
+        // Receipts show an amount due, never the signed accounting balance.
+        // This applies equally to customer receivables and supplier payables.
+        return this.env.utils.formatCurrency(Math.abs(value || 0));
     }
     formatAmount(value) {
         return this.env.utils.formatCurrency(Math.abs(value || 0));
+    }
+}
+
+export class PartnerBalanceReceipt extends Component {
+    static template = "primetech_pos_customer_cash_payment.PartnerBalanceReceipt";
+    static props = { balance: Object, headerData: Object };
+    formatAmount(value) {
+        return this.env.utils.formatCurrency(Math.abs(value || 0));
+    }
+}
+
+export class PartnerBalancePopup extends Component {
+    static template = "primetech_pos_customer_cash_payment.PartnerBalancePopup";
+    static components = { Dialog };
+    static props = { close: Function };
+    setup() {
+        this.pos = usePos();
+        this.orm = useService("orm");
+        this.printer = useService("printer");
+        this.state = useState({ search: "", partners: [], selectedPartner: null, balance: null, loading: false });
+        this.searchPartners = this.searchPartners.bind(this);
+        this.selectPartner = this.selectPartner.bind(this);
+        this.print = this.print.bind(this);
+        onWillStart(() => this.searchPartners());
+    }
+    async searchPartners() {
+        this.state.loading = true;
+        const result = await this.orm.call("pos.session", "pos_customer_payment_partners", [
+            this.pos.session.id, this.state.search, 0, 30,
+        ]);
+        this.state.partners = result.partners;
+        this.state.loading = false;
+    }
+    onSearchInput(event) {
+        this.state.search = event.target.value;
+        window.clearTimeout(this.searchTimer);
+        this.searchTimer = window.setTimeout(() => this.searchPartners(), 180);
+    }
+    async selectPartner(partner) {
+        this.state.selectedPartner = partner;
+        this.state.loading = true;
+        this.state.balance = await this.orm.call("pos.session", "pos_partner_global_balance", [
+            this.pos.session.id, partner.id,
+        ]);
+        this.state.loading = false;
+    }
+    async print() {
+        if (!this.state.balance) return;
+        const el = await this.printer.renderer.toHtml(PartnerBalanceReceipt, {
+            balance: this.state.balance,
+            headerData: this.pos.getReceiptHeaderData(),
+        });
+        this.printer.printWeb(el);
+        this.props.close();
     }
 }
 
@@ -39,6 +92,7 @@ export class CustomerCashPaymentsScreen extends Component {
         this.pos = usePos();
         this.orm = useService("orm");
         this.printer = useService("printer");
+        this.dialog = useService("dialog");
         // Template event handlers can invoke this method as a detached
         // function; bind it so the printer service remains available.
         this.print = this.print.bind(this);
@@ -47,6 +101,7 @@ export class CustomerCashPaymentsScreen extends Component {
         this.refresh = this.refresh.bind(this);
         this.changePage = this.changePage.bind(this);
         this.onSearchInput = this.onSearchInput.bind(this);
+        this.openPartnerBalanceWizard = this.openPartnerBalanceWizard.bind(this);
         this.loadSequence = 0;
         onWillStart(() => this.loadPayments());
     }
@@ -90,6 +145,9 @@ export class CustomerCashPaymentsScreen extends Component {
     async print(payment) {
         payment.cashier_name = this.pos.get_cashier()?.name || "";
         await printCustomerReceiptInBrowser(this.printer, payment, this.pos.getReceiptHeaderData());
+    }
+    openPartnerBalanceWizard() {
+        this.dialog.add(PartnerBalancePopup);
     }
     back() {
         this.pos.showScreen("ProductScreen");

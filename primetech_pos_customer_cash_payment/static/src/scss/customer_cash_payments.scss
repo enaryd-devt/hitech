@@ -6,6 +6,9 @@
     &__back { color: #416a9d; border: 1px solid #d5e1f1; background: #f8fbff; font-weight: 600; }
     &__back:hover { color: #fff; background: #416a9d; }
     &__back i { margin-right: 6px; }
+    &__partner-balance { margin-left: auto; color: #fff; background: #176b34; border-color: #176b34; font-weight: 600; }
+    &__partner-balance:hover { color: #fff; background: #0d5426; border-color: #0d5426; }
+    &__partner-balance i { margin-right: 6px; }
     &__footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 32px; background: #fff; border-top: 1px solid #e5eaf0; }
 }
 

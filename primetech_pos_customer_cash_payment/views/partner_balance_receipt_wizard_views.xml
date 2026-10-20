@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_balance_receipt_wizard_form" model="ir.ui.view">
+        <field name="name">primetech.partner.balance.receipt.wizard.form</field>
+        <field name="model">primetech.partner.balance.receipt.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Solde partenaire">
+                <field name="step" invisible="1"/>
+                <group invisible="step != 'selection'">
+                    <field name="partner_id" options="{'no_quick_create': True}"/>
+                </group>
+                <group string="Aperçu du solde" invisible="step != 'preview'">
+                    <field name="partner_id" readonly="1"/>
+                    <field name="balance_direction" readonly="1"/>
+                    <field name="balance_amount" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_preview" string="Valider" type="object" class="btn-primary" invisible="step != 'selection'"/>
+                    <button name="action_back" string="Retour" type="object" class="btn-secondary" invisible="step != 'preview'"/>
+                    <button name="action_print" string="Imprimer" type="object" class="btn-primary" invisible="step != 'preview'"/>
+                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_partner_balance_receipt_wizard" model="ir.actions.act_window">
+        <field name="name">Solde partenaire</field>
+        <field name="res_model">primetech.partner.balance.receipt.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_partner_balance_receipt_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+</odoo>
