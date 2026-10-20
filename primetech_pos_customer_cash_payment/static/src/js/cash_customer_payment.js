@@ -49,6 +49,7 @@ export class PartnerBalancePopup extends Component {
         this.pos = usePos();
         this.orm = useService("orm");
         this.printer = useService("printer");
+        this.printer = useService("printer");
         this.state = useState({ search: "", partners: [], selectedPartner: null, balance: null, loading: false });
         this.searchPartners = this.searchPartners.bind(this);
         this.selectPartner = this.selectPartner.bind(this);
@@ -94,14 +95,12 @@ export class CustomerCashPaymentsScreen extends Component {
         this.orm = useService("orm");
         this.printer = useService("printer");
         this.dialog = useService("dialog");
-        // Template event handlers can invoke this method as a detached
-        // function; bind it so the printer service remains available.
-        this.print = this.print.bind(this);
-        this.state = useState({ payments: [], loading: true, page: 0, pageSize: 150, total: 0, searchTerm: "" });
+        this.state = useState({ payments: [], loading: true, page: 0, pageSize: 50, total: 0, searchTerm: "" });
         this.loadPayments = this.loadPayments.bind(this);
         this.refresh = this.refresh.bind(this);
         this.changePage = this.changePage.bind(this);
         this.onSearchInput = this.onSearchInput.bind(this);
+        this.print = this.print.bind(this);
         this.openPartnerBalanceWizard = this.openPartnerBalanceWizard.bind(this);
         this.loadSequence = 0;
         onWillStart(() => this.loadPayments());
@@ -157,6 +156,61 @@ export class CustomerCashPaymentsScreen extends Component {
 
 registry.category("pos_screens").add("CustomerCashPaymentsScreen", CustomerCashPaymentsScreen);
 
+export class CashMovesScreen extends Component {
+    static template = "primetech_pos_customer_cash_payment.CashMovesScreen";
+    setup() {
+        this.pos = usePos();
+        this.orm = useService("orm");
+        this.printer = useService("printer");
+        this.state = useState({ moves: [], loading: true, page: 0, pageSize: 50, total: 0, inboundTotal: 0, outboundTotal: 0, searchTerm: "" });
+        this.loadMoves = this.loadMoves.bind(this);
+        this.refresh = this.refresh.bind(this);
+        this.changePage = this.changePage.bind(this);
+        this.onSearchInput = this.onSearchInput.bind(this);
+        this.print = this.print.bind(this);
+        onWillStart(() => this.loadMoves());
+    }
+    get totalPages() {
+        return Math.max(1, Math.ceil(this.state.total / this.state.pageSize));
+    }
+    async loadMoves() {
+        this.state.loading = true;
+        const result = await this.orm.call("pos.session", "pos_cash_move_list", [
+            this.pos.session.id, this.state.page * this.state.pageSize,
+            this.state.pageSize, this.state.searchTerm,
+        ]);
+        this.state.moves = result.moves;
+        this.state.total = result.total;
+        this.state.inboundTotal = result.inbound_total;
+        this.state.outboundTotal = result.outbound_total;
+        this.state.loading = false;
+    }
+    async refresh() { await this.loadMoves(); }
+    async changePage(direction) {
+        const page = this.state.page + direction;
+        if (page < 0 || page >= this.totalPages) return;
+        this.state.page = page;
+        await this.loadMoves();
+    }
+    onSearchInput(event) {
+        this.state.searchTerm = event.target.value;
+        this.state.page = 0;
+        window.clearTimeout(this.searchTimer);
+        this.searchTimer = window.setTimeout(() => this.loadMoves(), 180);
+    }
+    format(value) { return this.env.utils.formatCurrency(value || 0); }
+    async print(move) {
+        if (!move.receipt) return;
+        await printCustomerReceiptInBrowser(this.printer, {
+            ...move.receipt,
+            cashier_name: this.pos.get_cashier()?.name || "",
+        }, this.pos.getReceiptHeaderData());
+    }
+    back() { this.pos.showScreen("ProductScreen"); }
+}
+
+registry.category("pos_screens").add("CashMovesScreen", CashMovesScreen);
+
 patch(PosStore.prototype, {
     showScreen(name, props) {
         if (name === "CustomerCashPaymentsScreen" && this.primetechIsSeller()) {
@@ -174,19 +228,11 @@ patch(CashMovePopup.prototype, {
     setup() {
         super.setup(...arguments);
         this.state.partner_id = "";
-        this.state.pos_payment_method_id = "";
-        this.state.partner_type = "";
-        this.partnerPaymentModes = useState({ items: [], loading: true });
         this.partnerDirectory = useState({ items: [], loading: false, search: "", open: false, offset: 0, hasMore: true });
         this.partnerSearchInput = useRef("partnerSearchInput");
         this.partnerPaymentOrm = useService("orm");
         this.onPartnerDocumentClick = this.onPartnerDocumentClick.bind(this);
         useExternalListener(document, "click", this.onPartnerDocumentClick, { capture: true });
-        onWillStart(async () => {
-            const items = await this.partnerPaymentOrm.call("pos.session", "pos_customer_payment_methods", [this.pos.session.id]);
-            this.partnerPaymentModes.items = items;
-            this.partnerPaymentModes.loading = false;
-        });
     },
     get hasSelectedPartner() {
         return Boolean(Number(this.state.partner_id));
@@ -239,10 +285,6 @@ patch(CashMovePopup.prototype, {
     selectPartner(partner) {
         const partnerId = Number(partner.id);
         this.state.partner_id = partnerId ? String(partnerId) : "";
-        // These fields only make sense for a partner accounting payment.
-        // Reset them when no partner is selected, otherwise restore defaults.
-        this.state.pos_payment_method_id = partnerId ? (this.partnerPaymentModes.items[0]?.id || "") : "";
-        this.state.partner_type = "";
         this.partnerDirectory.open = false;
     },
     async confirm() {
@@ -262,22 +304,16 @@ patch(CashMovePopup.prototype, {
             this.notification.add(_t("Saisissez un montant supérieur à zéro."), { type: "danger" });
             return;
         }
-        const paymentMethodId = Number(this.state.pos_payment_method_id);
-        if (!paymentMethodId) {
-            this.notification.add(_t("Sélectionnez un mode de paiement."), { type: "danger" });
-            return;
-        }
         const paymentType = this.state.type === "in" ? "inbound" : "outbound";
         try {
             const receipt = await this.pos.data.call(
                 "pos.session",
                 "create_customer_cash_payment",
-                [[this.pos.session.id], partnerId, paymentType, amount, this.state.reason.trim(), paymentMethodId, this.state.partner_type],
+                [[this.pos.session.id], partnerId, paymentType, amount, this.state.reason.trim()],
                 {}, true
             );
             this.props.close();
-            if (!receipt.manual_reconciliation) {
-                this.dialog.add(ConfirmationDialog, {
+            this.dialog.add(ConfirmationDialog, {
                 title: _t("Imprimer le reçu de paiement ?"),
                 body: _t("Voulez-vous imprimer le reçu de paiement maintenant ?"),
                 confirmLabel: _t("Imprimer"),
@@ -287,14 +323,8 @@ patch(CashMovePopup.prototype, {
                 { ...receipt, cashier_name: this.pos.get_cashier()?.name || "" },
                     this.pos.getReceiptHeaderData()
                 ),
-                });
-            }
-            this.notification.add(
-                receipt.manual_reconciliation
-                    ? _t("Paiement en attente de lettrage manuel.")
-                    : _t("Paiement et lettrage enregistrés."),
-                { type: "success" }
-            );
+            });
+            this.notification.add(_t("Paiement enregistré."), { type: "success" });
         } catch (error) {
             this.notification.add(error.message || _t("Le paiement client n'a pas pu être enregistré."), { type: "danger" });
             throw error;
@@ -318,5 +348,15 @@ patch(Navbar.prototype, {
             return;
         }
         this.pos.showScreen("CustomerCashPaymentsScreen");
+    },
+    showCashMoves() {
+        if (this.pos.primetechIsSeller()) {
+            this.env.services.notification.add(
+                _t("Le rôle vendeur ne peut pas consulter les mouvements de caisse."),
+                { type: "warning" }
+            );
+            return;
+        }
+        this.pos.showScreen("CashMovesScreen");
     },
 });

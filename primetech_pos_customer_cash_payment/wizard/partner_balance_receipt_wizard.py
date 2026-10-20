@@ -8,12 +8,6 @@ class PartnerBalanceReceiptWizard(models.TransientModel):
     partner_id = fields.Many2one(
         "res.partner", string="Partenaire", required=True, domain=[("active", "=", True)]
     )
-    account_type = fields.Selection(
-        [("customer", "Compte client"), ("supplier", "Compte fournisseur")],
-        string="Compte de lettrage",
-        required=True,
-        default="customer",
-    )
     currency_id = fields.Many2one(
         "res.currency", related="company_id.currency_id", readonly=True
     )
@@ -47,7 +41,7 @@ class PartnerBalanceReceiptWizard(models.TransientModel):
             direction = _("Le partenaire nous doit") if signed_balance > 0 else _("Nous devons au partenaire")
         return abs(signed_balance), direction
 
-    @api.depends("partner_id", "account_type", "company_id")
+    @api.depends("partner_id", "company_id")
     def _compute_balance(self):
         for wizard in self:
             if wizard.partner_id:

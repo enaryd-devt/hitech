@@ -42,61 +42,8 @@ class PosSession(models.Model):
             raise UserError(_("Configurez une méthode de paiement entrant et sortant sur le journal sélectionné."))
         return lines[:1]
 
-    def _reconcile_partner_payment(self, payment):
-        """Reconcile the payment from the oldest posted partner invoice onward."""
-        partner_account_type = (
-            "asset_receivable"
-            if payment.partner_type == "customer"
-            else "liability_payable"
-        )
-        payment_line = payment.move_id.line_ids.filtered(
-            lambda line: (
-                line.account_id.account_type == partner_account_type
-                and line.partner_id.commercial_partner_id == payment.partner_id.commercial_partner_id
-                and not line.reconciled
-            )
-        )
-        if not payment_line:
-            return False
-        # The account selected (customer or supplier), rather than the cash
-        # direction, determines the accounting sign of the payment line.
-        residual_operator = "<" if payment_line.amount_residual > 0 else ">"
-        invoice_types = (
-            ("out_invoice", "out_refund")
-            if payment.partner_type == "customer"
-            else ("in_invoice", "in_refund")
-        )
-        open_lines = self.env["account.move.line"].search([
-            ("partner_id", "child_of", payment.partner_id.commercial_partner_id.id),
-            ("account_id", "=", payment.destination_account_id.id),
-            ("parent_state", "=", "posted"),
-            ("reconciled", "=", False),
-            ("amount_residual", residual_operator, 0),
-            ("move_id", "!=", payment.move_id.id),
-            ("move_id.move_type", "in", invoice_types),
-        # Apply the POS payment to the oldest posted invoice first.
-        ], order="date_maturity asc, date asc, id asc")
-        for open_line in open_lines:
-            if not payment_line or payment_line.amount_residual == 0:
-                break
-            (payment_line | open_line).reconcile()
-            payment_line = payment.move_id.line_ids.filtered(
-                lambda line: (
-                    line.account_id.account_type == partner_account_type
-                    and line.partner_id.commercial_partner_id == payment.partner_id.commercial_partner_id
-                    and not line.reconciled
-                )
-            )
-        return True
-
-    def _set_payment_reconciliation_label(self, payment, label):
-        """Keep the POS description visible in the manual reconciliation UI.
-
-        The reconciliation widget displays the label of the partner journal
-        item (``account.move.line.name``), not only ``payment_reference``.
-        Set both values so the posted POS payment is immediately identifiable
-        alongside the invoices it has settled.
-        """
+    def _set_payment_label(self, payment, label):
+        """Keep the POS description on both the payment and partner entry."""
         partner_lines = payment.move_id.line_ids.filtered(
             lambda line: line.account_id.account_type in (
                 "asset_receivable",
@@ -106,15 +53,6 @@ class PosSession(models.Model):
         payment.move_id.write({"ref": label})
         if partner_lines:
             partner_lines.write({"name": label})
-
-    @api.model
-    def pos_customer_payment_methods(self, session_id):
-        """Payment modes enabled on this POS and usable for partner payments."""
-        self._check_customer_cash_payment_access()
-        session = self.browse(session_id).exists()
-        if not session:
-            raise UserError(_("La session du point de vente n'est plus ouverte."))
-        return [{"id": method.id, "name": method.name} for method in session.config_id.payment_method_ids.filtered("journal_id")]
 
     @api.model
     def pos_customer_payment_partners(self, session_id, search_term="", offset=0, limit=100):
@@ -157,53 +95,36 @@ class PosSession(models.Model):
         }
 
     @api.model
-    def create_customer_cash_payment(self, session_id, partner_id, payment_type, amount, reason="", pos_payment_method_id=False, partner_type=False):
+    def create_customer_cash_payment(self, session_id, partner_id, payment_type, amount, reason=""):
         self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         if not session or session.state not in ("opened", "opening_control"):
             raise UserError(_("La session du point de vente n'est plus ouverte."))
         if payment_type not in ("inbound", "outbound") or amount <= 0:
             raise ValidationError(_("Le montant du paiement doit être supérieur à zéro."))
-        if partner_type not in ("customer", "supplier", "manual", False, ""):
-            raise ValidationError(_("Veuillez sélectionner le compte client ou fournisseur à lettrer."))
         partner = self.env["res.partner"].browse(partner_id).exists()
         if not partner:
             raise ValidationError(_("Veuillez sélectionner un partenaire."))
-        pos_payment_method = session.config_id.payment_method_ids.filtered(lambda method: method.id == int(pos_payment_method_id or 0))
-        if not pos_payment_method:
-            raise ValidationError(_("Veuillez sélectionner un mode de paiement configuré sur ce POS."))
-        journal = pos_payment_method.journal_id
+        journal = session.cash_journal_id
         if not journal:
-            raise UserError(_("Le mode de paiement sélectionné n'a pas de journal comptable."))
-        suspense_account = journal.suspense_account_id if journal == session.cash_journal_id else False
-        if journal == session.cash_journal_id and not suspense_account:
+            raise UserError(_("Aucun journal de caisse n'est configuré pour cette session POS."))
+        suspense_account = journal.suspense_account_id
+        if not suspense_account:
             raise UserError(_("Configurez un compte d'attente sur le journal de caisse du POS."))
 
         before, before_direction = session._pos_partner_global_balance(partner)
-        # The reconciliation account is deliberately chosen by the cashier.
-        # If it is Client or Fournisseur, the payment is reconciled below;
-        # when it is empty/manual, no invoice is touched.
-        manual_reconciliation = partner_type in ("manual", False, "")
-        reconciliation_partner_type = partner_type
         # ``payment.name`` is allocated only when the payment is posted.  A
         # temporary value is used at creation and the final, human-readable
         # label is written immediately afterwards on the partner journal item.
-        reconciliation_label = reason or (
+        payment_label = reason or (
             _("Paiement POS %(session)s - %(partner)s")
             % {"session": session.name, "partner": partner.display_name}
         )
         payment = self.env["account.payment"].create({
             "payment_type": payment_type,
-            # This controls the receivable/payable account selected by Odoo for
-            # the payment and therefore the account reconciled below.
-            # Without an explicitly selected reconciliation account, the cash
-            # direction determines the open partner account: incoming cash is
-            # a customer payment; outgoing cash is a supplier payment.
-            "partner_type": (
-                ("customer" if payment_type == "inbound" else "supplier")
-                if manual_reconciliation
-                else reconciliation_partner_type
-            ),
+            # The cash direction determines the partner account.  No account
+            # is selected by the cashier and no invoice is reconciled here.
+            "partner_type": "customer" if payment_type == "inbound" else "supplier",
             "partner_id": partner.commercial_partner_id.id,
             "amount": amount,
             "currency_id": session.currency_id.id,
@@ -211,54 +132,37 @@ class PosSession(models.Model):
             "journal_id": journal.id,
             "payment_method_line_id": session._get_payment_method_line(journal, payment_type).id,
             "force_outstanding_account_id": suspense_account.id if suspense_account else False,
-            "payment_reference": reconciliation_label,
-            "memo": reconciliation_label,
+            "payment_reference": payment_label,
+            "memo": payment_label,
             "pos_session_id": session.id,
             "pos_customer_cash_payment": True,
-            "pos_payment_method_id": pos_payment_method.id,
-            "pos_manual_reconciliation": manual_reconciliation,
             "pos_balance_before": before,
             "pos_balance_before_direction": before_direction,
         })
         payment.action_post()
-        reconciliation_label = " - ".join(
+        payment_label = " - ".join(
             part for part in (session.name, payment.name, reason) if part
         )
-        session._set_payment_reconciliation_label(payment, reconciliation_label)
-        # The payment is matched from the oldest invoice to the newest.  If no
-        # invoice is open, no reconciliation happens: it remains an open credit
-        # (or debit) on the selected partner account for a future invoice.
-        if not manual_reconciliation:
-            session._reconcile_partner_payment(payment)
-
+        session._set_payment_label(payment, payment_label)
         # This line is deliberately retained for the cash journal: POS closing uses it to calculate the
         # physical cash expected in the drawer.  It clears the payment's suspense
         # line, so the cash and receivable are each recorded exactly once.
-        if journal == session.cash_journal_id:
-            sign = 1 if payment_type == "inbound" else -1
-            statement_line = self.env["account.bank.statement.line"].create({
-                "pos_session_id": session.id, "journal_id": journal.id, "amount": sign * amount,
-                # This is also the label of the technical cash statement
-                # entry displayed in the reconciliation kanban.  It must
-                # carry the POS reason just like the partner payment line.
-                "date": fields.Date.context_today(session), "payment_ref": reconciliation_label,
-                # The statement line only represents the physical cash move.
-                # Even when the cashier leaves the reconciliation account
-                # empty, the *payment* already owns the open partner line.
-                # Assigning the partner here gives the reconciliation widget a
-                # second candidate payment and it may create a duplicate move
-                # when that technical line is matched later.
-                "partner_id": False,
-                "counterpart_account_id": suspense_account.id,
-            })
-            suspense_lines = payment.move_id.line_ids.filtered(lambda line: line.account_id == suspense_account and not line.reconciled) | statement_line.move_id.line_ids.filtered(lambda line: line.account_id == suspense_account and not line.reconciled)
-            # This bridge must always be cleared.  The sole pending item in a
-            # manual-reconciliation flow is the receivable/payable line of the
-            # account payment, never the technical cash statement line.
-            if suspense_lines and not suspense_account.reconcile:
-                suspense_account.sudo().write({"reconcile": True})
-            if suspense_lines:
-                suspense_lines.reconcile()
+        sign = 1 if payment_type == "inbound" else -1
+        statement_line = self.env["account.bank.statement.line"].create({
+            "pos_session_id": session.id, "journal_id": journal.id, "amount": sign * amount,
+            "date": fields.Date.context_today(session), "payment_ref": payment_label,
+            # The accounting payment already owns the partner line.  Do not
+            # set a partner on this technical cash entry.
+            "partner_id": False,
+            "counterpart_account_id": suspense_account.id,
+            "pos_customer_cash_payment_id": payment.id,
+        })
+        suspense_lines = payment.move_id.line_ids.filtered(lambda line: line.account_id == suspense_account and not line.reconciled) | statement_line.move_id.line_ids.filtered(lambda line: line.account_id == suspense_account and not line.reconciled)
+        # Clear the technical bridge; this does not reconcile partner invoices.
+        if suspense_lines and not suspense_account.reconcile:
+            suspense_account.sudo().write({"reconcile": True})
+        if suspense_lines:
+            suspense_lines.reconcile()
         # Every accounting entry of this operation now exists; the value shown
         # on the receipt is the real balance after this incoming/outgoing payment.
         after, after_direction = session._pos_partner_global_balance(partner)
@@ -286,9 +190,6 @@ class PosSession(models.Model):
             ),
             "partner_type": payment.partner_type,
             "payment_type": payment.payment_type,
-            "manual_reconciliation": payment.pos_manual_reconciliation,
-            "payment_method_name": payment.pos_payment_method_id.name or payment.journal_id.name,
-            "reconciliation_account": _("Lettrage manuel") if payment.pos_manual_reconciliation else (_("Compte client") if payment.partner_type == "customer" else _("Compte fournisseur")),
             "reason": payment.payment_reference or "",
             # Keep the original payment timestamp when displaying or reprinting
             # an entry from the POS history.
@@ -298,16 +199,13 @@ class PosSession(models.Model):
         }
 
     @api.model
-    def pos_customer_payment_list(self, session_id, offset=0, limit=150, search_term=""):
-        """Return paginated customer payments for every session of this POS."""
+    def pos_customer_payment_list(self, session_id, offset=0, limit=50, search_term=""):
+        """Return paginated partner payments from every POS session."""
         self._check_customer_cash_payment_access()
         session = self.browse(session_id).exists()
         if not session:
             raise UserError(_("La session du point de vente n'est plus ouverte."))
-        domain = [
-            ("pos_session_id.config_id", "=", session.config_id.id),
-            ("pos_customer_cash_payment", "=", True),
-        ]
+        domain = [("pos_customer_cash_payment", "=", True)]
         search_term = (search_term or "").strip()
         if search_term:
             domain += [
@@ -318,11 +216,65 @@ class PosSession(models.Model):
             ]
         total = self.env["account.payment"].search_count(domain)
         offset = max(0, int(offset or 0))
-        # Sending the displayed total as the limit shows every payment;
-        # otherwise the client uses 150 compact rows per page by default.
-        limit = max(1, min(int(limit or 150), total or 1))
+        limit = max(1, min(int(limit or 50), 50))
         payments = self.env["account.payment"].search(domain, order="id desc", offset=offset, limit=limit)
         return {
             "payments": [self._payment_receipt_values(payment) for payment in payments],
             "total": total,
+        }
+
+    @api.model
+    def pos_cash_move_list(self, session_id, offset=0, limit=50, search_term=""):
+        """Return the cash entries and exits of the current POS session."""
+        self._check_customer_cash_payment_access()
+        session = self.browse(session_id).exists()
+        if not session:
+            raise UserError(_("La session du point de vente n'est plus ouverte."))
+        domain = [
+            ("pos_session_id", "=", session.id),
+            ("journal_id", "=", session.cash_journal_id.id),
+        ]
+        search_term = (search_term or "").strip()
+        if search_term:
+            domain += [
+                "|", "|", "|",
+                ("payment_ref", "ilike", search_term),
+                ("ref", "ilike", search_term),
+                ("name", "ilike", search_term),
+                ("pos_customer_cash_payment_id.partner_id", "ilike", search_term),
+            ]
+        statement_lines = self.env["account.bank.statement.line"]
+        total = statement_lines.search_count(domain)
+        offset = max(0, int(offset or 0))
+        limit = max(1, min(int(limit or 50), 50))
+        moves = statement_lines.search(domain, order="date desc, id desc", offset=offset, limit=limit)
+        # Totals apply to all displayed-session movements (and, when a search
+        # is active, to its result set), not just to the current page.  Let
+        # PostgreSQL aggregate them so the view stays fast on long sessions.
+        inbound_group = statement_lines.read_group(
+            domain + [("amount", ">", 0)], ["amount:sum"], []
+        )
+        outbound_group = statement_lines.read_group(
+            domain + [("amount", "<", 0)], ["amount:sum"], []
+        )
+        inbound_total = inbound_group[0].get("amount", 0.0) if inbound_group else 0.0
+        outbound_total = abs(outbound_group[0].get("amount", 0.0)) if outbound_group else 0.0
+        result = []
+        for move in moves:
+            payment = move.pos_customer_cash_payment_id
+            result.append({
+                "id": move.id,
+                "date": fields.Datetime.context_timestamp(self, move.create_date).strftime("%d/%m/%Y %H:%M"),
+                "partner_name": payment.partner_id.display_name if payment else (move.partner_id.display_name or ""),
+                "label": payment.payment_reference if payment else (move.payment_ref or move.ref or move.name or ""),
+                "document_number": payment.name if payment else "",
+                "amount": abs(move.amount),
+                "direction": "inbound" if move.amount >= 0 else "outbound",
+                "receipt": self._payment_receipt_values(payment) if payment else False,
+            })
+        return {
+            "moves": result,
+            "total": total,
+            "inbound_total": inbound_total,
+            "outbound_total": outbound_total,
         }
