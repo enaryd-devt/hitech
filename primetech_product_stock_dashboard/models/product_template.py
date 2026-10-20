@@ -2,11 +2,33 @@
 
 from markupsafe import Markup, escape
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
+
+    def check_access_rights(self, operation, raise_exception=True):
+        """Make the product-management checkbox authoritative for articles.
+
+        Users without Odoo's product manager right keep read access, but the
+        client must not offer create/edit/delete actions and RPC calls must be
+        rejected as well.
+        """
+        if (
+            operation in ("create", "write", "unlink")
+            and not self.env.is_superuser()
+            and not self.env.user.has_group("product.group_product_manager")
+        ):
+            if raise_exception:
+                raise AccessError(_(
+                    "Vous avez un accès en lecture seule aux articles. "
+                    "Activez le droit de création d'article sur votre utilisateur "
+                    "pour pouvoir les créer ou les modifier."
+                ))
+            return False
+        return super().check_access_rights(operation, raise_exception=raise_exception)
 
     @api.model
     def _default_primetech_stock_alert_qty(self):
@@ -59,6 +81,7 @@ class ProductTemplate(models.Model):
         Global settings only update articles that still use the default values.
         The context flag is used exclusively by the settings propagation.
         """
+        self.check_access_rights("write")
         if not self.env.context.get("primetech_stock_global_update"):
             vals = dict(vals)
             if "primetech_stock_alert_qty" in vals:

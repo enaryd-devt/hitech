@@ -9,17 +9,12 @@
             <field name="arch" type="xml">
 
                 <field name="category_ids" position="replace">
-                    <group>
-                        <group>
-                            <field name="matricule" />
-                        </group>
-
-                        <group>
-                            <field name="show_category" invisible="1" />
-                            <field name="except_cat" invisible="not show_category"/>
-                            <field name="category_id" invisible="(not show_category) or except_cat" options="{'no_create': True, 'no_open': True}" />
-                            <field name="echelon_id" invisible="(not show_category) or except_cat" required="not except_cat" options="{'no_create': True, 'no_open': True}" />
-                        </group>
+                    <group string="Informations de paie" col="2">
+                        <field name="matricule" />
+                        <field name="show_category" invisible="1" />
+                        <field name="except_cat" invisible="not show_category"/>
+                        <field name="category_id" class="w-100" invisible="(not show_category) or except_cat" options="{'no_create': True, 'no_open': True}" />
+                        <field name="echelon_id" class="w-100" invisible="(not show_category) or except_cat" required="not except_cat" options="{'no_create': True, 'no_open': True}" />
                     </group>
                 </field>
 
@@ -30,6 +25,34 @@
 
                 <field name="work_email" position="after">
                     <field name="lang" required="1" />
+                </field>
+
+                <field name="work_email" position="replace">
+                    <div class="o_row" style="display: flex; flex: 0 0 100%; align-items: center; width: 100%; margin-bottom: 6px;">
+                        <label for="work_email" string="E-mail professionnel" class="o_form_label fw-bold" style="flex: 0 0 150px; font-weight: 700 !important;"/>
+                        <field name="work_email" widget="email" placeholder="ex. nom@entreprise.com" style="flex: 1 1 0; min-width: 0; width: 100%;"/>
+                    </div>
+                </field>
+
+                <field name="lang" position="replace">
+                    <div class="o_row" style="display: flex; flex: 0 0 100%; align-items: center; width: 100%; margin-bottom: 6px;">
+                        <label for="lang" string="Langue" class="o_form_label fw-bold" style="flex: 0 0 150px; font-weight: 700 !important;"/>
+                        <field name="lang" required="1" placeholder="Choisissez une langue" style="flex: 1 1 0; min-width: 0; width: 100%;"/>
+                    </div>
+                </field>
+
+                <field name="work_phone" position="replace">
+                    <div class="o_row" style="display: flex; flex: 0 0 100%; align-items: center; width: 100%; margin-bottom: 6px;">
+                        <label for="work_phone" string="Téléphone professionnel" class="o_form_label fw-bold" style="flex: 0 0 150px; font-weight: 700 !important;"/>
+                        <field name="work_phone" widget="phone" placeholder="ex. +237 6XX XXX XXX" style="flex: 1 1 0; min-width: 0; width: 100%;"/>
+                    </div>
+                </field>
+
+                <field name="mobile_phone" position="replace">
+                    <div class="o_row" style="display: flex; flex: 0 0 100%; align-items: center; width: 100%; margin-bottom: 6px;">
+                        <label for="mobile_phone" string="Télephone 2" class="o_form_label fw-bold" style="flex: 0 0 150px; font-weight: 700 !important;"/>
+                        <field name="mobile_phone" widget="phone" placeholder="ex. +237 6XX XXX XXX" style="flex: 1 1 0; min-width: 0; width: 100%;"/>
+                    </div>
                 </field>
 
                 <page name="personal_information" position="inside">
