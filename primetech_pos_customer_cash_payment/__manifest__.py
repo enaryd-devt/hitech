@@ -8,6 +8,7 @@
     "depends": ["point_of_sale", "account", "primetech_pos_hitech_theme"],
     "data": [
         "security/ir.model.access.csv",
+        "views/res_partner_views.xml",
         "views/partner_balance_receipt_wizard_views.xml",
         "views/account_payment_views.xml",
         "views/report_payment_receipt_views.xml",

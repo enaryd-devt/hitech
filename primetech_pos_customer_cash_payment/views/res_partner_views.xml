@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_form_pos_balance" model="ir.ui.view">
+        <field name="name">res.partner.form.pos.balance</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <field name="vat" position="after">
+                <field name="pos_partner_balance_direction_code" invisible="1"/>
+                <div class="alert alert-danger d-flex align-items-center gap-2 mt-2 mb-0" role="status" invisible="pos_partner_balance_direction_code != 'partner_owes'">
+                    <i class="fa fa-exclamation-circle fa-lg"/>
+                    <div>
+                        <div class="fw-semibold">Solde partenaire</div>
+                        <span class="me-2"><field name="pos_partner_balance_direction" readonly="1" nolabel="1"/></span>
+                        <strong><field name="pos_partner_balance_amount" readonly="1" nolabel="1" widget="monetary"/></strong>
+                    </div>
+                </div>
+                <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0" role="status" invisible="pos_partner_balance_direction_code != 'company_owes'">
+                    <i class="fa fa-balance-scale fa-lg"/>
+                    <div>
+                        <div class="fw-semibold">Solde partenaire</div>
+                        <span class="me-2"><field name="pos_partner_balance_direction" readonly="1" nolabel="1"/></span>
+                        <strong><field name="pos_partner_balance_amount" readonly="1" nolabel="1" widget="monetary"/></strong>
+                    </div>
+                </div>
+                <div class="border rounded d-flex align-items-center gap-2 mt-2 mb-0 px-3 py-2" role="status" invisible="pos_partner_balance_direction_code != 'settled'">
+                    <i class="fa fa-balance-scale fa-lg text-muted"/>
+                    <div>
+                        <div class="fw-semibold">Solde partenaire</div>
+                        <span class="me-2"><field name="pos_partner_balance_direction" readonly="1" nolabel="1"/></span>
+                        <strong><field name="pos_partner_balance_amount" readonly="1" nolabel="1" widget="monetary"/></strong>
+                    </div>
+                </div>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_res_partner_kanban_pos_balance" model="ir.ui.view">
+        <field name="name">res.partner.kanban.pos.balance</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.res_partner_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="pos_partner_balance_amount"/>
+                <field name="pos_partner_balance_direction"/>
+                <field name="pos_partner_balance_direction_code"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']/main/footer" position="before">
+                <div t-att-class="record.pos_partner_balance_direction_code.raw_value === 'partner_owes' ? 'mt-2 px-2 py-1 rounded bg-danger-subtle text-danger-emphasis' : (record.pos_partner_balance_direction_code.raw_value === 'company_owes' ? 'mt-2 px-2 py-1 rounded bg-info-subtle text-info-emphasis' : 'mt-2 px-2 py-1 rounded border')">
+                    <div class="small fw-semibold"><i t-att-class="record.pos_partner_balance_direction_code.raw_value === 'partner_owes' ? 'fa fa-exclamation-circle me-1' : 'fa fa-balance-scale me-1'"/>Solde partenaire</div>
+                    <div class="d-flex justify-content-between align-items-center gap-2 small">
+                        <field name="pos_partner_balance_direction"/>
+                        <strong><field name="pos_partner_balance_amount" widget="monetary"/></strong>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
