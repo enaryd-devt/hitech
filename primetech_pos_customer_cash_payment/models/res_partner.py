@@ -20,6 +20,9 @@ class ResPartner(models.Model):
         ],
         compute="_compute_pos_partner_balance",
     )
+    pos_partner_balance_amount_display = fields.Char(
+        compute="_compute_pos_partner_balance",
+    )
 
     def _get_pos_partner_balance(self):
         """Return the unsigned global customer/supplier balance."""
@@ -48,3 +51,6 @@ class ResPartner(models.Model):
                 partner.pos_partner_balance_direction,
                 partner.pos_partner_balance_direction_code,
             ) = partner._get_pos_partner_balance()
+            partner.pos_partner_balance_amount_display = "{:,.0f}".format(
+                partner.pos_partner_balance_amount
+            ).replace(",", " ")

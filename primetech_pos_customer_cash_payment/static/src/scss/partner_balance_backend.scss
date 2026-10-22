@@ -1,0 +1,38 @@
+.o_partner_balance_kanban {
+    max-width: 100%;
+    min-width: 0;
+
+    .o_partner_balance_kanban_values {
+        min-width: 0;
+    }
+
+    .o_partner_balance_kanban_direction {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .o_partner_balance_kanban_amount {
+        display: block;
+        min-width: 0;
+        max-width: 62%;
+        margin-left: auto;
+        text-align: right;
+        font-size: clamp(0.55rem, 1.1vw, 0.875rem);
+        line-height: 1.15;
+        white-space: nowrap;
+
+        .o_field_widget,
+        .o_field_monetary {
+            display: block;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        .o_partner_balance_kanban_currency {
+            display: inline-block;
+            margin-left: 0.2rem;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+    }
+}

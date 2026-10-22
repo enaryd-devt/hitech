@@ -16,6 +16,9 @@
         "report/partner_balance_receipt_report.xml",
     ],
     "assets": {
+        "web.assets_backend": [
+            "primetech_pos_customer_cash_payment/static/src/scss/partner_balance_backend.scss",
+        ],
         "point_of_sale._assets_pos": [
             "primetech_pos_customer_cash_payment/static/src/js/cash_customer_payment.js",
             "primetech_pos_customer_cash_payment/static/src/xml/cash_customer_payment.xml",

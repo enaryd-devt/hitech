@@ -44,13 +44,14 @@
                 <field name="pos_partner_balance_amount"/>
                 <field name="pos_partner_balance_direction"/>
                 <field name="pos_partner_balance_direction_code"/>
+                <field name="pos_partner_balance_amount_display"/>
             </xpath>
             <xpath expr="//t[@t-name='card']/main/footer" position="before">
-                <div t-att-class="record.pos_partner_balance_direction_code.raw_value === 'partner_owes' ? 'mt-2 px-2 py-1 rounded bg-danger-subtle text-danger-emphasis' : (record.pos_partner_balance_direction_code.raw_value === 'company_owes' ? 'mt-2 px-2 py-1 rounded bg-info-subtle text-info-emphasis' : 'mt-2 px-2 py-1 rounded border')">
+                <div t-att-class="record.pos_partner_balance_direction_code.raw_value === 'partner_owes' ? 'o_partner_balance_kanban mt-2 px-2 py-1 rounded bg-danger-subtle text-danger-emphasis' : (record.pos_partner_balance_direction_code.raw_value === 'company_owes' ? 'o_partner_balance_kanban mt-2 px-2 py-1 rounded bg-info-subtle text-info-emphasis' : 'o_partner_balance_kanban mt-2 px-2 py-1 rounded border')">
                     <div class="small fw-semibold"><i t-att-class="record.pos_partner_balance_direction_code.raw_value === 'partner_owes' ? 'fa fa-exclamation-circle me-1' : 'fa fa-balance-scale me-1'"/>Solde partenaire</div>
-                    <div class="d-flex justify-content-between align-items-center gap-2 small">
-                        <field name="pos_partner_balance_direction"/>
-                        <strong><field name="pos_partner_balance_amount" widget="monetary"/></strong>
+                    <div class="o_partner_balance_kanban_values d-flex justify-content-between align-items-center gap-2 small">
+                        <span class="o_partner_balance_kanban_direction"><field name="pos_partner_balance_direction"/></span>
+                        <strong class="o_partner_balance_kanban_amount"><field name="pos_partner_balance_amount_display"/><span class="o_partner_balance_kanban_currency">FCFA</span></strong>
                     </div>
                 </div>
             </xpath>
