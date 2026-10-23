@@ -9,10 +9,10 @@
         <!-- Même réserve que les factures : l'en-tête externe reste visible. -->
         <field name="margin_top">40</field>
         <field name="margin_bottom">24</field>
-        <field name="margin_left">8</field>
-        <field name="margin_right">8</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">32</field>
+        <field name="header_spacing">40</field>
         <field name="dpi">90</field>
     </record>
     <record id="action_report_primetech_receipt_note" model="ir.actions.report">
@@ -35,7 +35,7 @@
     </record>
 
     <template id="report_primetech_picking_document">
-        <t t-call="web.html_container"><t t-foreach="docs" t-as="o"><t t-set="company" t-value="o.company_id"/><t t-call="web.external_layout">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o"><t t-set="company" t-value="o.company_id"/><t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_external_layout">
             <t t-set="is_receipt" t-value="o.picking_type_code == 'incoming'"/>
             <div t-attf-class="page pt-picking-document #{'pt-picking-document--receipt' if is_receipt else 'pt-picking-document--delivery'}">
                 <style type="text/css">

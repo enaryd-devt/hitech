@@ -8,6 +8,7 @@
     "depends": ["point_of_sale", "pos_hr", "account"],
     "data": [
         "security/security.xml",
+        "views/hr_employee_views.xml",
         "views/pos_config_views.xml",
         "views/pos_payment_method_views.xml",
         "views/mobile_money_report_wizard_views.xml",

@@ -11,11 +11,11 @@
         <!-- Réserve la place nécessaire à l'en-tête externe complet. -->
         <field name="margin_top">40</field>
         <field name="margin_bottom">24</field>
-        <field name="margin_left">8</field>
-        <field name="margin_right">8</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
         <field name="header_line" eval="False"/>
         <!-- Positionne l'en-tête externe près du bord supérieur. -->
-        <field name="header_spacing">32</field>
+        <field name="header_spacing">40</field>
         <field name="dpi">90</field>
     </record>
 
@@ -38,6 +38,71 @@
         <field name="print_report_name">('Cotation fournisseur - %s - %s' if object.state == 'draft' else 'Facture fournisseur - %s - %s') % (object._primetech_document_reference(), object.partner_id.name or 'Sans fournisseur')</field>
         <field name="paperformat_id" ref="paperformat_primetech_invoice"/>
     </record>
+
+    <!-- Gabarit unique issu de l'identité visuelle HiTech : il se répète sur
+         chaque page imprimée tout en laissant les marges réservées au contenu. -->
+    <template id="report_primetech_hitech_page_frame">
+        <style type="text/css">
+            .pt-hitech-document-frame {
+                box-sizing:border-box;
+                min-height:233mm;
+                padding:0 8mm;
+                position:relative;
+            }
+            .pt-hitech-document-frame__background { display:block; height:297mm; left:0; max-width:none; position:absolute; top:-40mm; width:210mm; z-index:0; }
+            .pt-hitech-document-frame > :not(.pt-hitech-document-frame__background) { position:relative; z-index:1; }
+        </style>
+    </template>
+
+    <template id="report_primetech_hitech_a4_layout">
+        <style type="text/css">
+            .pt-hitech-a4-sheet { box-sizing:border-box; height:297mm; margin:0; overflow:hidden; padding:0; position:relative; width:210mm; }
+            .pt-hitech-a4-sheet__header { display:block; height:40mm; width:210mm; }
+            .pt-hitech-a4-sheet__body { box-sizing:border-box; height:233mm; overflow:hidden; padding:0 8mm; position:relative; width:210mm; }
+            .pt-hitech-a4-sheet__watermark { height:233mm; left:0; max-width:none; position:absolute; top:0; width:210mm; z-index:0; }
+            .pt-hitech-a4-sheet__body > .page { background:transparent !important; box-sizing:border-box; margin:0; min-height:233mm; padding:0; position:relative; width:100%; z-index:1; }
+            .pt-hitech-a4-sheet__footer { display:block; height:24mm; width:210mm; }
+        </style>
+        <div class="pt-hitech-a4-sheet">
+            <img class="pt-hitech-a4-sheet__header" src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_header.jpeg" alt=""/>
+            <div class="pt-hitech-a4-sheet__body">
+                <img class="pt-hitech-a4-sheet__watermark" src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_middle.jpeg" alt=""/>
+                <t t-out="0"/>
+            </div>
+            <img class="pt-hitech-a4-sheet__footer" src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_footer.jpeg" alt=""/>
+        </div>
+    </template>
+
+    <!-- External layout natif : wkhtmltopdf rÃ©pÃ¨te automatiquement l'en-tÃªte
+         et le pied Ã  chaque page, sans les injecter dans le flux du document. -->
+    <template id="report_primetech_hitech_external_layout">
+        <style type="text/css">
+            /* L'en-tête est volontairement un peu réduit : wkhtmltopdf rognait
+               l'extrémité droite de l'image lorsqu'elle occupait 100 % de la zone. */
+            .pt-hitech-report-header { margin:0 auto !important; padding:0; position:relative; width:96%; }
+            .pt-hitech-report-footer { margin:0 auto; padding:0; position:relative; width:100%; }
+            .pt-hitech-report-header img { display:block; height:auto; margin:0 auto; max-width:100%; object-fit:contain; width:100%; }
+            .pt-hitech-report-footer img { display:block; height:auto; margin:0 auto; max-width:100%; width:100%; }
+            .pt-hitech-report-article { background:transparent url('/primetech_supplier_invoice_logistics/static/src/img/hitech_document_middle.jpeg') 0 0 / 210mm 233mm no-repeat; min-height:233mm; }
+            .pt-hitech-report-article > .page { background:transparent !important; box-sizing:border-box; margin:0; padding:0 8mm; }
+        </style>
+        <div t-attf-class="header o_company_#{company.id}_layout pt-hitech-report-header">
+            <!-- Les en-têtes PDF sont rendus dans un document wkhtmltopdf distinct :
+                 le style est donc porté directement par l'image pour éviter tout rognage. -->
+            <img src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_header.jpeg"
+                 alt="High-Tech DZ SARL"
+                 style="display:block !important; width:257mm !important; max-width:257mm !important; height:auto !important; margin:0 !important;"/>
+        </div>
+        <div t-attf-class="article o_company_#{company.id}_layout pt-hitech-report-article"
+             t-att-data-oe-model="o and o._name"
+             t-att-data-oe-id="o and o.id"
+             t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <t t-out="0"/>
+        </div>
+        <div t-attf-class="footer o_company_#{company.id}_layout pt-hitech-report-footer {{report_type != 'pdf' and 'mt-auto'}}">
+            <img src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_footer.jpeg" alt=""/>
+        </div>
+    </template>
 
     <template id="report_primetech_hitech_header">
         <style type="text/css">
@@ -128,7 +193,7 @@
             <t t-foreach="docs" t-as="o">
                 <t t-set="company" t-value="o.company_id"/>
                 <!-- Même layout dynamique que le bouton d'impression natif. -->
-                <t t-call="web.external_layout">
+                <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_external_layout">
                     <div t-attf-class="page pt-pro-invoice #{'pt-pro-invoice--proforma' if o.state == 'draft' and o.move_type == 'out_invoice' else 'pt-pro-invoice--quotation' if o.state == 'draft' else 'pt-pro-invoice--customer' if o.move_type == 'out_invoice' else 'pt-pro-invoice--supplier'}">
                         <style type="text/css">
                             /* L'en-tête externe reste en haut ; le contenu démarre volontairement

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_employee_form_pos_stock_access" model="ir.ui.view">
+        <field name="name">hr.employee.form.pos.stock.access</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]/group[1]" position="inside">
+                <field name="primetech_is_pos_cashier" invisible="1"/>
+                <field name="primetech_pos_can_view_stock_quantities"
+                    invisible="not primetech_is_pos_cashier"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

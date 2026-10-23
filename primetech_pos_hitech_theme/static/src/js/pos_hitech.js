@@ -25,6 +25,12 @@ const availableQuantity = (pos, product) => {
 };
 
 const canSellNegativeStock = (pos) => {
+    // A POS cashier must be able to sell without being blocked by the
+    // catalogue stock indicator.  This is deliberately independent from the
+    // optional manager whitelist configured for the other POS roles.
+    if ((pos.primetechEmployeePermissions?.role || pos.get_cashier()?._role) === "cashier") {
+        return true;
+    }
     if (pos.primetechEmployeePermissions) {
         return pos.primetechEmployeePermissions.can_sell_negative;
     }
@@ -156,6 +162,21 @@ patch(PosStore.prototype, {
         return (this.primetechEmployeePermissions?.role || this.get_cashier()?._role) === "seller";
     },
 
+    primetechIsCashier() {
+        return (this.primetechEmployeePermissions?.role || this.get_cashier()?._role) === "cashier";
+    },
+
+    primetechCanViewStockQuantities() {
+        if (!this.primetechIsCashier()) {
+            return true;
+        }
+        const permissions = this.primetechEmployeePermissions;
+        if (permissions) {
+            return Boolean(permissions.can_view_stock_quantities);
+        }
+        return Boolean(this.get_cashier()?._primetech_can_view_stock_quantities);
+    },
+
     async primetechSendOrder() {
         const order = this.get_order();
         if (!order || order.is_empty()) {
@@ -280,6 +301,10 @@ patch(PosStore.prototype, {
 });
 
 patch(ProductCard.prototype, {
+    get primetechHideStockQuantity() {
+        return !this.env.services.pos.primetechCanViewStockQuantities();
+    },
+
     get availableQuantity() {
         const quantity = availableQuantity(this.env.services.pos, this.props.product);
         return Number.isFinite(quantity) ? quantity : this.props.product.qty_available;

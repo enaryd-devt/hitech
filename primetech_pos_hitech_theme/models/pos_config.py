@@ -117,6 +117,12 @@ class PosConfig(models.Model):
         return {
             "role": role,
             "can_modify_price": employee in config.primetech_authorized_employee_ids,
-            "can_sell_negative": bool(config.primetech_allow_negative_stock_sale)
-            and employee in config.primetech_negative_stock_authorized_employee_ids,
+            "can_view_stock_quantities": role != "cashier" or employee.primetech_pos_can_view_stock_quantities,
+            # Cashiers are allowed by default to sell an item even when the
+            # POS warehouse reports zero stock.  The configurable whitelist
+            # continues to apply to sellers and managers.
+            "can_sell_negative": role == "cashier" or (
+                bool(config.primetech_allow_negative_stock_sale)
+                and employee in config.primetech_negative_stock_authorized_employee_ids
+            ),
         }

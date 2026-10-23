@@ -88,11 +88,11 @@
 
     <t t-inherit="point_of_sale.ProductCard" t-inherit-mode="extension" owl="1">
         <xpath expr="//article" position="attributes">
-            <attribute name="t-att-class">{'primetech-product-out-of-stock': props.product.is_storable &amp;&amp; this.availableQuantity &lt;= 0}</attribute>
-            <attribute name="t-on-click">(event) => props.product.is_storable &amp;&amp; this.availableQuantity &lt;= 0 ? null : props.onClick(event)</attribute>
+            <attribute name="t-att-class">{'primetech-product-out-of-stock': props.product.is_storable &amp;&amp; !env.services.pos.primetechIsCashier() &amp;&amp; this.availableQuantity &lt;= 0}</attribute>
+            <attribute name="t-on-click">(event) => props.product.is_storable &amp;&amp; !env.services.pos.primetechIsCashier() &amp;&amp; this.availableQuantity &lt;= 0 ? null : props.onClick(event)</attribute>
         </xpath>
         <xpath expr="//div[contains(@class, 'product-content')]" position="after">
-            <div t-if="props.product.is_storable" class="primetech-stock-badge" t-att-class="{'is-empty': this.availableQuantity &lt;= 0, 'is-critical': this.primetechStockLevel === 'critical', 'is-warning': this.primetechStockLevel === 'warning', 'is-available': this.primetechStockLevel === 'available'}">
+            <div t-if="props.product.is_storable &amp;&amp; !this.primetechHideStockQuantity" class="primetech-stock-badge" t-att-class="{'is-empty': this.availableQuantity &lt;= 0, 'is-critical': this.primetechStockLevel === 'critical', 'is-warning': this.primetechStockLevel === 'warning', 'is-available': this.primetechStockLevel === 'available'}">
                 <i class="fa fa-cubes me-1"/>
                 <span t-esc="this.availableQuantity"/>
             </div>
@@ -102,6 +102,21 @@
                     <i class="fa fa-info"/>
                 </button>
             </div>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ProductInfoBanner" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[@t-if='this.props.product.is_storable']" position="attributes">
+            <attribute name="t-if">this.props.product.is_storable &amp;&amp; this.pos.primetechCanViewStockQuantities()</attribute>
+        </xpath>
+        <xpath expr="//AccordionItem" position="attributes">
+            <attribute name="t-if">this.pos.primetechCanViewStockQuantities() &amp;&amp; state.other_warehouses.length &gt; 0</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ProductInfoPopup" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[contains(@class, 'section-inventory')]" position="attributes">
+            <attribute name="t-if">pos.primetechCanViewStockQuantities() &amp;&amp; !isVariant &amp;&amp; props.info.productInfo.warehouses.length &gt; 0</attribute>
         </xpath>
     </t>
 

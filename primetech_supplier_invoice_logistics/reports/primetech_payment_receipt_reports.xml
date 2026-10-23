@@ -20,10 +20,10 @@
         <field name="name">Reçu de paiement compact A4</field>
         <field name="format">A4</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">5</field>
-        <field name="margin_bottom">5</field>
-        <field name="margin_left">6</field>
-        <field name="margin_right">6</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">24</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
         <field name="header_spacing">0</field>
         <field name="dpi">90</field>
     </record>
@@ -41,14 +41,17 @@
     <template id="report_primetech_payment_receipt">
         <!-- basic_layout ajoute le conteneur article : il permet à Odoo d'utiliser
              le gabarit PDF UTF-8 dédié pendant la conversion wkhtmltopdf. -->
-        <t t-call="web.basic_layout">
+        <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
+                    <t t-set="company" t-value="o.company_id"/>
                     <!-- Le texte du reçu reste en UTF-8 source et n'utilise pas d'ancienne traduction stockée. -->
+                    <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_external_layout">
                     <div class="page pt-payment-receipt" t-translation="off">
                         <style type="text/css">
                             /* Reçu volontairement compact : la zone utile reste dans le tiers supérieur d'un A4. */
                             /* En-tête autonome : aucun external layout, donc aucun pied de page Odoo. */
                             .pt-payment-receipt { color:#152d52; font-family:Arial,sans-serif; font-size:10px; margin:0; padding:0; }
+                            .pt-payment-receipt__company-header, .pt-payment-receipt__rule { display:none !important; }
                             .pt-payment-receipt__company-header { display:table; height:29mm; table-layout:fixed; width:100%; }
                             .pt-payment-receipt__company-logo, .pt-payment-receipt__company-info { display:table-cell; vertical-align:middle; }
                             .pt-payment-receipt__company-logo { width:25%; }
@@ -120,6 +123,7 @@
                             <div class="pt-payment-receipt__signature"><div class="pt-payment-receipt__signature-label">Le client</div><div class="pt-payment-receipt__signature-box"/></div>
                         </div>
                     </div>
+                    </t>
             </t>
         </t>
     </template>
