@@ -14,6 +14,7 @@
         "views/mobile_money_report_wizard_views.xml",
         "views/mobile_money_transaction_views.xml",
         "reports/mobile_money_reports.xml",
+        "reports/pos_session_sales_report.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Use Odoo's external layout so the company header and footer are printed on every page. -->
+    <template id="report_saledetails_use_external_layout" inherit_id="point_of_sale.report_saledetails">
+        <xpath expr="//t[@t-call='web.basic_layout']" position="replace">
+            <t t-set="o" t-value="env['pos.session'].browse(session_ids or [])[:1]"/>
+            <t t-call="web.external_layout">
+                <t t-call="point_of_sale.pos_session_sales_details"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="pos_session_sales_details_stock" inherit_id="point_of_sale.pos_session_sales_details">
+        <xpath expr="//div[@id='sales']" position="replace">
+            <div t-if="products" id="sales" class="pt-pos-sales">
+                <style type="text/css">
+                    .pt-pos-sales { font-size: 9pt; color: #17365d; }
+                    .pt-pos-sales__title { background: #0b5394; color: #fff; font-weight: 700; margin: 10px 0 0; padding: 7px 10px; }
+                    .pt-pos-sales__subtitle { color: #5b6f85; font-size: 8pt; margin: 4px 0 7px; }
+                    .pt-pos-sales__meta { background: #eef5fc; border: 1px solid #c7d9eb; margin: 0 0 8px; width: 100%; }
+                    .pt-pos-sales__meta td { border: 0; padding: 5px 7px; width: 33.33%; }
+                    .pt-pos-sales__meta-label { color: #5b6f85; display: block; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; }
+                    .pt-pos-sales table { border-collapse: collapse; width: 100%; }
+                    .pt-pos-sales th { background: #dceaf8; border: 1px solid #aac5df; color: #17365d; font-size: 8pt; padding: 6px; }
+                    .pt-pos-sales td { border: 1px solid #c7d9eb; padding: 5px 6px; vertical-align: middle; }
+                    .pt-pos-sales .pt-pos-sales__category td { background: #eef5fc; font-weight: 700; }
+                    .pt-pos-sales .pt-pos-sales__total td { background: #e2f0d9; font-weight: 700; }
+                    .pt-pos-sales .pt-pos-sales__number { text-align: right; white-space: nowrap; }
+                    .pt-pos-sales .pt-pos-sales__stock { background: #fff7e6; font-weight: 700; }
+                </style>
+                <div class="pt-pos-sales__title">VENTES DE LA SESSION</div>
+                <table class="pt-pos-sales__meta">
+                    <tr>
+                        <td>
+                            <span class="pt-pos-sales__meta-label">Point de vente</span>
+                            <strong t-esc="primetech_pos_name or '-'"/>
+                        </td>
+                        <td>
+                            <span class="pt-pos-sales__meta-label">Caissier</span>
+                            <strong t-esc="primetech_cashier_name or '-'"/>
+                        </td>
+                        <td>
+                            <span class="pt-pos-sales__meta-label">Vendeur(s)</span>
+                            <strong t-esc="', '.join(primetech_seller_names) or '-'"/>
+                        </td>
+                    </tr>
+                </table>
+                <div class="pt-pos-sales__subtitle">Stock restant dans l'entrepôt de déstockage : <strong t-esc="primetech_pos_warehouse_name or '-'"/></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th class="pt-pos-sales__number">Quantité vendue</th>
+                            <th class="pt-pos-sales__number">Montant</th>
+                            <th class="pt-pos-sales__number">Stock restant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="products" t-as="category">
+                            <tr class="pt-pos-sales__category">
+                                <td colspan="4"><span t-out="category['name']"/></td>
+                            </tr>
+                            <tr t-foreach="category['products']" t-as="line">
+                                <t t-set="internal_reference" t-value="line['code'] and '[%s] ' % line['code'] or ''"/>
+                                <td><span t-out="internal_reference"/><span t-out="line['product_name']"/></td>
+                                <td class="pt-pos-sales__number"><span t-out="line['quantity']"/> <span t-if="line['uom'] != 'Units'" t-out="line['uom']"/></td>
+                                <td class="pt-pos-sales__number">
+                                    <t t-if="currency['position']"><span t-out="line['base_amount']" t-options="{'widget': 'float', 'precision': currency['precision']}"/> <span t-out="currency['symbol']"/></t>
+                                    <t t-else=""><span t-out="currency['symbol']"/> <span t-out="line['base_amount']" t-options="{'widget': 'float', 'precision': currency['precision']}"/></t>
+                                </td>
+                                <td class="pt-pos-sales__number pt-pos-sales__stock"><span t-out="line.get('primetech_stock_remaining', 0.0)" t-options="{'widget': 'float', 'precision': 2}"/> <span t-out="line['uom']"/></td>
+                            </tr>
+                        </t>
+                        <tr class="pt-pos-sales__total">
+                            <td>Total</td>
+                            <td class="pt-pos-sales__number"><span t-out="products_info['qty']"/></td>
+                            <td class="pt-pos-sales__number">
+                                <t t-if="currency['position']"><span t-out="products_info['total']" t-options="{'widget': 'float', 'precision': currency['precision']}"/> <span t-out="currency['symbol']"/></t>
+                                <t t-else=""><span t-out="currency['symbol']"/> <span t-out="products_info['total']" t-options="{'widget': 'float', 'precision': currency['precision']}"/></t>
+                            </td>
+                            <td/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[@id='end_report']" position="before">
+            <div class="pt-pos-signatures" style="margin-top: 28px; page-break-inside: avoid;">
+                <style type="text/css">
+                    .pt-pos-signatures { width: 100%; font-size: 9pt; color: #17365d; }
+                    .pt-pos-signatures table { width: 100%; border-collapse: separate; border-spacing: 16px 0; }
+                    .pt-pos-signatures td { width: 33.33%; text-align: center; vertical-align: top; }
+                    .pt-pos-signatures .pt-pos-signatures__box { border-top: 1px solid #5d7fa3; margin-top: 52px; padding-top: 6px; font-weight: 700; }
+                </style>
+                <table><tr>
+                    <td><div class="pt-pos-signatures__box">Caissier</div></td>
+                    <td><div class="pt-pos-signatures__box">Responsable de caisse</div></td>
+                    <td><div class="pt-pos-signatures__box">Direction</div></td>
+                </tr></table>
+            </div>
+        </xpath>
+    </template>
+</odoo>
