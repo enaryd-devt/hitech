@@ -16,31 +16,28 @@ class PrimetechDashboard(models.AbstractModel):
             return 0.0
         return sum(self.env['pos.order'].search(domain).mapped('amount_total'))
 
-    def _get_sales_purchase_cost(self, date_from=None, date_to=None):
-        """Return the purchase cost of the products included in turnover."""
-        invoice_domain = [
-            ('move_id.move_type', '=', 'out_invoice'),
-            ('move_id.state', '=', 'posted'),
-            ('product_id', '!=', False),
-        ]
-        if date_from:
-            invoice_domain.append(('move_id.invoice_date', '>=', date_from))
-        if date_to:
-            invoice_domain.append(('move_id.invoice_date', '<=', date_to))
+    def _get_sales_purchase_cost(self, invoices=None, pos_orders=None):
+        """Return the cost of the exact sales used to compute the turnover.
+
+        ``invoices`` and ``pos_orders`` are the same recordsets used by the
+        CA KPI.  Keeping the two sides of the calculation together prevents
+        a margin from including product costs from another company, period or
+        sales document.
+        """
         InvoiceLine = self.env['account.move.line']
         has_purchase_price = 'purchase_price' in InvoiceLine._fields
         purchase_cost = 0.0
-        for line in InvoiceLine.search(invoice_domain):
+        invoice_lines = InvoiceLine.browse()
+        if invoices:
+            invoice_lines = invoices.mapped('invoice_line_ids').filtered(
+                lambda line: line.product_id and not line.display_type
+            )
+        for line in invoice_lines:
             unit_cost = line.purchase_price if has_purchase_price else line.product_id.standard_price
             purchase_cost += (line.quantity or 0.0) * (unit_cost or 0.0)
 
-        if 'pos.order.line' in self.env.registry:
-            pos_domain = [('product_id', '!=', False)]
-            if date_from:
-                pos_domain.append(('order_id.date_order', '>=', date_from))
-            if date_to:
-                pos_domain.append(('order_id.date_order', '<', fields.Datetime.to_datetime(date_to) + timedelta(days=1)))
-            for line in self.env['pos.order.line'].search(pos_domain):
+        if pos_orders and 'pos.order.line' in self.env.registry:
+            for line in pos_orders.mapped('lines').filtered(lambda line: line.product_id):
                 purchase_cost += (line.qty or 0.0) * (line.product_id.standard_price or 0.0)
         return purchase_cost
 
@@ -170,14 +167,16 @@ class PrimetechDashboard(models.AbstractModel):
         filters = filters or {}
         start, end = self._get_period_bounds(filters)
         invoice_domain = [('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('invoice_date', '>=', start), ('invoice_date', '<=', end)]
-        invoice_revenue = sum(self.env['account.move'].search(invoice_domain).mapped('amount_total'))
+        invoices = self.env['account.move'].search(invoice_domain)
+        invoice_revenue = sum(invoices.mapped('amount_total'))
         pos_domain = [
             ('date_order', '>=', start),
             ('date_order', '<', fields.Datetime.to_datetime(end) + timedelta(days=1)),
         ]
-        pos_revenue = self._sum_pos_orders(pos_domain)
+        pos_orders = self.env['pos.order'].search(pos_domain) if 'pos.order' in self.env.registry else False
+        pos_revenue = sum(pos_orders.mapped('amount_total')) if pos_orders else 0.0
         revenue_total = invoice_revenue + pos_revenue
-        purchase_cost = self._get_sales_purchase_cost(start, end)
+        purchase_cost = self._get_sales_purchase_cost(invoices, pos_orders)
         purchase_total = sum(self.env['account.move'].search([
             ('move_type', '=', 'in_invoice'), ('state', '=', 'posted'),
             ('invoice_date', '>=', start), ('invoice_date', '<=', end),
