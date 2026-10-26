@@ -1693,7 +1693,7 @@ class PrimetechDashboard(models.AbstractModel):
             stock_alert(_('Stock proche péremption'), len(expiry_template_ids), 'warning', expiry_action, 'fa-clock-o'),
             stock_alert(_('Articles à faible rotation'), len(slow_template_ids), 'info', slow_action, 'fa-line-chart'),
         ]
-        gross_margin_value = overview['revenue_total'] - overview.get('purchase_cost', 0.0)
+        gross_margin_value = overview['gross_margin']
         period_day_count = max((end - start).days + 1, 1)
         daily_result = gross_margin_value / period_day_count
         return {
