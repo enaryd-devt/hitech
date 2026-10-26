@@ -134,7 +134,7 @@
         <div class="pt-hitech-header">
             <div class="pt-hitech-header__main">
                 <div class="pt-hitech-header__logo">
-                    <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="Hitech DZ"/>
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Hitech DZ"/>
                 </div>
                 <div class="pt-hitech-header__body">
                     <div class="pt-hitech-header__title">HIGH-TECH- <b>DZ SARL</b></div>
@@ -181,8 +181,8 @@
         <div class="pt-hitech-footer">
             <div class="pt-hitech-footer__rule"/>
             <div class="pt-hitech-footer__content">
-                <div t-if="o.company_id.report_footer" class="pt-hitech-footer__configured" t-field="o.company_id.report_footer"/>
-                <div t-else="" class="pt-hitech-footer__configured"><span t-esc="o.company_id.name"/></div>
+                <div t-if="company.report_footer" class="pt-hitech-footer__configured" t-field="company.report_footer"/>
+                <div t-else="" class="pt-hitech-footer__configured"><span t-esc="company.name"/></div>
                 <span class="pt-hitech-footer__page">Page <span class="page"/> / <span class="topage"/></span>
             </div>
         </div>

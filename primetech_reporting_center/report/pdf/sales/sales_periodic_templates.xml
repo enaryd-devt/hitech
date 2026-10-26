@@ -1,6 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
   <template id="sales_periodic_pdf">
+    <!-- The global external layout and the Hitech header expect a document
+         named `o`.  This report is rendered from a wizard, so provide it
+         explicitly along with its selected company. -->
+    <t t-set="o" t-value="wizard"/>
+    <t t-set="company" t-value="wizard.company_id"/>
     <t t-call="web.html_container">
       <t t-call="web.external_layout">
         <t t-set="summary" t-value="report_data.get('summary', {})"/>
