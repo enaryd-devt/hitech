@@ -41,11 +41,11 @@
           </table>
           <div style="background:#0f4c5c; color:white; padding:11px 14px; font-weight:bold; margin:16px 0 0; border-radius:6px 6px 0 0;">SYNTHÈSE PAR ARTICLE — STOCK À LA FIN DE PÉRIODE</div>
           <div style="padding:7px 12px; background:#eef7f8; border:1px solid #b9dfe3; font-size:10px;"><strong>Entrepôt(s) d'étude :</strong> <t t-if="report_data.get('warehouse_names')"><t t-esc="', '.join(report_data['warehouse_names'])"/></t><t t-else="">Tous les entrepôts de la société</t></div>
-          <table style="width:100%; border-collapse:collapse; margin:0 0 20px;"><thead><tr><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:left;">Article</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Quantité vendue</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Stock restant au <t t-esc="wizard.date_to"/></th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">CA HT</th></tr></thead><tbody><t t-foreach="product_summary" t-as="product"><tr><td style="border:1px solid #d9e3e5;padding:6px;"><t t-esc="product['product']"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.2f}'.format(product['qty'])"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;font-weight:bold;"><t t-out="'{:,.2f}'.format(product.get('stock_remaining', 0.0))"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(product['ht'])"/> FCFA</td></tr></t></tbody></table>
+          <table style="width:100%; border-collapse:collapse; margin:0 0 20px;"><thead><tr><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:left;">Article</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Quantité vendue</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Stock restant au <t t-esc="wizard.date_to"/></th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">CA HT</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Coût</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Marge HT</th><th style="background:#1b7f8c;color:#fff;padding:7px;text-align:right;">Taux</th></tr></thead><tbody><t t-foreach="product_summary" t-as="product"><tr><td style="border:1px solid #d9e3e5;padding:6px;"><t t-esc="product['product']"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.2f}'.format(product['qty'])"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;font-weight:bold;"><t t-out="'{:,.2f}'.format(product.get('stock_remaining', 0.0))"/></td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(product['ht'])"/> FCFA</td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(product.get('cost', 0.0))"/> FCFA</td><td t-attf-style="border:1px solid #d9e3e5;padding:6px;text-align:right;font-weight:bold;color:{{ '#b42318' if product.get('margin', 0.0) &lt; 0 else '#0f6b3a' }};"><t t-out="'{:,.0f}'.format(product.get('margin', 0.0))"/> FCFA</td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.1f}'.format(product.get('margin_rate', 0.0))"/> %</td></tr></t></tbody><tfoot><tr style="font-weight:bold;background:#eef7f8;"><td colspan="3" style="border:1px solid #d9e3e5;padding:6px;text-align:right;">Total</td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(summary.get('turnover_ht', 0.0))"/> FCFA</td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(summary.get('cost', 0.0))"/> FCFA</td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.0f}'.format(summary.get('margin', 0.0))"/> FCFA</td><td style="border:1px solid #d9e3e5;padding:6px;text-align:right;"><t t-out="'{:,.1f}'.format(summary.get('margin_rate', 0.0))"/> %</td></tr></tfoot></table>
           <!-- ===================================== -->
           <!-- DETAIL VENTES -->
           <!-- ===================================== -->
-          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:10px;">
             <thead>
               <tr>
                 <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
@@ -74,6 +74,12 @@
                                 </th>
                 <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
                                     Total TTC
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Marge HT
+                                </th>
+                <th style="background:#3a3a3a; color:#fff; border:1px solid #999; padding:5px;">
+                                    Taux
                                 </th>
               </tr>
             </thead>
@@ -106,6 +112,12 @@
                   </td>
                   <td style="border:1px solid #ccc; padding:4px; text-align:right; font-weight:bold;">
                     <t t-esc="'{:,.0f}'.format(line['ttc'])"/>
+                  </td>
+                  <td t-attf-style="border:1px solid #ccc; padding:4px; text-align:right; font-weight:bold; color:{{ '#b42318' if line.get('margin', 0.0) &lt; 0 else '#0f6b3a' }};">
+                    <t t-esc="'{:,.0f}'.format(line.get('margin', 0.0))"/>
+                  </td>
+                  <td style="border:1px solid #ccc; padding:4px; text-align:right;">
+                    <t t-esc="'{:,.1f}'.format(line.get('margin_rate', 0.0))"/> %
                   </td>
                 </tr>
               </t>
@@ -158,6 +170,29 @@
                                 FCFA
                             </td>
             </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Coût des ventes
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px; text-align:right;"><t t-esc="'{:,.0f}'.format(summary.get('cost', 0.0))"/>
+                                FCFA
+                            </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Marge brute HT
+                            </td>
+              <td t-attf-style="border:1px solid #ccc; padding:6px; font-weight:bold; text-align:right; color:{{ '#b42318' if summary.get('margin', 0.0) &lt; 0 else '#0f6b3a' }};"><t t-esc="'{:,.0f}'.format(summary.get('margin', 0.0))"/>
+                                FCFA
+                            </td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold;">
+                                Taux de marge
+                            </td>
+              <td style="border:1px solid #ccc; padding:6px; font-weight:bold; text-align:right;"><t t-esc="'{:,.1f}'.format(summary.get('margin_rate', 0.0))"/> %
+                            </td>
+            </tr>
           </table>
           <!-- ===================================== -->
           <!-- SYNTHESE VENDEUR -->
@@ -180,6 +215,12 @@
                 <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
                                     CA TTC
                                 </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Marge HT
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Taux
+                                </th>
               </tr>
             </thead>
             <tbody>
@@ -197,6 +238,10 @@
                   <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(seller['ttc'])"/>
                                         FCFA
                                     </td>
+                  <td t-attf-style="border:1px solid #ccc;padding:5px;text-align:right;font-weight:bold;color:{{ '#b42318' if seller.get('margin', 0.0) &lt; 0 else '#0f6b3a' }};"><t t-esc="'{:,.0f}'.format(seller.get('margin', 0.0))"/>
+                                        FCFA
+                                    </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.1f}'.format(seller.get('margin_rate', 0.0))"/> %</td>
                 </tr>
               </t>
             </tbody>
@@ -219,6 +264,12 @@
                 <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
                                     CA TTC
                                 </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Marge HT
+                                </th>
+                <th style="background:#4a4a4a;color:white;padding:5px;border:1px solid #ccc;">
+                                    Taux
+                                </th>
               </tr>
             </thead>
             <tbody>
@@ -233,6 +284,10 @@
                   <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.0f}'.format(customer['ttc'])"/>
                                         FCFA
                                     </td>
+                  <td t-attf-style="border:1px solid #ccc;padding:5px;text-align:right;font-weight:bold;color:{{ '#b42318' if customer.get('margin', 0.0) &lt; 0 else '#0f6b3a' }};"><t t-esc="'{:,.0f}'.format(customer.get('margin', 0.0))"/>
+                                        FCFA
+                                    </td>
+                  <td style="border:1px solid #ccc;padding:5px;text-align:right;"><t t-esc="'{:,.1f}'.format(customer.get('margin_rate', 0.0))"/> %</td>
                 </tr>
               </t>
             </tbody>

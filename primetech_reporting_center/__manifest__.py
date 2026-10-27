@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "PrimeTech Reporting Center",
-    "version": "18.0.1.3.13",
+    "version": "18.0.1.3.14",
     "category": "Reporting",
     "summary": "Tableaux de bord et rapports PDF/XLSX pour piloter l'entreprise",
     "description": """
