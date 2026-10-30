@@ -1,8 +1,57 @@
-from odoo import api, models
+from odoo import api, fields, models
 
 
 class ProductProduct(models.Model):
     _inherit = "product.product"
+
+    def get_product_info_pos(self, price, quantity, pos_config_id):
+        """Expose the applied pricelist rule in the POS product assistant.
+
+        The standard POS payload only returns a name and a computed amount.
+        Returning the rule conditions makes the displayed price auditable by
+        the cashier without granting access to the pricelist back-office.
+        """
+        self.ensure_one()
+        info = super().get_product_info_pos(price, quantity, pos_config_id)
+        config = self.env["pos.config"].browse(pos_config_id).exists()
+        if not config:
+            return info
+
+        pricelists = (
+            config.available_pricelist_ids
+            if config.use_pricelist
+            else config.pricelist_id
+        )
+        PricelistItem = self.env["product.pricelist.item"]
+        # Do not reduce the result to the one rule currently applicable to
+        # the selected quantity.  A cashier must be able to see every price
+        # tier available for this article (for example 1, 10 and 50 units).
+        price_rules = PricelistItem.search([
+            ("pricelist_id", "in", pricelists.ids),
+            "|", ("categ_id", "=", False), ("categ_id", "parent_of", self.categ_id.id),
+            "|", ("product_tmpl_id", "=", False), ("product_tmpl_id", "=", self.product_tmpl_id.id),
+            "|", ("product_id", "=", False), ("product_id", "=", self.id),
+        ], order="pricelist_id, min_quantity, id")
+        pricelist_rows = []
+        for rule in price_rules:
+            display_quantity = max(rule.min_quantity, 1.0)
+            computed_price = rule._compute_price(
+                self,
+                display_quantity,
+                self.uom_id,
+                fields.Date.today(),
+                currency=rule.pricelist_id.currency_id,
+            )
+            pricelist_rows.append({
+                "id": rule.id,
+                "name": rule.pricelist_id.name,
+                "price": computed_price,
+                "min_quantity": rule.min_quantity,
+                "date_start": fields.Date.to_string(rule.date_start) if rule.date_start else False,
+                "date_end": fields.Date.to_string(rule.date_end) if rule.date_end else False,
+            })
+        info["pricelists"] = pricelist_rows
+        return info
 
     @api.model
     def _primetech_pos_stock_context(self, config_id):

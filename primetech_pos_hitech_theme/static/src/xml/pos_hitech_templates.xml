@@ -118,6 +118,31 @@
         <xpath expr="//div[contains(@class, 'section-inventory')]" position="attributes">
             <attribute name="t-if">pos.primetechCanViewStockQuantities() &amp;&amp; !isVariant &amp;&amp; props.info.productInfo.warehouses.length &gt; 0</attribute>
         </xpath>
+        <xpath expr="//table[.//t[@t-foreach='props.info.productInfo.pricelists']]" position="replace">
+            <div class="primetech-pricelist-table table-responsive" t-if="props.info.productInfo.pricelists.length">
+                <h4 class="section-title mt-3">Listes de prix</h4>
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Liste de prix</th>
+                            <th class="text-end">Prix</th>
+                            <th class="text-end">Qté min.</th>
+                            <th>Date début</th>
+                            <th>Date fin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="props.info.productInfo.pricelists" t-as="pricelist" t-key="pricelist.id">
+                            <td class="fw-semibold" t-esc="pricelist.name"/>
+                            <td class="text-end fw-bold" t-esc="env.utils.formatCurrency(pricelist.price)"/>
+                            <td class="text-end" t-esc="pricelist.min_quantity || '-'"/>
+                            <td t-esc="pricelist.date_start || '-'"/>
+                            <td t-esc="pricelist.date_end || '-'"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
     </t>
 
     <t t-inherit="point_of_sale.CategorySelector" t-inherit-mode="extension" owl="1">

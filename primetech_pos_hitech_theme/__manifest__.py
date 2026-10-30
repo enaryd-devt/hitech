@@ -1,7 +1,7 @@
 {
     "name": "Primetech POS Hitech",
     "summary": "Interface Hitech moderne et ergonomique pour le Point de Vente",
-    "version": "18.0.1.1.37",
+    "version": "18.0.1.1.40",
     "category": "Point of Sale",
     "author": "Primetech",
     "license": "LGPL-3",
