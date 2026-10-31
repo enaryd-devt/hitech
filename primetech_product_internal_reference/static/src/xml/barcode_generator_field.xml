@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="primetech_product_internal_reference.BarcodeGeneratorField"
+       t-inherit="web.CharField"
+       t-inherit-mode="primary">
+        <xpath expr="//t[@t-else='']" position="after">
+            <div t-if="!props.record.data[props.name]" class="pt_ean13_generate_row">
+                <button class="btn btn-link pt_ean13_generate_link"
+                        type="button"
+                        t-on-click="onGenerateBarcode">
+                    Générer le code barre
+                </button>
+            </div>
+        </xpath>
+    </t>
+</templates>

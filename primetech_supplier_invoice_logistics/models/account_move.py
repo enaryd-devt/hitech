@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    _PRIMETECH_ADDITIONAL_COST_FIELDS = {
+        "primetech_additional_logistic_cost",
+        "primetech_additional_cost_distribution",
+    }
 
     primetech_proforma_number = fields.Char(
         string="N° proforma", readonly=True, copy=False, index=True,
@@ -281,8 +286,32 @@ class AccountMove(models.Model):
         [("weight", "Poids"), ("volume", "Volume")],
         string="Calcul selon le", default="weight", required=True,
     )
-    primetech_weight_rate = fields.Float(string="Taux poids", digits="Product Price")
-    primetech_volume_rate = fields.Float(string="Taux volume", digits="Product Price")
+    primetech_weight_rate = fields.Monetary(
+        string="Taux poids", currency_field="company_currency_id", digits="Product Price",
+        help="Coût logistique par unité de poids, exprimé dans la devise société.",
+    )
+    primetech_volume_rate = fields.Monetary(
+        string="Taux volume", currency_field="company_currency_id", digits="Product Price",
+        help="Coût logistique par unité de volume, exprimé dans la devise société.",
+    )
+    primetech_additional_logistic_cost = fields.Monetary(
+        string="Coûts logistiques additionnels",
+        currency_field="company_currency_id", default=0.0,
+        help="Montant total à répartir entre les articles de la facture fournisseur.",
+    )
+    primetech_additional_cost_distribution = fields.Selection(
+        [
+            ("equal", "Répartition égale"),
+            ("quantity", "Selon la quantité"),
+            ("volume", "Selon le volume"),
+            ("value", "Selon la valeur"),
+        ],
+        string="Méthode de répartition", default="equal", required=True,
+    )
+    primetech_total_additional_logistic_cost = fields.Monetary(
+        string="Total coûts additionnels", compute="_compute_primetech_total_additional_cost",
+        currency_field="company_currency_id", readonly=True,
+    )
     primetech_exchange_rate = fields.Float(
         string="Taux de change", default=1.0, digits="Product Price",
         help="Taux informatif utilisé par les calculs logistiques spécifiques.",
@@ -346,6 +375,77 @@ class AccountMove(models.Model):
     primetech_credit_note_count = fields.Integer(
         compute="_compute_primetech_credit_note_count", string="Avoirs",
     )
+
+    def _primetech_supplier_product_lines(self):
+        """Lignes d'article éligibles à la répartition des frais."""
+        self.ensure_one()
+        return self.invoice_line_ids.filtered(
+            lambda line: line.display_type in (False, "product") and line.product_id and line.quantity > 0
+        )
+
+    def _primetech_additional_cost_weight(self, line, lines):
+        """Poids de répartition de frais pour une ligne de facture fournisseur."""
+        self.ensure_one()
+        method = self.primetech_additional_cost_distribution
+        if method == "quantity":
+            return line.quantity or 0.0
+        if method == "volume":
+            return (line.primetech_volume or 0.0) * (line.quantity or 0.0)
+        if method == "value":
+            date = self.invoice_date or self.date or fields.Date.context_today(self)
+            return abs(line.currency_id._convert(
+                line.price_subtotal or 0.0,
+                self.company_currency_id,
+                self.company_id,
+                date,
+            ))
+        return 1.0 if line in lines else 0.0
+
+    def _primetech_additional_cost_share(self, line):
+        """Montant de coût additionnel attribué à une ligne, en devise société."""
+        self.ensure_one()
+        lines = self._primetech_supplier_product_lines()
+        amount = self.primetech_additional_logistic_cost or 0.0
+        if not amount or line not in lines:
+            return 0.0
+        denominator = sum(self._primetech_additional_cost_weight(item, lines) for item in lines)
+        # Une répartition sans base exploitable retombe proprement à l'égal.
+        if not denominator:
+            denominator = len(lines)
+            numerator = 1.0
+        else:
+            numerator = self._primetech_additional_cost_weight(line, lines)
+        return self.company_currency_id.round(amount * numerator / denominator)
+
+    @api.depends("primetech_additional_logistic_cost")
+    def _compute_primetech_total_additional_cost(self):
+        for move in self:
+            move.primetech_total_additional_logistic_cost = move.primetech_additional_logistic_cost or 0.0
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        # Conserver le comportement existant : les factures fournisseurs
+        # créées sans date reçoivent la date du jour.
+        today = fields.Date.context_today(self)
+        default_move_type = self.env.context.get("default_move_type")
+        for vals in vals_list:
+            move_type = vals.get("move_type", default_move_type)
+            if move_type in ("in_invoice", "in_refund") and not vals.get("invoice_date"):
+                vals["invoice_date"] = today
+        if (
+            any(self._PRIMETECH_ADDITIONAL_COST_FIELDS.intersection(vals) for vals in vals_list)
+            and not self.env.user.has_group("primetech_supplier_invoice_logistics.group_supplier_invoice_administrator")
+        ):
+            raise AccessError(_("Seul le responsable peut définir les coûts logistiques additionnels."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if (
+            self._PRIMETECH_ADDITIONAL_COST_FIELDS.intersection(vals)
+            and not self.env.user.has_group("primetech_supplier_invoice_logistics.group_supplier_invoice_administrator")
+        ):
+            raise AccessError(_("Seul le responsable peut modifier les coûts logistiques additionnels."))
+        return super().write(vals)
 
     @api.depends(
         "amount_untaxed", "amount_total", "primetech_apply_discount",
@@ -1548,6 +1648,11 @@ class AccountMoveLine(models.Model):
     primetech_constant_cost = fields.Monetary(
         string="Constante", default=0.0, currency_field="company_currency_id",
     )
+    primetech_additional_logistic_cost = fields.Monetary(
+        string="Coût additionnel réparti", compute="_compute_primetech_additional_logistic_cost",
+        store=True, currency_field="company_currency_id", readonly=True,
+        help="Part des coûts logistiques additionnels attribuée à cette ligne.",
+    )
     primetech_cost_by_weight = fields.Monetary(
         string="CR.poids", compute="_compute_primetech_logistics", store=True, currency_field="company_currency_id",
     )
@@ -1599,13 +1704,31 @@ class AccountMoveLine(models.Model):
 
     def _inverse_primetech_final_cost(self):
         for line in self:
-            line.primetech_final_cost_manual = line.primetech_final_cost
+            allocation_per_unit = (line.primetech_additional_logistic_cost or 0.0) / (line.quantity or 1.0)
+            line.primetech_final_cost_manual = max((line.primetech_final_cost or 0.0) - allocation_per_unit, 0.0)
             line.primetech_final_cost_is_manual = True
 
     def _inverse_primetech_final_sale_price(self):
         for line in self:
             line.primetech_final_sale_price_manual = line.primetech_final_sale_price
             line.primetech_final_sale_price_is_manual = True
+
+    @api.depends(
+        "move_id.primetech_additional_logistic_cost",
+        "move_id.primetech_additional_cost_distribution",
+        "move_id.invoice_line_ids.quantity",
+        "move_id.invoice_line_ids.primetech_volume",
+        "move_id.invoice_line_ids.price_subtotal",
+        "move_id.invoice_line_ids.display_type",
+        "move_id.move_type",
+    )
+    def _compute_primetech_additional_logistic_cost(self):
+        for line in self:
+            move = line.move_id
+            if move and move.move_type in ("in_invoice", "in_refund"):
+                line.primetech_additional_logistic_cost = move._primetech_additional_cost_share(line)
+            else:
+                line.primetech_additional_logistic_cost = 0.0
 
     @api.depends(
         "product_id", "quantity", "price_unit", "primetech_constant_cost",
@@ -1617,6 +1740,9 @@ class AccountMoveLine(models.Model):
         "primetech_final_sale_price_manual", "primetech_final_sale_price_is_manual",
         "move_id.primetech_weight_rate", "move_id.primetech_volume_rate",
         "move_id.primetech_calculation_basis",
+        "move_id.primetech_additional_logistic_cost",
+        "move_id.primetech_additional_cost_distribution",
+        "primetech_additional_logistic_cost",
         "move_id.invoice_currency_rate",
         "currency_id", "company_currency_id",
         "move_id.invoice_date", "discount",
@@ -1693,10 +1819,20 @@ class AccountMoveLine(models.Model):
             )
             # Default to the latest approved final purchase cost.  The inverse
             # field keeps any value entered by the buyer as an explicit override.
-            line.primetech_final_cost = (
+            base_final_cost = (
                 line.primetech_final_cost_manual
                 if line.primetech_final_cost_is_manual
-                else line.primetech_last_final_purchase_cost
+                else (
+                    line.primetech_last_final_purchase_cost
+                    or (
+                        line.primetech_real_price + line.primetech_weight_cost
+                        if line.move_id.primetech_calculation_basis == "weight"
+                        else line.primetech_real_price + line.primetech_volume_cost
+                    )
+                )
+            )
+            line.primetech_final_cost = base_final_cost + (
+                (line.primetech_additional_logistic_cost or 0.0) / quantity if quantity else 0.0
             )
             line.primetech_cost_by_weight = (
                 line.primetech_real_price

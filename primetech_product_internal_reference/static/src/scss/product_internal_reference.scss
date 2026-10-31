@@ -1,0 +1,29 @@
+.pt_ean13_generate_link {
+    color: #1769aa;
+    font-weight: 600;
+    margin-inline-start: 0.35rem;
+    padding: 0.15rem 0.3rem;
+    text-decoration: none;
+
+    &:hover {
+        color: #0b538a;
+        text-decoration: underline;
+    }
+}
+
+.pt_ean13_generate_row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.15rem;
+}
+
+.pt_rolling_code input {
+    background-color: #f8fcff;
+    transition: background-color 220ms ease, box-shadow 220ms ease, color 220ms ease;
+}
+
+.pt_rolling_code input.pt_rolling_code_active {
+    background-color: #e9f6ff;
+    box-shadow: 0 0 0 0.16rem rgba(31, 137, 205, 0.14);
+    color: #075d9e;
+}

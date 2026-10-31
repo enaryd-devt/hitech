@@ -156,9 +156,18 @@
                        domain="[('partner_id', '=', bank_partner_id)]"
                        invisible="move_type != 'in_invoice'" readonly="is_move_sent and state != 'draft'"/>
                 <field name="primetech_weight_rate" string="Taux poids"
+                       widget="monetary" options="{'currency_field': 'company_currency_id'}"
                        invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
                 <field name="primetech_volume_rate" string="Taux volume"
+                       widget="monetary" options="{'currency_field': 'company_currency_id'}"
                        invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
+                <field name="primetech_additional_logistic_cost" string="Coûts additionnels"
+                       invisible="move_type != 'in_invoice'" readonly="state != 'draft'"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_additional_cost_distribution" string="Répartition des coûts"
+                       invisible="move_type != 'in_invoice' or not primetech_additional_logistic_cost"
+                       readonly="state != 'draft'"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
             </xpath>
             <!-- Essential customer details, displayed directly below the customer on sales invoices. -->
             <xpath expr="//group[@id='header_left_group']//field[@name='partner_id']" position="after">
@@ -292,6 +301,9 @@
                        widget="monetary" options="{'currency_field': 'company_currency_id', 'field_digits': True}"
                        digits="[16, 3]" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_real_price" string="Prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_additional_logistic_cost" string="Coût additionnel réparti" readonly="1" optional="show"
+                       column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_weight_cost" string="Constante de poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_volume_cost" string="Constante de volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_cost_by_weight" string="Coût de revient par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
@@ -336,6 +348,8 @@
                     <field name="primetech_total_weight" string="Total poids (kg)" readonly="1" digits="[16,5]"/>
                     <field name="primetech_total_volume" string="Total volume (CBM)" readonly="1" digits="[16,5]"/>
                     <field name="primetech_total_cost" readonly="1" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                    <field name="primetech_total_additional_logistic_cost" readonly="1"
+                           groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                     <field name="primetech_total_constant" readonly="1"/>
                 </group>
                 <group string="Informations logistiques"
