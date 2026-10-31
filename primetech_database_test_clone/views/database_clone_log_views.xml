@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_primetech_database_clone_log_list" model="ir.ui.view">
+        <field name="name">primetech.database.clone.log.list</field>
+        <field name="model">primetech.database.clone.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-success="state == 'done'" decoration-danger="state == 'failed'" decoration-warning="state == 'running'">
+                <field name="create_date"/>
+                <field name="source_database"/>
+                <field name="test_database"/>
+                <field name="state" widget="primetech_running_badge"
+                       decoration-success="state == 'done'" decoration-danger="state == 'failed'" decoration-warning="state == 'running'"/>
+                <field name="trigger" widget="badge" decoration-primary="trigger == 'manual'" decoration-muted="trigger == 'automatic'"/>
+                <field name="do_backup" optional="show"/>
+                <field name="do_clone" optional="show"/>
+                <field name="backup_size"/>
+                <field name="duration" optional="show"/>
+                <field name="backup_deleted" optional="show"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_primetech_database_clone_log_form" model="ir.ui.view">
+        <field name="name">primetech.database.clone.log.form</field>
+        <field name="model">primetech.database.clone.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="source_database"/>
+                            <field name="test_database"/>
+                            <field name="state" widget="primetech_running_badge"
+                                   decoration-success="state == 'done'" decoration-danger="state == 'failed'" decoration-warning="state == 'running'"/>
+                            <field name="trigger"/>
+                            <field name="do_backup"/>
+                            <field name="do_clone"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="backup_path"/>
+                            <field name="backup_size"/>
+                            <field name="duration"/>
+                            <field name="backup_deleted"/>
+                        </group>
+                    </group>
+                    <group><field name="message" nolabel="1"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_primetech_database_clone_log" model="ir.actions.act_window">
+        <field name="name">Journal des sauvegardes</field>
+        <field name="res_model">primetech.database.clone.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="view_primetech_database_clone_plan_list" model="ir.ui.view">
+        <field name="name">primetech.database.clone.plan.list</field>
+        <field name="model">primetech.database.clone.plan</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status == 'stopped'" decoration-warning="status == 'running'">
+                <field name="name"/>
+                <field name="status" widget="primetech_running_badge"
+                       decoration-success="status == 'scheduled'"
+                       decoration-warning="status == 'running'"
+                       decoration-muted="status == 'stopped'"/>
+                <field name="test_database"/>
+                <field name="frequency"/>
+                <field name="planned_hour" widget="float_time"/>
+                <field name="timezone" optional="hide"/>
+                <field name="do_backup" optional="show"/>
+                <field name="do_clone" optional="show"/>
+                <field name="retention_count" optional="show"/>
+                <field name="destination" optional="show"/>
+                <field name="sftp_host" string="Ordinateur distant" optional="show" invisible="destination != 'sftp'"/>
+                <field name="sftp_path" string="Dossier distant" optional="hide" invisible="destination != 'sftp'"/>
+                <field name="next_run_date"/>
+                <field name="active" column_invisible="1"/>
+                <field name="last_run_date"/>
+                <field name="running_trigger" optional="show"/>
+                <button name="action_run_now" type="object" string="Lancer manuellement" icon="fa-play" title="Démarrer immédiatement une exécution manuelle" invisible="status == 'running'"/>
+                <button name="action_refresh" type="object" string="En cours…" icon="fa-spinner fa-spin" title="Exécution en cours : cliquez pour actualiser" class="text-warning" invisible="status != 'running'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_primetech_database_clone_plan_form" model="ir.ui.view">
+        <field name="name">primetech.database.clone.plan.form</field>
+        <field name="model">primetech.database.clone.plan</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" type="object" string="Démarrer la planification" class="btn-primary" icon="fa-play"
+                            invisible="active or not id"
+                            title="Active les exécutions automatiques selon la fréquence et l'heure définies."/>
+                    <button name="action_run_now" type="object" string="Lancer manuellement" icon="fa-hand-pointer-o"
+                            class="btn-secondary" invisible="status == 'running' or blocking_plan_id or not id"
+                            title="Choisir les actions puis démarrer immédiatement une exécution manuelle, même si la planification est arrêtée."/>
+                    <button name="action_refresh" type="object" string="Exécution en cours… (actualiser)" icon="fa-spinner fa-spin"
+                            class="btn-warning" invisible="status != 'running'"/>
+                    <button name="action_stop" type="object" string="Arrêter la planification" icon="fa-stop"
+                            class="btn-secondary" invisible="not active or not id"
+                            confirm="Arrêter la planification ? Plus aucune exécution automatique ne sera lancée (une exécution en cours se termine normalement)."/>
+                    <field name="status" widget="statusbar" statusbar_visible="stopped,scheduled,running"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Arrêtée" bg_color="text-bg-secondary" invisible="active or not id"/>
+                    <widget name="web_ribbon" title="En exécution" bg_color="text-bg-warning" invisible="status != 'running'"/>
+                    <field name="active" invisible="1"/>
+                    <field name="execution_state" invisible="1"/>
+                    <widget name="primetech_clone_autorefresh"/>
+                    <div class="oe_title"><label for="name"/><h1><field name="name"/></h1></div>
+                    <div class="alert alert-warning" role="status" invisible="status != 'running'">
+                        <i class="fa fa-spinner fa-spin me-1" title="En cours d'exécution"/>
+                        <strong>Exécution <field name="running_trigger" class="d-inline" readonly="1"/> en cours</strong>
+                        en arrière-plan : sauvegarde de la production puis remplacement de la base de test.
+                        Vous pouvez continuer à utiliser Odoo normalement.
+                        <span invisible="not requested_by_id">Lancée par <field name="requested_by_id" class="d-inline"/>.</span>
+                        <span invisible="not run_started_at">Démarrée le <field name="run_started_at" class="d-inline"/>.</span>
+                    </div>
+                    <field name="blocking_plan_id" invisible="1"/>
+                    <div class="alert alert-warning" role="status" invisible="not id or not blocking_plan_id or status == 'running'">
+                        <i class="fa fa-hourglass-half me-1" title="Autre exécution en cours"/>
+                        La planification <strong><field name="blocking_plan_id" class="d-inline" readonly="1"/></strong>
+                        est en cours d'exécution. Une seule exécution a lieu à la fois pour ne pas surcharger le serveur :
+                        le lancement manuel sera possible à sa fin, et une exécution automatique échue démarrera ensuite.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="id">
+                        <i class="fa fa-info-circle me-1" title="Nouvelle planification"/>
+                        <strong>Nouvelle planification</strong>, indépendante des autres : choisissez ses actions, sa
+                        destination (un dossier qui lui est propre) et sa fréquence, puis enregistrez. Elle restera
+                        <strong>Arrêtée</strong> jusqu'à ce que vous cliquiez sur « Démarrer la planification ».
+                    </div>
+                    <div class="alert alert-success" role="status" invisible="status != 'scheduled'">
+                        <i class="fa fa-clock-o me-1" title="Planifiée"/>
+                        <strong>Planification en cours</strong> : en attente de la prochaine exécution automatique
+                        <span invisible="not next_run_date">le <field name="next_run_date" class="d-inline" readonly="1"/></span>.
+                    </div>
+                    <div class="alert alert-secondary" role="status" invisible="status != 'stopped'">
+                        <i class="fa fa-pause me-1" title="Arrêtée"/>
+                        <strong>Planification arrêtée</strong> : aucune exécution automatique. Cliquez sur « Démarrer la planification » pour la réactiver.
+                    </div>
+                    <group>
+                        <group string="Actions exécutées">
+                            <field name="do_backup"/>
+                            <field name="do_clone"/>
+                            <field name="test_database" required="do_clone" invisible="not do_clone"/>
+                            <field name="destination" invisible="not do_backup" widget="radio"/>
+                            <field name="backup_path" string="Dossier local de travail" invisible="destination != 'sftp' or not do_backup"
+                                   help="Dossier où l'archive est préparée avant l'envoi ; elle y est supprimée après un envoi réussi."/>
+                            <field name="backup_path" invisible="destination == 'sftp' and do_backup"/>
+                            <field name="retention_count" invisible="not do_backup"/>
+                            <div colspan="2" class="text-muted small" invisible="not do_backup or not retention_count">
+                                Après chaque nouvelle sauvegarde (manuelle ou automatique), seules les
+                                <field name="retention_count" class="d-inline fw-bold" readonly="1"/> plus récentes sont gardées sur le disque.
+                            </div>
+                        </group>
+                        <group string="Planification">
+                            <field name="frequency"/>
+                            <field name="weekday" invisible="frequency != 'weekly'" required="frequency == 'weekly'"/>
+                            <field name="month_day" invisible="frequency != 'monthly'" required="frequency == 'monthly'"/>
+                            <field name="planned_hour" widget="float_time"/>
+                            <field name="timezone"/>
+                            <field name="next_run_date"/>
+                            <field name="last_run_date"/>
+                        </group>
+                    </group>
+                    <group string="Ordinateur distant (SSH / SFTP)" invisible="destination != 'sftp' or not do_backup">
+                        <group>
+                            <field name="sftp_host" required="destination == 'sftp'" placeholder="ex. 192.168.1.50"/>
+                            <field name="sftp_port"/>
+                            <field name="sftp_user" required="destination == 'sftp'"/>
+                            <field name="sftp_password" password="True"/>
+                        </group>
+                        <group>
+                            <field name="sftp_path" required="destination == 'sftp'" placeholder="ex. /media/disque_externe/odoo"/>
+                            <field name="sftp_fingerprint" invisible="not sftp_fingerprint"/>
+                            <div colspan="2" class="d-flex gap-2">
+                                <button name="action_test_sftp" type="object" string="Tester la connexion" icon="fa-plug" class="btn-secondary"/>
+                                <button name="action_forget_host_key" type="object" string="Effacer la clé du serveur" icon="fa-eraser"
+                                        class="btn-link" invisible="not sftp_fingerprint"
+                                        confirm="Effacer la clé enregistrée ? À n'utiliser que si l'ordinateur distant a été réinstallé ou remplacé."/>
+                            </div>
+                        </group>
+                    </group>
+                    <group string="Performance">
+                        <group>
+                            <field name="parallel_jobs"/>
+                        </group>
+                        <group>
+                            <div colspan="2" class="text-muted small">
+                                La production est exportée une seule fois avec plusieurs processus ; la base de test est
+                                restaurée pendant que l'archive est créée et envoyée.
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Journal">
+                            <field name="log_ids" readonly="1">
+                                <list create="0" delete="0" decoration-success="state == 'done'" decoration-danger="state == 'failed'" decoration-warning="state == 'running'">
+                                    <field name="create_date"/>
+                                    <field name="trigger"/>
+                                    <field name="do_backup" optional="show"/>
+                                    <field name="do_clone" optional="show"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'" decoration-danger="state == 'failed'" decoration-warning="state == 'running'"/>
+                                    <field name="duration" optional="show"/>
+                                    <field name="backup_path" optional="show"/>
+                                    <field name="backup_deleted" optional="hide"/>
+                                    <field name="message" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_primetech_database_clone_run_wizard_form" model="ir.ui.view">
+        <field name="name">primetech.database.clone.run.wizard.form</field>
+        <field name="model">primetech.database.clone.run.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Exécution manuelle">
+                <p class="text-muted">
+                    Choisissez les actions à exécuter maintenant. L'exécution démarre immédiatement en
+                    arrière-plan : vous pourrez continuer à travailler et suivre le résultat dans le Journal.
+                </p>
+                <field name="plan_id" invisible="1"/>
+                <group>
+                    <div class="o_row" colspan="2">
+                        <field name="do_backup" class="w-auto me-2"/>
+                        <label for="do_backup" class="fw-bold"/>
+                    </div>
+                    <div class="text-muted small ps-4" colspan="2">
+                        Enregistre une archive de la base de production
+                        <span invisible="destination == 'sftp'">dans <field name="backup_path" class="d-inline" readonly="1"/></span>
+                        <span invisible="destination != 'sftp'">sur l'ordinateur distant <strong><field name="sftp_host" class="d-inline" readonly="1"/></strong>
+                        (<field name="sftp_path" class="d-inline" readonly="1"/>)</span>.
+                        <span invisible="not retention_count">Seules les
+                        <field name="retention_count" class="d-inline fw-bold" readonly="1"/> sauvegardes les plus récentes seront conservées.</span>
+                    </div>
+                    <div class="o_row mt-3" colspan="2">
+                        <field name="do_clone" class="w-auto me-2"/>
+                        <label for="do_clone" string="Dupliquer la base de production pour remplacer la base de test" class="fw-bold"/>
+                    </div>
+                    <div class="text-muted small ps-4" colspan="2">
+                        La base de test <strong><field name="test_database" class="d-inline" readonly="1"/></strong>
+                        sera supprimée puis recréée à partir de la production en cours (emails et actions sortantes neutralisés).
+                    </div>
+                </group>
+                <div class="alert alert-warning mt-2" role="alert" invisible="do_backup or do_clone">
+                    Cochez au moins une action.
+                </div>
+                <footer>
+                    <button name="action_launch" type="object" string="Lancer l'exécution" class="btn-primary" icon="fa-play"
+                            invisible="not do_backup and not do_clone"/>
+                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_primetech_database_clone_config_form" model="ir.ui.view">
+        <field name="name">primetech.database.clone.config.form</field>
+        <field name="model">primetech.database.clone.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuration des sauvegardes">
+                <header>
+                    <button name="action_save" type="object" string="Enregistrer" class="btn-primary" icon="fa-save"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1>Configuration des sauvegardes</h1></div>
+                    <p class="text-muted">
+                        Valeurs proposées à la création d'une planification et réglages généraux du module.
+                        Les planifications existantes ne sont pas modifiées.
+                    </p>
+                    <group>
+                        <group string="Nouvelles planifications">
+                            <field name="default_backup_root"/>
+                            <field name="default_test_database"/>
+                            <field name="default_planned_hour" widget="float_time"/>
+                            <field name="default_timezone"/>
+                            <field name="default_retention_count"/>
+                            <field name="default_parallel_jobs"/>
+                        </group>
+                        <group string="Fonctionnement">
+                            <field name="running_timeout_hours"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_primetech_database_clone_config" model="ir.actions.act_window">
+        <field name="name">Configuration</field>
+        <field name="res_model">primetech.database.clone.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+    <record id="view_primetech_database_clone_plan_search" model="ir.ui.view">
+        <field name="name">primetech.database.clone.plan.search</field>
+        <field name="model">primetech.database.clone.plan</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="test_database"/>
+                <filter name="filter_active" string="En cours" domain="[('active', '=', True)]"/>
+                <filter name="filter_running" string="En exécution" domain="[('status', '=', 'running')]"/>
+                <filter name="filter_stopped" string="Arrêtées" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter name="group_status" string="Statut" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_primetech_database_clone_plan" model="ir.actions.act_window">
+        <field name="name">Planifications</field>
+        <field name="res_model">primetech.database.clone.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_primetech_database_clone_plan_search"/>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créez une planification de sauvegarde</p>
+            <p>
+                Vous pouvez créer <strong>plusieurs planifications</strong>, par exemple une par ordinateur distant,
+                pour garder des copies de sécurité à plusieurs endroits. Chacune a son propre dossier, sa fréquence
+                et son nombre de sauvegardes conservées. Utilisez « Dupliquer » pour en créer une nouvelle rapidement.
+            </p>
+        </field>
+    </record>
+    <menuitem id="menu_primetech_database_clone_root" name="Sauvegarde et test" web_icon="primetech_database_test_clone,static/description/icon.png" action="action_primetech_database_clone_plan" sequence="90" groups="primetech_database_test_clone.group_database_test_clone_manager"/>
+    <menuitem id="menu_primetech_database_clone_plan" name="Planifications" parent="menu_primetech_database_clone_root" action="action_primetech_database_clone_plan" sequence="5" groups="primetech_database_test_clone.group_database_test_clone_manager"/>
+    <menuitem id="menu_primetech_database_clone_log" name="Journal" parent="menu_primetech_database_clone_root" action="action_primetech_database_clone_log" sequence="10" groups="primetech_database_test_clone.group_database_test_clone_manager"/>
+    <menuitem id="menu_primetech_database_clone_configuration" name="Configuration" parent="menu_primetech_database_clone_root" sequence="90" groups="primetech_database_test_clone.group_database_test_clone_manager"/>
+    <menuitem id="menu_primetech_database_clone_config" name="Paramètres" parent="menu_primetech_database_clone_configuration" action="action_primetech_database_clone_config" sequence="10" groups="primetech_database_test_clone.group_database_test_clone_manager"/>
+</odoo>
