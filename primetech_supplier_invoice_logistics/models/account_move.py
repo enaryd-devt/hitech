@@ -2,6 +2,7 @@
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import float_is_zero
 
 
 class AccountMove(models.Model):
@@ -395,6 +396,10 @@ class AccountMove(models.Model):
     primetech_receipt_picking_count = fields.Integer(
         compute="_compute_primetech_receipt_picking_count", string="Réceptions",
     )
+    primetech_receipt_needs_adjustment = fields.Boolean(
+        string="Ecart de réception", compute="_compute_primetech_receipt_needs_adjustment",
+        help="Indique que les quantités réellement reçues diffèrent de celles de la facture.",
+    )
     primetech_delivery_picking_ids = fields.Many2many(
         "stock.picking", "primetech_invoice_delivery_rel", "move_id", "picking_id",
         string="Livraisons liées", copy=False, readonly=True,
@@ -702,6 +707,51 @@ class AccountMove(models.Model):
     def _compute_primetech_receipt_picking_count(self):
         for move in self:
             move.primetech_receipt_picking_count = len(move.primetech_receipt_picking_ids)
+
+    @api.depends(
+        "move_type", "state", "invoice_line_ids.product_id", "invoice_line_ids.quantity",
+        "invoice_line_ids.product_uom_id", "primetech_receipt_picking_ids.state",
+        "primetech_receipt_picking_ids.picking_type_id.code",
+        "primetech_receipt_picking_ids.move_ids_without_package.state",
+        "primetech_receipt_picking_ids.move_ids_without_package.product_id",
+        "primetech_receipt_picking_ids.move_ids_without_package.quantity",
+        "primetech_receipt_picking_ids.move_ids_without_package.product_uom_qty",
+        "primetech_receipt_picking_ids.move_ids_without_package.product_uom",
+    )
+    def _compute_primetech_receipt_needs_adjustment(self):
+        """Show the receipt action only when a supplier receipt has a delta."""
+        for move in self:
+            move.primetech_receipt_needs_adjustment = False
+            if move.move_type != "in_invoice" or move.state != "posted":
+                continue
+            expected = {}
+            for line in move.invoice_line_ids.filtered(
+                lambda item: item.display_type in (False, "product")
+                and item.product_id and item.quantity > 0
+            ):
+                product = line.product_id
+                quantity = line.product_uom_id._compute_quantity(line.quantity, product.uom_id)
+                expected[product.id] = expected.get(product.id, 0.0) + quantity
+            actual = {}
+            for picking in move._primetech_final_stock_pickings().filtered(
+                lambda item: item.state == "done"
+            ):
+                sign = 1.0 if picking.picking_type_id.code == "incoming" else -1.0
+                for stock_move in picking.move_ids_without_package.filtered(
+                    lambda item: item.state == "done" and item.product_id
+                ):
+                    product = stock_move.product_id
+                    quantity = stock_move.quantity or stock_move.product_uom_qty
+                    quantity = stock_move.product_uom._compute_quantity(quantity, product.uom_id)
+                    actual[product.id] = actual.get(product.id, 0.0) + sign * quantity
+            for product_id in set(expected) | set(actual):
+                product = self.env["product.product"].browse(product_id)
+                if not float_is_zero(
+                    expected.get(product_id, 0.0) - actual.get(product_id, 0.0),
+                    precision_rounding=product.uom_id.rounding,
+                ):
+                    move.primetech_receipt_needs_adjustment = True
+                    break
 
     @api.depends("primetech_delivery_picking_ids")
     def _compute_primetech_delivery_picking_count(self):
@@ -1270,8 +1320,9 @@ class AccountMove(models.Model):
             item = dict(item)
             item["quantity"] = abs(delta)
             (additions if delta > 0 else returns)[product_id] = item
+        adjustments = self.env["stock.picking"]
         if additions:
-            self._primetech_update_open_adjustment(
+            adjustments |= self._primetech_update_open_adjustment(
                 transfer_kind, picking_type, source, destination, additions,
                 _("Complément de facture"),
             )
@@ -1287,7 +1338,7 @@ class AccountMove(models.Model):
             ], limit=1)
             if not return_type:
                 raise UserError(_("Aucun type d'opération de retour n'est configuré."))
-            self._primetech_update_open_adjustment(
+            adjustments |= self._primetech_update_open_adjustment(
                 transfer_kind, return_type, destination, source, returns,
                 _("Retour suite à modification de facture"),
             )
@@ -1301,18 +1352,92 @@ class AccountMove(models.Model):
                     transfer_kind, return_type, destination, source, {},
                     _("Retour suite à modification de facture"),
                 )
-        return pickings
+        return adjustments or pickings
 
     def action_create_primetech_receipt(self):
-        """Create the receipt linked to this supplier bill, without posting it."""
+        """Create the receipt complement or return note required by a delta."""
         self.ensure_one()
         if not self.env.user.has_group("primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"):
             raise UserError(_("Seul l'administrateur des factures fournisseurs logistiques peut gérer les réceptions."))
         if self.move_type != "in_invoice" or self.state not in ("draft", "posted"):
             raise UserError(_("La réception peut uniquement être créée pour une facture fournisseur."))
-        self.sudo()._primetech_create_receipt_picking()
-        # Remain on the supplier bill and refresh the smart button.
-        return {"type": "ir.actions.client", "tag": "reload"}
+        expected = self._primetech_stock_invoice_lines()
+        actual = {}
+        for picking in self._primetech_final_stock_pickings().filtered(
+            lambda item: item.state == "done"
+        ):
+            sign = 1.0 if picking.picking_type_id.code == "incoming" else -1.0
+            for stock_move in picking.move_ids_without_package.filtered(
+                lambda item: item.state == "done" and item.product_id
+            ):
+                quantity = stock_move.quantity or stock_move.product_uom_qty
+                quantity = stock_move.product_uom._compute_quantity(
+                    quantity, stock_move.product_id.uom_id,
+                )
+                actual[stock_move.product_id.id] = actual.get(stock_move.product_id.id, 0.0) + sign * quantity
+        additions, returns = {}, {}
+        invoice_lines_by_product = {}
+        expected_quantities = {}
+        for line in self.invoice_line_ids.filtered(
+            lambda item: item.display_type in (False, "product") and item.product_id and item.quantity > 0
+        ):
+            invoice_lines_by_product.setdefault(line.product_id.id, line)
+            quantity = line.product_uom_id._compute_quantity(line.quantity, line.product_id.uom_id)
+            expected_quantities[line.product_id.id] = expected_quantities.get(line.product_id.id, 0.0) + quantity
+        for product_id in set(expected) | set(actual):
+            item = expected.get(product_id)
+            desired = expected_quantities.get(product_id, 0.0)
+            delta = desired - actual.get(product_id, 0.0)
+            product = (item or {"product": self.env["product.product"].browse(product_id)})["product"]
+            if float_is_zero(delta, precision_rounding=product.uom_id.rounding):
+                continue
+            if delta > 0:
+                item = dict(item)
+                item["quantity"] = product.uom_id._compute_quantity(delta, item["uom"])
+                additions[product_id] = item
+            elif product_id in invoice_lines_by_product:
+                item = dict(item)
+                item["quantity"] = product.uom_id._compute_quantity(-delta, item["uom"])
+                returns[product_id] = item
+
+        if not additions and not returns:
+            raise UserError(_("Aucun écart de réception à traiter."))
+        picking_type = self.primetech_picking_type_id or self.env["stock.picking.type"].search([
+            ("code", "=", "incoming"), ("company_id", "=", self.company_id.id),
+        ], limit=1)
+        if not picking_type:
+            raise UserError(_("Aucun type d'opération de réception n'est configuré."))
+        source = picking_type.default_location_src_id or self.partner_id.property_stock_supplier
+        destination = self.primetech_stock_location_id or picking_type.default_location_dest_id or picking_type.warehouse_id.lot_stock_id
+        if not source or not destination:
+            raise UserError(_("Configurez les emplacements de stock avant de traiter l'écart."))
+        pickings = self.env["stock.picking"]
+        if additions:
+            pickings |= self._primetech_update_open_adjustment(
+                "receipt", picking_type, source, destination, additions, _("Complément de réception"),
+            )
+        if returns:
+            return_type = self.env["stock.picking.type"].search([
+                ("code", "=", "outgoing"), ("company_id", "=", self.company_id.id),
+            ], limit=1)
+            if not return_type:
+                raise UserError(_("Aucun type d'opération de retour n'est configuré."))
+            pickings |= self._primetech_update_open_adjustment(
+                "receipt", return_type, destination, source, returns, _("Retour de réception"),
+            )
+        if len(pickings) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "stock.picking",
+                "res_id": pickings.id,
+                "view_mode": "form",
+                "views": [(False, "form")],
+                "target": "current",
+            }
+        action = self.env["ir.actions.actions"]._for_xml_id("stock.action_picking_tree_all")
+        action["domain"] = [("id", "in", pickings.ids)]
+        action["context"] = {"create": False}
+        return action
 
     def action_view_primetech_receipts(self):
         self.ensure_one()
@@ -1544,6 +1669,60 @@ class AccountMoveLine(models.Model):
         string="Retourné", compute="_compute_primetech_stock_quantities",
         digits="Product Unit of Measure", readonly=True,
     )
+    primetech_receipt_delta_status = fields.Selection(
+        [("none", "Conforme"), ("shortage", "Complément à recevoir"), ("surplus", "Retour à effectuer")],
+        compute="_compute_primetech_receipt_delta_status", string="Écart de réception",
+    )
+
+    @api.depends(
+        "move_id.move_type", "move_id.state", "product_id", "quantity", "product_uom_id",
+        "move_id.primetech_receipt_picking_ids.state",
+        "move_id.primetech_receipt_picking_ids.picking_type_id.code",
+        "move_id.primetech_receipt_picking_ids.move_ids_without_package.state",
+        "move_id.primetech_receipt_picking_ids.move_ids_without_package.product_id",
+        "move_id.primetech_receipt_picking_ids.move_ids_without_package.quantity",
+        "move_id.primetech_receipt_picking_ids.move_ids_without_package.product_uom_qty",
+        "move_id.primetech_receipt_picking_ids.move_ids_without_package.product_uom",
+    )
+    def _compute_primetech_receipt_delta_status(self):
+        """Colour all invoice lines of an article when its net receipt differs."""
+        for line in self:
+            line.primetech_receipt_delta_status = "none"
+        invoices = self.mapped("move_id").filtered(
+            lambda move: move.move_type == "in_invoice" and move.state == "posted"
+        )
+        for invoice in invoices:
+            invoice_lines = invoice.invoice_line_ids.filtered(
+                lambda line: line.display_type in (False, "product")
+                and line.product_id and line.quantity > 0
+            )
+            expected = {}
+            for invoice_line in invoice_lines:
+                product = invoice_line.product_id
+                quantity = invoice_line.product_uom_id._compute_quantity(
+                    invoice_line.quantity, product.uom_id,
+                )
+                expected[product.id] = expected.get(product.id, 0.0) + quantity
+            actual = {}
+            for picking in invoice._primetech_final_stock_pickings().filtered(
+                lambda item: item.state == "done"
+            ):
+                sign = 1.0 if picking.picking_type_id.code == "incoming" else -1.0
+                for stock_move in picking.move_ids_without_package.filtered(
+                    lambda item: item.state == "done" and item.product_id
+                ):
+                    product = stock_move.product_id
+                    quantity = stock_move.quantity or stock_move.product_uom_qty
+                    quantity = stock_move.product_uom._compute_quantity(quantity, product.uom_id)
+                    actual[product.id] = actual.get(product.id, 0.0) + sign * quantity
+            for invoice_line in invoice_lines:
+                product = invoice_line.product_id
+                delta = actual.get(product.id, 0.0) - expected.get(product.id, 0.0)
+                if float_is_zero(delta, precision_rounding=product.uom_id.rounding):
+                    continue
+                invoice_line.primetech_receipt_delta_status = (
+                    "surplus" if delta > 0 else "shortage"
+                )
 
     def _compute_primetech_stock_quantities(self):
         """Show net completed receipts/deliveries, including linked returns."""
