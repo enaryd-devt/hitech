@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_primetech_product_sale_history_user,primetech.product.sale.history.user,model_primetech_product_sale_history,base.group_user,1,0,0,0
+access_primetech_supplier_advance_payment_wizard,primetech.supplier.advance.payment.wizard,model_primetech_supplier_advance_payment_wizard,primetech_supplier_invoice_logistics.group_supplier_invoice_administrator,1,1,1,1

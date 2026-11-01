@@ -16,6 +16,29 @@ class AccountMove(models.Model):
         string="N° proforma", readonly=True, copy=False, index=True,
         help="Référence attribuée lors de la première impression d'une facture en brouillon.",
     )
+    primetech_supplier_document_number = fields.Char(
+        string="N° facture", compute="_compute_primetech_supplier_document_number",
+    )
+
+    @api.depends("name", "state", "move_type", "primetech_proforma_number")
+    def _compute_primetech_supplier_document_number(self):
+        for move in self:
+            if move.move_type == "in_invoice" and move.state == "draft":
+                move.primetech_supplier_document_number = move.primetech_proforma_number or "/"
+            else:
+                move.primetech_supplier_document_number = move.name or "/"
+
+    @api.depends("partner_id", "date", "state", "move_type", "primetech_proforma_number")
+    @api.depends_context("input_full_display_name", "primetech_supplier_quote_selector")
+    def _compute_display_name(self):
+        """Show the RFQ number when selecting a draft supplier bill for an LC."""
+        if not self.env.context.get("primetech_supplier_quote_selector"):
+            return super()._compute_display_name()
+        for move in self:
+            if move.move_type == "in_invoice" and move.state == "draft":
+                move.display_name = move.primetech_proforma_number or move.name
+            else:
+                move.display_name = move._get_move_display_name(show_ref=True)
     primetech_amount_paid = fields.Monetary(
         string="Montant réglé", compute="_compute_primetech_amount_paid",
         currency_field="currency_id", readonly=True,
@@ -392,6 +415,12 @@ class AccountMove(models.Model):
     primetech_landed_cost_count = fields.Integer(
         string="Coûts logistiques", compute="_compute_primetech_landed_cost_count",
     )
+    primetech_advance_payment_ids = fields.One2many(
+        "account.payment", "primetech_supplier_invoice_id", string="Acomptes",
+    )
+    primetech_advance_payment_count = fields.Integer(
+        compute="_compute_primetech_advance_payment_count", string="Acomptes",
+    )
 
     def _compute_primetech_landed_cost_count(self):
         LandedCost = self.env["stock.landed.cost"]
@@ -399,12 +428,13 @@ class AccountMove(models.Model):
             if move.move_type not in ("in_invoice", "in_refund"):
                 move.primetech_landed_cost_count = 0
                 continue
-            receipt_ids = move.primetech_receipt_picking_ids.filtered(
-                lambda picking: picking.picking_type_code == "incoming"
-            ).ids
             move.primetech_landed_cost_count = LandedCost.search_count(
-                [("picking_ids", "in", receipt_ids)]
-            ) if receipt_ids else 0
+                [("vendor_bill_id", "=", move.id)]
+            )
+
+    def _compute_primetech_advance_payment_count(self):
+        for move in self:
+            move.primetech_advance_payment_count = len(move.primetech_advance_payment_ids)
 
     def action_primetech_create_landed_cost(self):
         self.ensure_one()
@@ -414,19 +444,16 @@ class AccountMove(models.Model):
             "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
         ):
             raise AccessError(_("Seul le responsable peut créer les coûts logistiques."))
-        pickings = self.primetech_receipt_picking_ids.filtered(
-            lambda picking: picking.picking_type_code == "incoming" and picking.state == "done"
-        )
-        if not pickings:
-            raise UserError(_(
-                "Aucune réception validée n'est liée à cette facture. Validez d'abord le bon de réception."
-            ))
+        if self.state != "draft":
+            raise UserError(_("Les coûts logistiques doivent être préparés avant la confirmation de la facture."))
+        if not self._primetech_supplier_product_lines():
+            raise UserError(_("Ajoutez au moins un article et sa quantité avant de créer les coûts logistiques."))
+        reference = self._primetech_document_reference()
         landed_cost = self.env["stock.landed.cost"].create({
             "vendor_bill_id": self.id,
-            "picking_ids": [(6, 0, pickings.ids)],
             "target_model": "picking",
             "date": self.invoice_date or fields.Date.context_today(self),
-            "description": _("Coûts logistiques de la facture %s") % (self.name or self.ref or ""),
+            "description": _("Coûts logistiques de la facture fournisseur %s") % reference,
             "company_id": self.company_id.id,
         })
         return {
@@ -440,12 +467,7 @@ class AccountMove(models.Model):
 
     def action_view_primetech_landed_costs(self):
         self.ensure_one()
-        receipt_ids = self.primetech_receipt_picking_ids.filtered(
-            lambda picking: picking.picking_type_code == "incoming"
-        ).ids
-        costs = self.env["stock.landed.cost"].search(
-            [("picking_ids", "in", receipt_ids)]
-        ) if receipt_ids else self.env["stock.landed.cost"]
+        costs = self.env["stock.landed.cost"].search([("vendor_bill_id", "=", self.id)])
         if len(costs) == 1:
             return {
                 "type": "ir.actions.act_window", "res_model": "stock.landed.cost",
@@ -500,14 +522,36 @@ class AccountMove(models.Model):
     def _compute_primetech_total_additional_cost(self):
         LandedCost = self.env["stock.landed.cost"]
         for move in self:
-            receipt_ids = move.primetech_receipt_picking_ids.filtered(
-                lambda picking: picking.picking_type_code == "incoming"
-            ).ids
             costs = LandedCost.search([
-                ("picking_ids", "in", receipt_ids),
-                ("state", "=", "done"),
-            ]) if receipt_ids else LandedCost
+                ("vendor_bill_id", "=", move.id), ("state", "=", "done"),
+            ])
             move.primetech_total_additional_logistic_cost = sum(costs.mapped("amount_total"))
+
+    def action_primetech_add_advance_payment(self):
+        """Open the supplier-advance payment assistant."""
+        self.ensure_one()
+        if self.move_type != "in_invoice" or not self.partner_id:
+            raise UserError(_("Sélectionnez d'abord le fournisseur de la facture."))
+        reference = self._primetech_document_reference()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "primetech.supplier.advance.payment.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {
+                "default_invoice_id": self.id,
+                "default_currency_id": self.currency_id.id,
+                "default_communication": _("Acompte %s") % reference,
+            },
+        }
+
+    def action_view_primetech_advance_payments(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("account.action_account_payments")
+        action["domain"] = [("primetech_supplier_invoice_id", "=", self.id)]
+        action["context"] = {"default_primetech_supplier_invoice_id": self.id}
+        return action
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -779,6 +823,13 @@ class AccountMove(models.Model):
             "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
         ):
             raise UserError(_("Seul l'administrateur des factures fournisseurs logistiques peut confirmer une facture fournisseur."))
+        draft_costs = self.env["stock.landed.cost"].search([
+            ("vendor_bill_id", "in", restricted_moves.ids), ("state", "=", "draft"),
+        ])
+        if draft_costs:
+            raise UserError(_(
+                "Veuillez d'abord confirmer le(s) coût(s) logistique(s) en brouillon lié(s) à cette facture : %s."
+            ) % ", ".join(draft_costs.mapped("name")))
         for move in self.filtered(
             lambda item: item.move_type in ("in_invoice", "out_invoice")
             and not (item.move_type == "out_invoice" and item.pos_order_ids)
@@ -829,6 +880,13 @@ class AccountMove(models.Model):
             move_type = values.get("move_type") or self.env.context.get("default_move_type")
             if move_type in ("in_invoice", "in_refund") and not values.get("invoice_date"):
                 values["invoice_date"] = fields.Date.context_today(self)
+            # A supplier bill receives its internal workflow number as soon as
+            # it is saved in draft, so a landed cost and an advance can be
+            # linked before accounting confirmation.
+            if move_type == "in_invoice" and not values.get("primetech_proforma_number"):
+                values["primetech_proforma_number"] = self.env["ir.sequence"].next_by_code(
+                    "primetech.supplier.invoice.proforma"
+                )
         moves = super().create(vals_list)
         for move in moves.filtered(
             lambda item: item.move_type == "in_invoice" and item.state == "posted"
@@ -1817,6 +1875,43 @@ class AccountMoveLine(models.Model):
             # so use the persisted id when it exists; for unsaved lines the
             # recordset's insertion order remains the tie-breaker.
             ).sorted(key=lambda line: (line.sequence, line._origin.id or 0))
+            # Draft landed costs are linked directly to the supplier bill,
+            # before its receipt exists.  Allocate their validated amount on
+            # the bill's own products, quantities and supplier prices.
+            direct_costs = LandedCost.search([
+                ("vendor_bill_id", "=", invoice.id), ("state", "=", "done"),
+            ])
+            if direct_costs:
+                # The valuation rows are built from the invoice itself and
+                # already apply the split method selected on every LC line.
+                # Sum them by their exact source invoice line.
+                for valuation in direct_costs.mapped("valuation_adjustment_lines").filtered(
+                    "primetech_invoice_line_id"
+                ):
+                    line_id = valuation.primetech_invoice_line_id.id
+                    result[line_id] = result.get(line_id, 0.0) + valuation.additional_landed_cost
+                # Costs validated before the direct invoice-line link was
+                # introduced are kept compatible: distribute their amount by
+                # product and quantity instead of leaving the invoice column
+                # at zero.
+                legacy_valuations = direct_costs.mapped("valuation_adjustment_lines").filtered(
+                    lambda valuation: not valuation.primetech_invoice_line_id
+                )
+                legacy_by_product = {}
+                for valuation in legacy_valuations:
+                    legacy_by_product[valuation.product_id.id] = (
+                        legacy_by_product.get(valuation.product_id.id, 0.0)
+                        + (valuation.additional_landed_cost or 0.0)
+                    )
+                for product_id, amount in legacy_by_product.items():
+                    product_lines = invoice_lines.filtered(lambda item: item.product_id.id == product_id)
+                    quantity = sum(product_lines.mapped("quantity"))
+                    if quantity:
+                        for item in product_lines:
+                            result[item.id] = result.get(item.id, 0.0) + amount * item.quantity / quantity
+                for item in invoice_lines:
+                    result[item.id] = invoice.company_currency_id.round(result.get(item.id, 0.0))
+                continue
             receipt_moves = invoice.primetech_receipt_picking_ids.filtered(
                 lambda picking: picking.picking_type_code == "incoming"
             ).move_ids.filtered(lambda stock_move: stock_move.state != "cancel" and stock_move.quantity)
@@ -1946,18 +2041,17 @@ class AccountMoveLine(models.Model):
                 (line.primetech_volume or 0.0)
                 * (line.move_id.primetech_volume_rate or 0.0)
             )
-            # Default to the latest approved final purchase cost.  The inverse
-            # field keeps any value entered by the buyer as an explicit override.
+            # A supplier bill's final cost must always be based on its own
+            # supplier price.  The historic cost remains informational only;
+            # otherwise identical articles could receive an obsolete base
+            # value instead of the price entered on the current bill.
             base_final_cost = (
                 line.primetech_final_cost_manual
                 if line.primetech_final_cost_is_manual
                 else (
-                    line.primetech_last_final_purchase_cost
-                    or (
-                        line.primetech_real_price + line.primetech_weight_cost
-                        if line.move_id.primetech_calculation_basis == "weight"
-                        else line.primetech_real_price + line.primetech_volume_cost
-                    )
+                    line.primetech_real_price + line.primetech_weight_cost
+                    if line.move_id.primetech_calculation_basis == "weight"
+                    else line.primetech_real_price + line.primetech_volume_cost
                 )
             )
             line.primetech_final_cost = base_final_cost + (

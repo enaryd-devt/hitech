@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class StockLandedCost(models.Model):
@@ -19,6 +20,18 @@ class StockLandedCost(models.Model):
     primetech_receipt_count = fields.Integer(
         string="Réceptions", compute="_compute_primetech_links",
     )
+    primetech_source_invoice_display = fields.Char(
+        string="Facture fournisseur source", compute="_compute_primetech_source_invoice_display",
+    )
+
+    @api.depends("vendor_bill_id.name", "vendor_bill_id.state", "vendor_bill_id.primetech_proforma_number")
+    def _compute_primetech_source_invoice_display(self):
+        for cost in self:
+            bill = cost.vendor_bill_id
+            cost.primetech_source_invoice_display = (
+                bill.primetech_proforma_number if bill and bill.state == "draft"
+                else bill.name if bill else False
+            )
 
     def _compute_primetech_links(self):
         for cost in self:
@@ -46,6 +59,66 @@ class StockLandedCost(models.Model):
                 })
 
     def compute_landed_cost(self):
+        # Before the bill is confirmed there is intentionally no receipt yet.
+        # In that case the supplier bill itself is the allocation source
+        # (products, quantities and supplier prices); no stock valuation line
+        # can or should be generated at this stage.
+        direct_costs = self.filtered("vendor_bill_id")
+        if direct_costs:
+            AdjustmentLine = self.env["stock.valuation.adjustment.lines"]
+            for cost in direct_costs:
+                invoice_lines = cost.vendor_bill_id.invoice_line_ids.filtered(
+                    lambda line: line.product_id and line.display_type in (False, "product") and line.quantity > 0
+                )
+                cost.valuation_adjustment_lines.unlink()
+                if not invoice_lines:
+                    continue
+                for cost_line in cost.cost_lines:
+                    weights = []
+                    for line in invoice_lines:
+                        former_cost = line.currency_id._convert(
+                            (line.price_unit or 0.0) * (line.quantity or 0.0),
+                            cost.company_id.currency_id, cost.company_id,
+                            cost.vendor_bill_id.invoice_date or fields.Date.context_today(cost),
+                        )
+                        weights.append((line, former_cost))
+                    if cost_line.split_method == "by_quantity":
+                        measures = [line.quantity for line, former_cost in weights]
+                    elif cost_line.split_method == "by_weight":
+                        measures = [(line.primetech_weight or 0.0) * line.quantity for line, former_cost in weights]
+                    elif cost_line.split_method == "by_volume":
+                        measures = [(line.primetech_volume or 0.0) * line.quantity for line, former_cost in weights]
+                    elif cost_line.split_method == "by_current_cost_price":
+                        measures = [former_cost for line, former_cost in weights]
+                    else:
+                        measures = [1.0] * len(weights)
+                    denominator = sum(measures) or len(weights)
+                    allocated = []
+                    for index, ((line, former_cost), measure) in enumerate(zip(weights, measures)):
+                        amount = cost.currency_id.round(cost_line.price_unit * measure / denominator)
+                        allocated.append(amount)
+                        AdjustmentLine.create({
+                            "cost_id": cost.id,
+                            "cost_line_id": cost_line.id,
+                            "product_id": line.product_id.id,
+                            "primetech_invoice_line_id": line.id,
+                            "quantity": line.quantity,
+                            "weight": (line.primetech_weight or 0.0) * line.quantity,
+                            "volume": (line.primetech_volume or 0.0) * line.quantity,
+                            "former_cost": former_cost,
+                            "additional_landed_cost": amount,
+                        })
+                    # Keep each additional-cost line exactly balanced despite rounding.
+                    difference = cost.currency_id.round(cost_line.price_unit - sum(allocated))
+                    if difference:
+                        last = cost.valuation_adjustment_lines.filtered(
+                            lambda item: item.cost_line_id == cost_line
+                        )[-1:]
+                        last.additional_landed_cost += difference
+            remaining = self - direct_costs
+            if not remaining:
+                return True
+            return super(StockLandedCost, remaining).compute_landed_cost()
         self._primetech_prepare_costing_methods()
         return super().compute_landed_cost()
 
@@ -62,6 +135,10 @@ class StockLandedCost(models.Model):
         )
         lines = invoices.invoice_line_ids.filtered(lambda line: line.product_id)
         if lines:
+            # Direct draft costs do not alter a field on account.move.line,
+            # therefore explicitly refresh their allocation before deriving
+            # the final unit cost.
+            lines._compute_primetech_additional_logistic_cost()
             lines._compute_primetech_logistics()
             lines.flush_recordset([
                 "primetech_final_cost", "primetech_cost_by_weight",
@@ -69,6 +146,26 @@ class StockLandedCost(models.Model):
             ])
 
     def button_validate(self):
+        missing_accounts = self.mapped("cost_lines").filtered(lambda line: not line.account_id)
+        if missing_accounts:
+            raise UserError(_(
+                "Renseignez le compte comptable de chaque ligne de coût logistique avant validation."
+            ))
+        direct_costs = self.filtered(
+            lambda cost: cost.vendor_bill_id and cost.state == "draft"
+        )
+        if direct_costs:
+            if any(not cost.cost_lines for cost in direct_costs):
+                raise UserError(_("Ajoutez au moins une ligne de coût logistique avant validation."))
+            # Rebuild the allocations from each cost line's split method just
+            # before posting, even if the operator did not click Calculate.
+            direct_costs.compute_landed_cost()
+            direct_costs.write({"state": "done"})
+            direct_costs._primetech_refresh_invoice_logistic_costs()
+        remaining_costs = self - direct_costs
+        if not remaining_costs:
+            return True
+        self = remaining_costs
         self._primetech_prepare_costing_methods()
         result = super().button_validate()
         self._primetech_refresh_invoice_logistic_costs()
@@ -96,3 +193,11 @@ class StockLandedCost(models.Model):
         return self.env.ref(
             "primetech_supplier_invoice_logistics.action_report_primetech_landed_cost"
         ).report_action(self)
+
+
+class StockValuationAdjustmentLine(models.Model):
+    _inherit = "stock.valuation.adjustment.lines"
+
+    primetech_invoice_line_id = fields.Many2one(
+        "account.move.line", string="Ligne de facture fournisseur", copy=False, readonly=True,
+    )

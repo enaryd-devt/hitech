@@ -5,6 +5,28 @@
         <field name="model">stock.landed.cost</field>
         <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
         <field name="arch" type="xml">
+            <!-- The linked vendor bill is the source of products, supplier
+                 prices and quantities for Primetech landed costs. -->
+            <xpath expr="//field[@name='vendor_bill_id']" position="attributes">
+                <attribute name="string">Appliquer sur</attribute>
+                <attribute name="domain">[('move_type', '=', 'in_invoice'), ('state', '=', 'draft')]</attribute>
+                <attribute name="context">{'primetech_supplier_quote_selector': True}</attribute>
+                <attribute name="readonly">state == 'done'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='vendor_bill_id']" position="after">
+                <field name="primetech_source_invoice_display" string="Référence"
+                       readonly="1"
+                       invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='picking_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='account_journal_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='account_journal_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//header/button[1]" position="before">
                 <button name="action_print_primetech_landed_cost" type="object"
                         string="Imprimer" icon="fa-print" class="btn-secondary"
@@ -19,6 +41,31 @@
                         icon="fa-truck" invisible="primetech_receipt_count == 0">
                     <field name="primetech_receipt_count" widget="statinfo" string="Réceptions"/>
                 </button>
+            </xpath>
+        </field>
+    </record>
+    <!-- Applied after mrp_landed_costs: that module re-exposes the radio
+         field, so hide both its target selector and manufacturing target. -->
+    <record id="view_stock_landed_cost_form_primetech_hide_targets" model="ir.ui.view">
+        <field name="name">stock.landed.cost.form.primetech.hide.targets</field>
+        <field name="model">stock.landed.cost</field>
+        <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="(//field[@name='target_model'])[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_stock_landed_cost_form_primetech_source_left" model="ir.ui.view">
+        <field name="name">stock.landed.cost.form.primetech.source.left</field>
+        <field name="model">stock.landed.cost</field>
+        <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
+        <field name="priority">110</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date']" position="after">
+                <xpath expr="//field[@name='vendor_bill_id']" position="move"/>
+                <xpath expr="//field[@name='primetech_source_invoice_display']" position="move"/>
             </xpath>
         </field>
     </record>
