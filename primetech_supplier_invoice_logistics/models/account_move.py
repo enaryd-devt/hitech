@@ -294,6 +294,20 @@ class AccountMove(models.Model):
         string="Taux volume", currency_field="company_currency_id", digits="Product Price",
         help="Coût logistique par unité de volume, exprimé dans la devise société.",
     )
+    @api.constrains(
+        "primetech_weight_rate",
+        "primetech_volume_rate",
+        "primetech_additional_logistic_cost",
+    )
+    def _check_primetech_logistic_amounts_non_negative(self):
+        for move in self:
+            if any(amount < 0 for amount in (
+                move.primetech_weight_rate,
+                move.primetech_volume_rate,
+                move.primetech_additional_logistic_cost,
+            )):
+                raise ValidationError(_("Les montants logistiques ne peuvent pas être négatifs."))
+
     primetech_additional_logistic_cost = fields.Monetary(
         string="Coûts logistiques additionnels",
         currency_field="company_currency_id", default=0.0,
@@ -623,21 +637,15 @@ class AccountMove(models.Model):
                 (line[measure_field] or 0.0) * (line.quantity or 0.0)
                 for line in lines
             )
-            automatic_cost_field = (
-                "primetech_cost_by_weight"
-                if move.primetech_calculation_basis == "weight"
-                else "primetech_cost_by_volume"
-            )
             automatic_constant_field = (
                 "primetech_weight_cost"
                 if move.primetech_calculation_basis == "weight"
                 else "primetech_volume_cost"
             )
-            # The final cost is optional. Until it is entered, show the
-            # logistics proposal so the dashboard never stays empty while
-            # the supplier-bill grid is being completed.
+            # The final cost is a unit cost.  The logistics total is therefore
+            # the sum of each displayed final cost multiplied by its quantity.
             move.primetech_total_cost = sum(
-                line.primetech_final_cost or line[automatic_cost_field] or 0.0
+                (line.primetech_final_cost or 0.0) * (line.quantity or 0.0)
                 for line in lines
             )
             move.primetech_total_constant = sum(
@@ -1804,7 +1812,11 @@ class AccountMoveLine(models.Model):
         for invoice in invoices:
             invoice_lines = invoice.invoice_line_ids.filtered(
                 lambda line: line.product_id and line.display_type in (False, "product")
-            ).sorted(key=lambda line: (line.sequence, line.id))
+            # New invoice lines are represented by ``NewId`` during an
+            # onchange.  NewId objects cannot be compared with one another,
+            # so use the persisted id when it exists; for unsaved lines the
+            # recordset's insertion order remains the tie-breaker.
+            ).sorted(key=lambda line: (line.sequence, line._origin.id or 0))
             receipt_moves = invoice.primetech_receipt_picking_ids.filtered(
                 lambda picking: picking.picking_type_code == "incoming"
             ).move_ids.filtered(lambda stock_move: stock_move.state != "cancel" and stock_move.quantity)
