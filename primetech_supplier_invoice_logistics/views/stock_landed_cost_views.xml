@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_landed_cost_form_primetech_links" model="ir.ui.view">
+        <field name="name">stock.landed.cost.form.primetech.links</field>
+        <field name="model">stock.landed.cost</field>
+        <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[1]" position="before">
+                <button name="action_print_primetech_landed_cost" type="object"
+                        string="Imprimer" icon="fa-print" class="btn-secondary"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_primetech_vendor_bill" type="object" class="oe_stat_button"
+                        icon="fa-file-text-o" invisible="primetech_supplier_invoice_count == 0">
+                    <field name="primetech_supplier_invoice_count" widget="statinfo" string="Facture fournisseur"/>
+                </button>
+                <button name="action_view_primetech_receipts" type="object" class="oe_stat_button"
+                        icon="fa-truck" invisible="primetech_receipt_count == 0">
+                    <field name="primetech_receipt_count" widget="statinfo" string="Réceptions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

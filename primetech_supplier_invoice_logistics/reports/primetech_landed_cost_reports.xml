@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_primetech_landed_cost" model="ir.actions.report">
+        <field name="name">Coût logistique</field>
+        <field name="model">stock.landed.cost</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_supplier_invoice_logistics.report_primetech_landed_cost_document</field>
+        <field name="report_file">primetech_supplier_invoice_logistics.report_primetech_landed_cost_document</field>
+        <field name="binding_model_id" ref="stock_landed_costs.model_stock_landed_cost"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Cout_logistique_%s' % (object.name or '')</field>
+    </record>
+
+    <template id="report_primetech_landed_cost_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Calibri, 'Carlito', Arial, sans-serif; color: #172b4d; font-size: 11px; line-height: 1.4; letter-spacing: 0.28px; margin-top: 0; padding-top: 0;">
+                        <div style="border-bottom: 3px solid #0b63b6; padding-bottom: 10px; margin-bottom: 16px;">
+                            <div class="row">
+                                <div class="col-8">
+                                    <h2 style="margin: 0; color: #0b63b6; font-weight: 700;">FICHE DE COÛTS LOGISTIQUES</h2>
+                                    <div style="color: #64748b; margin-top: 4px;">Répartition et valorisation des frais d'approche</div>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <div style="font-size: 15px; font-weight: 700; color: #0f3f76;" t-field="doc.name"/>
+                                    <div t-field="doc.date"/>
+                                    <span t-if="doc.state == 'done'" style="display:inline-block; margin-top:5px; padding:3px 9px; border-radius:10px; background:#dcfce7; color:#157f3d; font-weight:700;">VALIDÉ</span>
+                                    <span t-if="doc.state != 'done'" style="display:inline-block; margin-top:5px; padding:3px 9px; border-radius:10px; background:#fef3c7; color:#a16207; font-weight:700;">BROUILLON</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-bottom: 14px;">
+                            <div class="col-6">
+                                <div style="background:#f0f6ff; border-left:4px solid #0b63b6; padding:9px 11px; min-height:72px;">
+                                    <div style="font-size:9px; color:#64748b; text-transform:uppercase; font-weight:700;">Facture fournisseur liée</div>
+                                    <div t-if="doc.vendor_bill_id" style="font-size:13px; font-weight:700; margin-top:4px;" t-field="doc.vendor_bill_id.name"/>
+                                    <div t-if="doc.vendor_bill_id.partner_id" t-field="doc.vendor_bill_id.partner_id.name"/>
+                                    <div t-if="not doc.vendor_bill_id" style="margin-top:6px; color:#64748b;">Aucune facture fournisseur liée</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background:#f0fdf9; border-left:4px solid #10b981; padding:9px 11px; min-height:72px;">
+                                    <div style="font-size:9px; color:#64748b; text-transform:uppercase; font-weight:700;">Journal et total à répartir</div>
+                                    <div style="margin-top:4px;"><span t-field="doc.account_journal_id.name"/> · <strong t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></div>
+                                    <div style="color:#64748b; margin-top:4px;" t-field="doc.description"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="color:#0f3f76; margin:12px 0 6px;">Réceptions concernées</h4>
+                        <table class="table table-sm" style="width:100%; border-collapse:collapse; margin-bottom:14px;">
+                            <thead><tr style="background:#0b63b6; color:#ffffff; font-weight:700;"><th style="padding:6px; color:#ffffff; font-weight:700;">Référence</th><th style="padding:6px; color:#ffffff; font-weight:700;">Origine</th><th style="padding:6px; color:#ffffff; font-weight:700;">Partenaire</th><th style="padding:6px; color:#ffffff; font-weight:700;">Date de validation</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="doc.picking_ids" t-as="picking" style="border-bottom:1px solid #dbe7f5;">
+                                    <td style="padding:6px; font-weight:700;"><span t-field="picking.name"/></td>
+                                    <td style="padding:6px;"><span t-field="picking.origin"/></td>
+                                    <td style="padding:6px;"><span t-field="picking.partner_id.name"/></td>
+                                    <td style="padding:6px;"><span t-field="picking.date_done"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="color:#0f3f76; margin:12px 0 6px;">Frais à répartir</h4>
+                        <table class="table table-sm" style="width:100%; border-collapse:collapse; margin-bottom:14px;">
+                            <thead><tr style="background:#0b63b6; color:#ffffff; font-weight:700;"><th style="padding:6px; color:#ffffff; font-weight:700;">Libellé</th><th style="padding:6px; color:#ffffff; font-weight:700;">Méthode de répartition</th><th style="padding:6px; text-align:right; color:#ffffff; font-weight:700;">Montant</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="doc.cost_lines" t-as="line" style="border-bottom:1px solid #dbe7f5;">
+                                    <td style="padding:6px;"><span t-field="line.product_id.display_name"/><span t-if="not line.product_id" t-field="line.name"/></td>
+                                    <td style="padding:6px;"><span t-field="line.split_method"/></td>
+                                    <td style="padding:6px; text-align:right; font-weight:700;"><span t-field="line.price_unit" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="color:#0f3f76; margin:12px 0 6px;">Répartition par article</h4>
+                        <table class="table table-sm" style="width:100%; border-collapse:collapse;">
+                            <thead><tr style="background:#0b63b6; color:#ffffff; font-weight:700;"><th style="padding:6px; color:#ffffff; font-weight:700;">Article</th><th style="padding:6px; color:#ffffff; font-weight:700;">Réception</th><th style="padding:6px; color:#ffffff; font-weight:700;">Frais logistique concerné</th><th style="padding:6px; text-align:right; color:#ffffff; font-weight:700;">Qté</th><th style="padding:6px; text-align:right; color:#ffffff; font-weight:700;">Coût initial</th><th style="padding:6px; text-align:right; color:#ffffff; font-weight:700;">Part répartie</th><th style="padding:6px; text-align:right; color:#ffffff; font-weight:700;">Coût final</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="doc.valuation_adjustment_lines" t-as="line" style="border-bottom:1px solid #dbe7f5;">
+                                    <td style="padding:6px;"><span t-field="line.product_id.display_name"/></td>
+                                    <td style="padding:6px;"><span t-field="line.move_id.picking_id.name"/></td>
+                                    <td style="padding:6px;"><span t-field="line.cost_line_id.product_id.display_name"/><span t-if="not line.cost_line_id.product_id" t-field="line.cost_line_id.name"/></td>
+                                    <td style="padding:6px; text-align:right;"><span t-field="line.quantity"/></td>
+                                    <td style="padding:6px; text-align:right;"><span t-field="line.former_cost" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                                    <td style="padding:6px; text-align:right; color:#0b63b6; font-weight:700;"><span t-field="line.additional_landed_cost" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                                    <td style="padding:6px; text-align:right; font-weight:700;"><span t-field="line.final_cost" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                                </tr>
+                            </tbody>
+                            <tfoot><tr style="background:#e8f1fb;"><td colspan="5" style="padding:7px; text-align:right; font-weight:700;">TOTAL COÛTS LOGISTIQUES</td><td colspan="2" style="padding:7px; text-align:right; font-weight:700; color:#0b63b6;"><span t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td></tr></tfoot>
+                        </table>
+
+                        <div class="row" style="margin-top:34px; text-align:center; font-size:10px; font-weight:700; color:#0f3f76;">
+                            <div class="col-4"><div style="border-top:1px solid #94a3b8; padding-top:7px; margin:0 12px;">ÉTABLI PAR</div></div>
+                            <div class="col-4"><div style="border-top:1px solid #94a3b8; padding-top:7px; margin:0 12px;">RESPONSABLE LOGISTIQUE</div></div>
+                            <div class="col-4"><div style="border-top:1px solid #94a3b8; padding-top:7px; margin:0 12px;">DIRECTION / VALIDATION</div></div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

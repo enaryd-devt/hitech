@@ -7,3 +7,4 @@ from . import ir_actions_report
 from . import product_category
 from . import product_sale_history
 from . import stock_picking
+from . import stock_landed_cost

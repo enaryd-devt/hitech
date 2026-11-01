@@ -2,11 +2,11 @@
 {
     "name": "Primetech - Facturation logistique, réceptions et livraisons",
     "summary": "Factures, coûts logistiques, réceptions, livraisons, retours et avoirs liés",
-    "version": "18.0.1.1.45",
+    "version": "18.0.1.1.46",
     "category": "Accounting/Inventory",
     "author": "Primetech",
     "license": "LGPL-3",
-    "depends": ["account", "stock", "sale", "purchase", "point_of_sale", "om_account_asset"],
+    "depends": ["account", "stock", "stock_landed_costs", "sale", "purchase", "point_of_sale", "om_account_asset"],
     "data": [
         "security/primetech_supplier_invoice_groups.xml",
         "security/ir.model.access.csv",
@@ -15,6 +15,8 @@
         "views/account_move_views.xml",
         "views/account_payment_views.xml",
         "views/stock_picking_views.xml",
+        "views/stock_landed_cost_views.xml",
+        "reports/primetech_landed_cost_reports.xml",
         "reports/primetech_invoice_reports.xml",
         "reports/primetech_payment_receipt_reports.xml",
         "reports/primetech_picking_reports.xml",

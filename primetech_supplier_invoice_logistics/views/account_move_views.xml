@@ -147,6 +147,17 @@
             </xpath>
             <!-- Complete the native supplier-bill header on the left. -->
             <xpath expr="//group[@id='header_left_group']/field[@name='ref'][1]" position="after">
+                <label for="purchase_vendor_bill_id" string="Saisie automatique"
+                       invisible="state != 'draft' or move_type != 'in_invoice'"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_user,primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="purchase_vendor_bill_id" nolabel="1"
+                       invisible="state != 'draft' or move_type != 'in_invoice'"
+                       readonly="state != 'draft'"
+                       domain="partner_id and [('partner_id.commercial_partner_id', '=', commercial_partner_id)] or []"
+                       placeholder="Sélectionner un bon de commande ou une ancienne facture"
+                       context="{'show_total_amount': True}"
+                       options="{'no_create': True, 'no_open': True}"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_user,primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="payment_reference" string="Référence du paiement"
                        invisible="move_type != 'in_invoice'" readonly="inalterable_hash != False"/>
                 <field name="preferred_payment_method_line_id" string="Mode de paiement"
@@ -156,16 +167,16 @@
                        domain="[('partner_id', '=', bank_partner_id)]"
                        invisible="move_type != 'in_invoice'" readonly="is_move_sent and state != 'draft'"/>
                 <field name="primetech_weight_rate" string="Taux poids"
-                       widget="monetary" options="{'currency_field': 'company_currency_id'}"
-                       invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
+                        widget="monetary" options="{'currency_field': 'company_currency_id'}"
+                        invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
                 <field name="primetech_volume_rate" string="Taux volume"
-                       widget="monetary" options="{'currency_field': 'company_currency_id'}"
-                       invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
+                        widget="monetary" options="{'currency_field': 'company_currency_id'}"
+                        invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
                 <field name="primetech_additional_logistic_cost" string="Coûts additionnels"
-                       invisible="move_type != 'in_invoice'" readonly="state != 'draft'"
+                        invisible="1" readonly="state != 'draft'"
                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_additional_cost_distribution" string="Répartition des coûts"
-                       invisible="move_type != 'in_invoice' or not primetech_additional_logistic_cost"
+                        invisible="1"
                        readonly="state != 'draft'"
                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
             </xpath>
@@ -301,7 +312,7 @@
                        widget="monetary" options="{'currency_field': 'company_currency_id', 'field_digits': True}"
                        digits="[16, 3]" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_real_price" string="Prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_additional_logistic_cost" string="Coût additionnel réparti" readonly="1" optional="show"
+                <field name="primetech_additional_logistic_cost" string="Coûts logistiques" readonly="1" optional="show"
                        column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"
                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_weight_cost" string="Constante de poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
@@ -357,6 +368,66 @@
                     <field name="primetech_total_units" string="Total unités" readonly="1" digits="[16,0]"/>
                     <field name="primetech_total_cost" string="Coût total" readonly="1"/>
                 </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_move_form_primetech_landed_costs" model="ir.ui.view">
+        <field name="name">account.move.form.primetech.landed.costs</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[1]" position="before">
+                <button name="action_primetech_create_landed_cost" type="object"
+                        string="Créer les coûts logistiques" icon="fa-truck"
+                        class="oe_highlight"
+                        invisible="move_type != 'in_invoice' or state != 'posted' or primetech_landed_cost_count &gt; 0"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_primetech_landed_costs" type="object"
+                        class="oe_stat_button" icon="fa-truck"
+                        invisible="move_type != 'in_invoice' or primetech_landed_cost_count == 0"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator">
+                    <field name="primetech_landed_cost_count" widget="statinfo" string="Coûts logistiques"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_move_form_primetech_single_landed_cost_button" model="ir.ui.view">
+        <field name="name">account.move.form.primetech.single.landed.cost.button</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="stock_landed_costs.account_view_move_form_inherited"/>
+        <field name="arch" type="xml">
+            <!-- Le smart bouton Primetech est l'unique point d'accès : il
+                 regroupe les coûts liés aux réceptions de la facture. -->
+            <xpath expr="//button[@name='action_view_landed_costs']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_create_landed_costs']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_move_form_primetech_hide_purchase_matching" model="ir.ui.view">
+        <field name="name">account.move.form.primetech.hide.purchase.matching</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="purchase.view_move_form_inherit_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_purchase_matching']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_move_form_primetech_single_auto_entry" model="ir.ui.view">
+        <field name="name">account.move.form.primetech.single.auto.entry</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="purchase.view_move_form_inherit_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='purchase_vendor_bill_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='purchase_vendor_bill_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

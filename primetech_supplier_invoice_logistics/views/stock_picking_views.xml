@@ -21,6 +21,11 @@
                 <button name="action_view_primetech_return_invoices" type="object" class="oe_stat_button" icon="fa-undo" invisible="primetech_return_invoice_count == 0">
                     <field name="primetech_return_invoice_count" widget="statinfo" string="Avoirs"/>
                 </button>
+                <button name="action_view_primetech_landed_costs" type="object" class="oe_stat_button" icon="fa-truck"
+                        invisible="picking_type_code != 'incoming' or primetech_landed_cost_count == 0"
+                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator">
+                    <field name="primetech_landed_cost_count" widget="statinfo" string="Coûts logistiques"/>
+                </button>
             </xpath>
         </field>
     </record>

@@ -309,7 +309,7 @@ class AccountMove(models.Model):
         string="Méthode de répartition", default="equal", required=True,
     )
     primetech_total_additional_logistic_cost = fields.Monetary(
-        string="Total coûts additionnels", compute="_compute_primetech_total_additional_cost",
+        string="Total coûts logistiques", compute="_compute_primetech_total_additional_cost",
         currency_field="company_currency_id", readonly=True,
     )
     primetech_exchange_rate = fields.Float(
@@ -375,6 +375,72 @@ class AccountMove(models.Model):
     primetech_credit_note_count = fields.Integer(
         compute="_compute_primetech_credit_note_count", string="Avoirs",
     )
+    primetech_landed_cost_count = fields.Integer(
+        string="Coûts logistiques", compute="_compute_primetech_landed_cost_count",
+    )
+
+    def _compute_primetech_landed_cost_count(self):
+        LandedCost = self.env["stock.landed.cost"]
+        for move in self:
+            if move.move_type not in ("in_invoice", "in_refund"):
+                move.primetech_landed_cost_count = 0
+                continue
+            receipt_ids = move.primetech_receipt_picking_ids.filtered(
+                lambda picking: picking.picking_type_code == "incoming"
+            ).ids
+            move.primetech_landed_cost_count = LandedCost.search_count(
+                [("picking_ids", "in", receipt_ids)]
+            ) if receipt_ids else 0
+
+    def action_primetech_create_landed_cost(self):
+        self.ensure_one()
+        if self.move_type != "in_invoice":
+            raise UserError(_("Cette action est réservée aux factures fournisseurs."))
+        if not self.env.user.has_group(
+            "primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"
+        ):
+            raise AccessError(_("Seul le responsable peut créer les coûts logistiques."))
+        pickings = self.primetech_receipt_picking_ids.filtered(
+            lambda picking: picking.picking_type_code == "incoming" and picking.state == "done"
+        )
+        if not pickings:
+            raise UserError(_(
+                "Aucune réception validée n'est liée à cette facture. Validez d'abord le bon de réception."
+            ))
+        landed_cost = self.env["stock.landed.cost"].create({
+            "vendor_bill_id": self.id,
+            "picking_ids": [(6, 0, pickings.ids)],
+            "target_model": "picking",
+            "date": self.invoice_date or fields.Date.context_today(self),
+            "description": _("Coûts logistiques de la facture %s") % (self.name or self.ref or ""),
+            "company_id": self.company_id.id,
+        })
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "stock.landed.cost",
+            "res_id": landed_cost.id,
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "current",
+        }
+
+    def action_view_primetech_landed_costs(self):
+        self.ensure_one()
+        receipt_ids = self.primetech_receipt_picking_ids.filtered(
+            lambda picking: picking.picking_type_code == "incoming"
+        ).ids
+        costs = self.env["stock.landed.cost"].search(
+            [("picking_ids", "in", receipt_ids)]
+        ) if receipt_ids else self.env["stock.landed.cost"]
+        if len(costs) == 1:
+            return {
+                "type": "ir.actions.act_window", "res_model": "stock.landed.cost",
+                "res_id": costs.id, "view_mode": "form", "views": [(False, "form")],
+            }
+        action = self.env["ir.actions.actions"]._for_xml_id("stock_landed_costs.action_stock_landed_cost")
+        action["domain"] = [("id", "in", costs.ids)]
+        action["context"] = {"default_vendor_bill_id": self.id}
+        return action
 
     def _primetech_supplier_product_lines(self):
         """Lignes d'article éligibles à la répartition des frais."""
@@ -417,10 +483,17 @@ class AccountMove(models.Model):
             numerator = self._primetech_additional_cost_weight(line, lines)
         return self.company_currency_id.round(amount * numerator / denominator)
 
-    @api.depends("primetech_additional_logistic_cost")
     def _compute_primetech_total_additional_cost(self):
+        LandedCost = self.env["stock.landed.cost"]
         for move in self:
-            move.primetech_total_additional_logistic_cost = move.primetech_additional_logistic_cost or 0.0
+            receipt_ids = move.primetech_receipt_picking_ids.filtered(
+                lambda picking: picking.picking_type_code == "incoming"
+            ).ids
+            costs = LandedCost.search([
+                ("picking_ids", "in", receipt_ids),
+                ("state", "=", "done"),
+            ]) if receipt_ids else LandedCost
+            move.primetech_total_additional_logistic_cost = sum(costs.mapped("amount_total"))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -1650,8 +1723,8 @@ class AccountMoveLine(models.Model):
     )
     primetech_additional_logistic_cost = fields.Monetary(
         string="Coût additionnel réparti", compute="_compute_primetech_additional_logistic_cost",
-        store=True, currency_field="company_currency_id", readonly=True,
-        help="Part des coûts logistiques additionnels attribuée à cette ligne.",
+        currency_field="company_currency_id", readonly=True,
+        help="Part des coûts logistiques standard Odoo attribuée à cette ligne.",
     )
     primetech_cost_by_weight = fields.Monetary(
         string="CR.poids", compute="_compute_primetech_logistics", store=True, currency_field="company_currency_id",
@@ -1723,12 +1796,56 @@ class AccountMoveLine(models.Model):
         "move_id.move_type",
     )
     def _compute_primetech_additional_logistic_cost(self):
+        LandedCost = self.env["stock.landed.cost"]
+        result = {line.id: 0.0 for line in self}
+        invoices = self.mapped("move_id").filtered(
+            lambda move: move.move_type in ("in_invoice", "in_refund")
+        )
+        for invoice in invoices:
+            invoice_lines = invoice.invoice_line_ids.filtered(
+                lambda line: line.product_id and line.display_type in (False, "product")
+            ).sorted(key=lambda line: (line.sequence, line.id))
+            receipt_moves = invoice.primetech_receipt_picking_ids.filtered(
+                lambda picking: picking.picking_type_code == "incoming"
+            ).move_ids.filtered(lambda stock_move: stock_move.state != "cancel" and stock_move.quantity)
+            costs = LandedCost.search([
+                ("picking_ids", "in", receipt_moves.picking_id.ids),
+                ("state", "=", "done"),
+            ]) if receipt_moves else LandedCost
+            valuation_by_move = {}
+            for valuation in costs.mapped("valuation_adjustment_lines").filtered(
+                lambda valuation: valuation.move_id in receipt_moves
+            ):
+                valuation_by_move[valuation.move_id.id] = (
+                    valuation_by_move.get(valuation.move_id.id, 0.0)
+                    + valuation.additional_landed_cost
+                )
+
+            # Les mouvements de réception sont créés depuis les lignes de la
+            # facture. On consomme leurs quantités dans l'ordre : chaque ligne
+            # reçoit ainsi exactement les ajustements calculés par le LC et sa
+            # méthode de répartition Odoo (quantité, poids, volume, valeur…).
+            moves_by_product = {}
+            for stock_move in receipt_moves.sorted(key=lambda item: item.id):
+                moves_by_product.setdefault(stock_move.product_id.id, []).append([
+                    stock_move.quantity, valuation_by_move.get(stock_move.id, 0.0)
+                ])
+            for invoice_line in invoice_lines:
+                quantity_left = invoice_line.quantity or 0.0
+                allocated = 0.0
+                for allocation in moves_by_product.get(invoice_line.product_id.id, []):
+                    move_quantity, move_cost = allocation
+                    if quantity_left <= 0.0 or move_quantity <= 0.0:
+                        continue
+                    consumed_quantity = min(quantity_left, move_quantity)
+                    allocated += move_cost * consumed_quantity / move_quantity
+                    allocation[0] -= consumed_quantity
+                    allocation[1] -= move_cost * consumed_quantity / move_quantity
+                    quantity_left -= consumed_quantity
+                result[invoice_line.id] = invoice.company_currency_id.round(allocated)
+
         for line in self:
-            move = line.move_id
-            if move and move.move_type in ("in_invoice", "in_refund"):
-                line.primetech_additional_logistic_cost = move._primetech_additional_cost_share(line)
-            else:
-                line.primetech_additional_logistic_cost = 0.0
+            line.primetech_additional_logistic_cost = result.get(line.id, 0.0)
 
     @api.depends(
         "product_id", "quantity", "price_unit", "primetech_constant_cost",

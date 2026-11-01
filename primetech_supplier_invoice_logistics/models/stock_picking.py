@@ -80,6 +80,9 @@ class StockPicking(models.Model):
     primetech_return_invoice_count = fields.Integer(
         compute="_compute_primetech_return_invoice_count", string="Avoirs",
     )
+    primetech_landed_cost_count = fields.Integer(
+        compute="_compute_primetech_landed_cost_count", string="Coûts logistiques",
+    )
 
     def _compute_primetech_supplier_invoice_count(self):
         for picking in self:
@@ -92,6 +95,24 @@ class StockPicking(models.Model):
     def _compute_primetech_return_invoice_count(self):
         for picking in self:
             picking.primetech_return_invoice_count = len(picking.primetech_return_invoice_ids)
+
+    def _compute_primetech_landed_cost_count(self):
+        LandedCost = self.env["stock.landed.cost"]
+        for picking in self:
+            picking.primetech_landed_cost_count = LandedCost.search_count([("picking_ids", "in", picking.ids)])
+
+    def action_view_primetech_landed_costs(self):
+        self.ensure_one()
+        costs = self.env["stock.landed.cost"].search([("picking_ids", "in", self.ids)])
+        if len(costs) == 1:
+            return {
+                "type": "ir.actions.act_window", "res_model": "stock.landed.cost",
+                "res_id": costs.id, "view_mode": "form", "views": [(False, "form")],
+            }
+        action = self.env["ir.actions.actions"]._for_xml_id("stock_landed_costs.action_stock_landed_cost")
+        action["domain"] = [("id", "in", costs.ids)]
+        action["context"] = {"default_picking_ids": [(6, 0, self.ids)]}
+        return action
 
     def unlink(self):
         if self.filtered(lambda picking: (
