@@ -89,9 +89,7 @@
         <div t-attf-class="header o_company_#{company.id}_layout pt-hitech-report-header">
             <!-- Les en-têtes PDF sont rendus dans un document wkhtmltopdf distinct :
                  le style est donc porté directement par l'image pour éviter tout rognage. -->
-            <img src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_header.jpeg"
-                 alt="High-Tech DZ SARL"
-                 style="display:block !important; width:257mm !important; max-width:257mm !important; height:auto !important; margin:0 !important;"/>
+            <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_image_header"/>
         </div>
         <div t-attf-class="article o_company_#{company.id}_layout pt-hitech-report-article"
              t-att-data-oe-model="o and o._name"
@@ -102,6 +100,12 @@
         <div t-attf-class="footer o_company_#{company.id}_layout pt-hitech-report-footer {{report_type != 'pdf' and 'mt-auto'}}">
             <img src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_footer.jpeg" alt=""/>
         </div>
+    </template>
+
+    <template id="report_primetech_hitech_image_header">
+        <img src="/primetech_supplier_invoice_logistics/static/src/img/hitech_document_header.jpeg"
+             alt="High-Tech DZ SARL"
+             style="display:block !important; width:257mm !important; max-width:257mm !important; height:auto !important; margin:0 !important;"/>
     </template>
 
     <template id="report_primetech_hitech_header">
@@ -160,12 +164,21 @@
     <template id="report_primetech_hitech_external_layout_striped" inherit_id="web.external_layout_striped">
         <xpath expr="//div[contains(@t-attf-class, 'header')]" position="replace">
             <div t-attf-class="o_company_#{company.id}_layout header">
-                <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_header"/>
+                <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_image_header"/>
             </div>
         </xpath>
         <xpath expr="//div[contains(@t-attf-class, 'footer')]" position="replace">
             <div t-attf-class="footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}">
                 <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_footer"/>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Fallback layout used by documents when no company layout is selected. -->
+    <template id="report_primetech_hitech_external_layout_standard" inherit_id="web.external_layout_standard">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]" position="replace">
+            <div t-attf-class="header o_company_#{company.id}_layout pt-hitech-report-header">
+                <t t-call="primetech_supplier_invoice_logistics.report_primetech_hitech_image_header"/>
             </div>
         </xpath>
     </template>

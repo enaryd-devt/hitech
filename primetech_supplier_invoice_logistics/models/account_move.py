@@ -428,7 +428,10 @@ class AccountMove(models.Model):
     )
 
     def _compute_primetech_landed_cost_count(self):
-        LandedCost = self.env["stock.landed.cost"]
+        # These counters can be evaluated while a POS user creates the
+        # accounting entry.  Reading a landed cost must not require that user
+        # to be an inventory manager; its dedicated actions remain restricted.
+        LandedCost = self.env["stock.landed.cost"].sudo()
         for move in self:
             if move.move_type not in ("in_invoice", "in_refund"):
                 move.primetech_landed_cost_count = 0
@@ -525,7 +528,7 @@ class AccountMove(models.Model):
         return self.company_currency_id.round(amount * numerator / denominator)
 
     def _compute_primetech_total_additional_cost(self):
-        LandedCost = self.env["stock.landed.cost"]
+        LandedCost = self.env["stock.landed.cost"].sudo()
         for move in self:
             costs = LandedCost.search([
                 ("vendor_bill_id", "=", move.id), ("state", "=", "done"),
@@ -1831,6 +1834,8 @@ class AccountMoveLine(models.Model):
             # start from the product card but deliberately remain editable.
             line.primetech_weight = line.product_id.weight or 0.0
             line.primetech_volume = line.product_id.volume or 0.0
+            if not line._origin.id:
+                line.primetech_final_sale_price = line.product_id.lst_price or 0.0
             previous = line._primetech_get_last_supplier_line()
             if previous:
                 line.price_unit = line._primetech_last_supplier_price_in_invoice_currency(previous)
@@ -1879,12 +1884,34 @@ class AccountMoveLine(models.Model):
             if product:
                 vals.setdefault("primetech_weight", product.weight or 0.0)
                 vals.setdefault("primetech_volume", product.volume or 0.0)
+                vals.setdefault("primetech_final_sale_price", product.lst_price or 0.0)
         lines = super().create(vals_list)
+        # A final selling price supplied while a supplier bill line is created
+        # must be reflected in the product card as well.  The regular screen
+        # flow creates the line first and writes this value afterwards, but
+        # imports and API clients can provide it directly at creation time.
+        if any(
+            {"primetech_final_sale_price", "primetech_final_sale_price_manual",
+             "primetech_final_sale_price_is_manual"}.intersection(vals)
+            for vals in vals_list
+        ):
+            lines._primetech_sync_final_sale_price_to_product()
         return lines
 
     def write(self, vals):
         vals = dict(vals)
+        # A computed field with an inverse can be recalculated by another
+        # onchange in the same web-client save.  Retain the value explicitly
+        # supplied by the user and persist its manual flag after that write.
+        # This makes the override deterministic for inline invoice grids.
+        final_sale_price = vals.get("primetech_final_sale_price")
+        final_sale_price_edited = "primetech_final_sale_price" in vals
         result = super().write(vals)
+        if final_sale_price_edited:
+            super(AccountMoveLine, self).write({
+                "primetech_final_sale_price_manual": final_sale_price or 0.0,
+                "primetech_final_sale_price_is_manual": True,
+            })
         if "product_id" in vals and not {"primetech_weight", "primetech_volume"}.intersection(vals):
             for line in self.filtered(lambda item: item.product_id):
                 # Directly update the snapshots after an article change.  This
@@ -1893,7 +1920,33 @@ class AccountMoveLine(models.Model):
                     "primetech_weight": line.product_id.weight or 0.0,
                     "primetech_volume": line.product_id.volume or 0.0,
                 })
+        if final_sale_price_edited or {
+            "primetech_final_sale_price",
+            "primetech_final_sale_price_manual",
+            "primetech_final_sale_price_is_manual",
+        }.intersection(vals):
+            self._primetech_sync_final_sale_price_to_product()
         return result
+
+    def _primetech_sync_final_sale_price_to_product(self):
+        """Persist an edited final sale price on the related product.
+
+        This intentionally runs only after ``create``/``write`` succeeds, so
+        an onchange or an abandoned invoice cannot change the catalogue.  The
+        field itself is limited in the view to the logistics administrators;
+        sudo only avoids a missing product-write permission preventing the
+        supplier bill from being saved for such an authorised user.
+        """
+        for line in self:
+            if (
+                line.move_id.move_type != "in_invoice"
+                or not line.product_id
+                or line.primetech_final_sale_price <= 0
+            ):
+                continue
+            line.product_id.with_company(line.company_id).sudo().write({
+                "lst_price": line.primetech_final_sale_price,
+            })
 
     def unlink(self):
         return super().unlink()
@@ -1989,8 +2042,7 @@ class AccountMoveLine(models.Model):
     primetech_final_cost_manual = fields.Monetary(currency_field="company_currency_id", copy=False)
     primetech_final_cost_is_manual = fields.Boolean(copy=False)
     primetech_final_sale_price = fields.Monetary(
-        string="Prix V Final", compute="_compute_primetech_logistics",
-        inverse="_inverse_primetech_final_sale_price", store=True, currency_field="company_currency_id",
+        string="Prix V Final", default=0.0, currency_field="company_currency_id",
     )
     primetech_final_sale_price_manual = fields.Monetary(currency_field="company_currency_id", copy=False)
     primetech_final_sale_price_is_manual = fields.Boolean(copy=False)
@@ -2041,7 +2093,10 @@ class AccountMoveLine(models.Model):
         "move_id.move_type",
     )
     def _compute_primetech_additional_logistic_cost(self):
-        LandedCost = self.env["stock.landed.cost"]
+        # Computed logistics values are also needed by POS-created invoices.
+        # Use sudo for this read-only allocation; no landed-cost management
+        # permission is thereby granted to the current user.
+        LandedCost = self.env["stock.landed.cost"].sudo()
         result = {line.id: 0.0 for line in self}
         invoices = self.mapped("move_id").filtered(
             lambda move: move.move_type in ("in_invoice", "in_refund")
@@ -2053,7 +2108,12 @@ class AccountMoveLine(models.Model):
             # onchange.  NewId objects cannot be compared with one another,
             # so use the persisted id when it exists; for unsaved lines the
             # recordset's insertion order remains the tie-breaker.
-            ).sorted(key=lambda line: (line.sequence, line._origin.id or 0))
+            ).sorted(
+                key=lambda line: (
+                    line.sequence,
+                    line._origin.id if isinstance(line._origin.id, int) else 0,
+                )
+            )
             # Draft landed costs are linked directly to the supplier bill,
             # before its receipt exists.  Allocate their validated amount on
             # the bill's own products, quantities and supplier prices.
@@ -2112,7 +2172,13 @@ class AccountMoveLine(models.Model):
             # reçoit ainsi exactement les ajustements calculés par le LC et sa
             # méthode de répartition Odoo (quantité, poids, volume, valeur…).
             moves_by_product = {}
-            for stock_move in receipt_moves.sorted(key=lambda item: item.id):
+            # An onchange may contain unsaved receipt moves. Their ``id`` is
+            # an Odoo ``NewId``, which cannot be compared with another
+            # ``NewId``. Keep the insertion order for those temporary moves
+            # while retaining the deterministic order of persisted ones.
+            for stock_move in receipt_moves.sorted(
+                key=lambda item: item.id if isinstance(item.id, int) else 0
+            ):
                 moves_by_product.setdefault(stock_move.product_id.id, []).append([
                     stock_move.quantity, valuation_by_move.get(stock_move.id, 0.0)
                 ])
@@ -2246,13 +2312,7 @@ class AccountMoveLine(models.Model):
             )
             line.primetech_sale_price_by_weight = line.primetech_cost_by_weight * air_sale_factor
             line.primetech_sale_price_by_volume = line.primetech_cost_by_volume * sea_sale_factor
-            # "Prix V Final" starts with the last approved selling price on
-            # the product card. The user can override it for this bill; once
-            # posted, action_post writes the chosen value back to the product
-            # card, which becomes the default on the next supplier bill.
-            line.primetech_final_sale_price = (
-                line.primetech_final_sale_price_manual
-                if line.primetech_final_sale_price_is_manual
-                else (product.lst_price if product else 0.0)
-            )
+            # This is an auditable value entered on the supplier bill.  The
+            # product price is only proposed when the row is created; a
+            # logistics recomputation must never replace a saved user entry.
             line.primetech_last_final_sale_price = product.lst_price if product else 0.0

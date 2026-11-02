@@ -346,7 +346,12 @@
                 <field name="primetech_sale_price_by_weight" string="Prix de vente par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_sale_price_by_volume" string="Prix de vente par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_last_final_sale_price" string="Dernier prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_final_sale_price" string="Prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_final_sale_price" string="Prix de vente final" optional="show" force_save="1" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <!-- Keep the manual override when the invoice line is saved.
+                     Without these fields the web client may discard the
+                     inverse values after an inline-list onchange. -->
+                <field name="primetech_final_sale_price_manual" column_invisible="1" force_save="1"/>
+                <field name="primetech_final_sale_price_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_weight_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_weight_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_weight" string="Poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
