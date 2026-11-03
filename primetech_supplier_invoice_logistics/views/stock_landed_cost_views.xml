@@ -27,6 +27,9 @@
             <xpath expr="//field[@name='account_journal_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//field[@name='valuation_adjustment_lines']/list/field[@name='additional_landed_cost']" position="after">
+                <field name="primetech_unit_landed_cost" string="Coût unitaire réparti" readonly="1"/>
+            </xpath>
             <xpath expr="//header/button[1]" position="before">
                 <button name="action_print_primetech_landed_cost" type="object"
                         string="Imprimer" icon="fa-print" class="btn-secondary"

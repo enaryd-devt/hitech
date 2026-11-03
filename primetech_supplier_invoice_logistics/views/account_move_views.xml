@@ -179,17 +179,6 @@
                        context="{'default_partner_id': bank_partner_id, 'display_account_trust': True}"
                        domain="[('partner_id', '=', bank_partner_id)]"
                        invisible="move_type != 'in_invoice'" readonly="is_move_sent and state != 'draft'"/>
-                <field name="primetech_weight_rate" string="Taux poids"
-                        widget="monetary" options="{'currency_field': 'company_currency_id'}"
-                        min="0"
-                        invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
-                <field name="primetech_volume_rate" string="Taux volume"
-                        widget="monetary" options="{'currency_field': 'company_currency_id'}"
-                        min="0"
-                        invisible="move_type != 'in_invoice'" readonly="state != 'draft'"/>
-                <field name="primetech_calculation_basis"
-                       invisible="move_type != 'in_invoice' or (primetech_weight_rate == 0 and primetech_volume_rate == 0)"
-                       readonly="state != 'draft'"/>
                 <field name="primetech_additional_logistic_cost" string="Coûts additionnels"
                         invisible="1" readonly="state != 'draft'"
                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
@@ -327,16 +316,12 @@
                        widget="monetary" options="{'currency_field': 'company_currency_id', 'field_digits': True}"
                        digits="[16, 3]" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_real_price" string="Prix réel" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_additional_logistic_cost" string="Coûts logistiques" readonly="1" optional="show"
+                <field name="primetech_additional_logistic_cost" string="Coût logistique unitaire" readonly="1" optional="show"
                        column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"
                        groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_weight_cost" string="Constante de poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_volume_cost" string="Constante de volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_cost_by_weight" string="Coût de revient par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_cost_by_volume" string="Coût de revient par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_last_final_purchase_cost" string="Dernier coût d’achat final" readonly="1" optional="show"
                        column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_final_cost" string="Coût de revient final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_final_cost" string="Coût de revient final" readonly="1" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_sale_cost" string="Coût" widget="monetary"
                        options="{'currency_field': 'currency_id'}" readonly="1"
                        column_invisible="parent.move_type not in ('out_invoice', 'out_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>

@@ -8,3 +8,4 @@ from . import product_category
 from . import product_sale_history
 from . import stock_picking
 from . import stock_landed_cost
+from . import stock_valuation_adjustment_line

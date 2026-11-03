@@ -867,6 +867,43 @@ class AccountMove(models.Model):
             if rate > 0:
                 move.invoice_currency_rate = rate
 
+    @api.onchange("currency_id")
+    def _onchange_primetech_convert_invoice_currency(self):
+        """Keep a draft invoice economically identical when its currency changes.
+
+        Odoo changes the currency label but does not convert manually entered
+        unit prices.  Convert each draft line from its previous currency to
+        the newly selected one, then recompute taxes and totals.
+        """
+        for move in self:
+            previous_currency = move._origin.currency_id
+            new_currency = move.currency_id
+            if (
+                move.state != "draft"
+                or not previous_currency
+                or not new_currency
+                or previous_currency == new_currency
+            ):
+                continue
+            conversion_date = move.invoice_date or move.date or fields.Date.context_today(move)
+            for line in move.invoice_line_ids.filtered(lambda item: not item.display_type):
+                line.price_unit = previous_currency._convert(
+                    line.price_unit or 0.0,
+                    new_currency,
+                    move.company_id,
+                    conversion_date,
+                )
+            if move.primetech_apply_discount and move.primetech_discount_type == "fixed":
+                move.primetech_discount_value = previous_currency._convert(
+                    move.primetech_discount_value or 0.0,
+                    new_currency,
+                    move.company_id,
+                    conversion_date,
+                )
+            # In Odoo 18, taxes and totals are dependency-based computed
+            # fields; assigning the line prices above triggers their normal
+            # onchange recomputation without the removed dynamic-lines API.
+
     def action_post(self):
         restricted_moves = self.filtered(
             lambda move: move.move_type == "in_invoice"
@@ -2020,9 +2057,9 @@ class AccountMoveLine(models.Model):
         string="Constante", default=0.0, currency_field="company_currency_id",
     )
     primetech_additional_logistic_cost = fields.Monetary(
-        string="Coût additionnel réparti", compute="_compute_primetech_additional_logistic_cost",
+        string="Coût logistique unitaire", compute="_compute_primetech_additional_logistic_cost",
         currency_field="company_currency_id", readonly=True,
-        help="Part des coûts logistiques standard Odoo attribuée à cette ligne.",
+        help="Part des coûts logistiques attribuée à une unité de cette ligne.",
     )
     primetech_cost_by_weight = fields.Monetary(
         string="CR.poids", compute="_compute_primetech_logistics", store=True, currency_field="company_currency_id",
@@ -2074,8 +2111,11 @@ class AccountMoveLine(models.Model):
 
     def _inverse_primetech_final_cost(self):
         for line in self:
-            allocation_per_unit = (line.primetech_additional_logistic_cost or 0.0) / (line.quantity or 1.0)
-            line.primetech_final_cost_manual = max((line.primetech_final_cost or 0.0) - allocation_per_unit, 0.0)
+            line.primetech_final_cost_manual = max(
+                (line.primetech_final_cost or 0.0)
+                - (line.primetech_additional_logistic_cost or 0.0),
+                0.0,
+            )
             line.primetech_final_cost_is_manual = True
 
     def _inverse_primetech_final_sale_price(self):
@@ -2128,7 +2168,12 @@ class AccountMoveLine(models.Model):
                     "primetech_invoice_line_id"
                 ):
                     line_id = valuation.primetech_invoice_line_id.id
-                    result[line_id] = result.get(line_id, 0.0) + valuation.additional_landed_cost
+                    quantity = valuation.primetech_invoice_line_id.quantity or 0.0
+                    # The adjustment is a total for the invoice line; the
+                    # vendor bill displays logistics as a unit cost.
+                    result[line_id] = result.get(line_id, 0.0) + (
+                        valuation.additional_landed_cost / quantity if quantity else 0.0
+                    )
                 # Costs validated before the direct invoice-line link was
                 # introduced are kept compatible: distribute their amount by
                 # product and quantity instead of leaving the invoice column
@@ -2147,7 +2192,7 @@ class AccountMoveLine(models.Model):
                     quantity = sum(product_lines.mapped("quantity"))
                     if quantity:
                         for item in product_lines:
-                            result[item.id] = result.get(item.id, 0.0) + amount * item.quantity / quantity
+                            result[item.id] = result.get(item.id, 0.0) + amount / quantity
                 for item in invoice_lines:
                     result[item.id] = invoice.company_currency_id.round(result.get(item.id, 0.0))
                 continue
@@ -2194,7 +2239,14 @@ class AccountMoveLine(models.Model):
                     allocation[0] -= consumed_quantity
                     allocation[1] -= move_cost * consumed_quantity / move_quantity
                     quantity_left -= consumed_quantity
-                result[invoice_line.id] = invoice.company_currency_id.round(allocated)
+                # The allocation returned by stock landed costs belongs to
+                # the whole invoice line.  The supplier-bill grid and unit
+                # cost calculations must expose the cost for one item.
+                quantity = invoice_line.quantity or 0.0
+                result[invoice_line.id] = (
+                    invoice.company_currency_id.round(allocated / quantity)
+                    if quantity else 0.0
+                )
 
         for line in self:
             line.primetech_additional_logistic_cost = result.get(line.id, 0.0)
@@ -2207,8 +2259,6 @@ class AccountMoveLine(models.Model):
         "primetech_weight", "primetech_volume",
         "primetech_final_cost_manual", "primetech_final_cost_is_manual",
         "primetech_final_sale_price_manual", "primetech_final_sale_price_is_manual",
-        "move_id.primetech_weight_rate", "move_id.primetech_volume_rate",
-        "move_id.primetech_calculation_basis",
         "move_id.primetech_additional_logistic_cost",
         "move_id.primetech_additional_cost_distribution",
         "primetech_additional_logistic_cost",
@@ -2269,49 +2319,20 @@ class AccountMoveLine(models.Model):
                 (line.price_subtotal or 0.0)
                 - (sale_cost * quantity)
             )
-            air_sale_factor = 1 + (line.primetech_sale_percentage or 0.0) / 100.0
-            sea_sale_factor = air_sale_factor
-            # The existing bill setting is deliberately reused: Poids means
-            # air freight, while Volume means maritime freight.
-            is_maritime = line.move_id.primetech_calculation_basis == "volume"
-            # Les constantes sont des valeurs unitaires de ligne : elles ne
-            # dépendent pas de la quantité facturée.
-            # Constante poids = poids × taux poids
-            # Constante volume = volume × taux volume
-            line.primetech_weight_cost = (
-                (line.primetech_weight or 0.0)
-                * (line.move_id.primetech_weight_rate or 0.0)
-            )
-            line.primetech_volume_cost = (
-                (line.primetech_volume or 0.0)
-                * (line.move_id.primetech_volume_rate or 0.0)
-            )
-            # A supplier bill's final cost must always be based on its own
-            # supplier price.  The historic cost remains informational only;
-            # otherwise identical articles could receive an obsolete base
-            # value instead of the price entered on the current bill.
-            base_final_cost = (
-                line.primetech_final_cost_manual
-                if line.primetech_final_cost_is_manual
-                else (
-                    line.primetech_real_price + line.primetech_weight_cost
-                    if line.move_id.primetech_calculation_basis == "weight"
-                    else line.primetech_real_price + line.primetech_volume_cost
-                )
-            )
-            line.primetech_final_cost = base_final_cost + (
-                (line.primetech_additional_logistic_cost or 0.0) / quantity if quantity else 0.0
-            )
-            line.primetech_cost_by_weight = (
+            # Allocations are exclusively determined by each landed-cost
+            # line's split method, using quantity, weight, volume or value
+            # recorded on this supplier bill.
+            line.primetech_weight_cost = 0.0
+            line.primetech_volume_cost = 0.0
+            line.primetech_cost_by_weight = line.primetech_real_price
+            line.primetech_cost_by_volume = line.primetech_real_price
+            line.primetech_final_cost = (
                 line.primetech_real_price
-                + line.primetech_weight_cost
+                + (line.primetech_additional_logistic_cost or 0.0)
             )
-            line.primetech_cost_by_volume = (
-                line.primetech_real_price
-                + line.primetech_volume_cost
-            )
-            line.primetech_sale_price_by_weight = line.primetech_cost_by_weight * air_sale_factor
-            line.primetech_sale_price_by_volume = line.primetech_cost_by_volume * sea_sale_factor
+            sale_factor = 1 + (line.primetech_sale_percentage or 0.0) / 100.0
+            line.primetech_sale_price_by_weight = line.primetech_final_cost * sale_factor
+            line.primetech_sale_price_by_volume = line.primetech_final_cost * sale_factor
             # This is an auditable value entered on the supplier bill.  The
             # product price is only proposed when the row is created; a
             # logistics recomputation must never replace a saved user entry.
