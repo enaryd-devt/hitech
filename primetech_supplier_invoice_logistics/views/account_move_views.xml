@@ -328,8 +328,7 @@
                 <field name="primetech_line_margin" string="Marge totale" widget="monetary"
                        options="{'currency_field': 'currency_id'}" readonly="1"
                        column_invisible="parent.move_type not in ('out_invoice', 'out_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_sale_price_by_weight" string="Prix de vente par poids" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                <field name="primetech_sale_price_by_volume" string="Prix de vente par volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_proposed_sale_price" string="Props. PV" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_last_final_sale_price" string="Dernier prix de vente final" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_final_sale_price" string="Prix de vente final" optional="show" force_save="1" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <!-- Keep the manual override when the invoice line is saved.
@@ -343,7 +342,6 @@
                 <field name="primetech_volume_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_volume_is_manual" column_invisible="1" force_save="1"/>
                 <field name="primetech_volume" string="Volume" optional="show" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
-                <field name="primetech_constant_cost" string="Constante" optional="hide" column_invisible="parent.move_type not in ('in_invoice', 'in_refund')" groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 <field name="primetech_destination_location_id" string="Emplacement de destination" optional="show"
                        column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"/>
             </xpath>
@@ -365,7 +363,6 @@
                     <field name="primetech_total_volume" string="Total volume (CBM)" readonly="1" digits="[16,5]"/>
                     <field name="primetech_total_additional_logistic_cost" readonly="1"
                            groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
-                    <field name="primetech_total_constant" readonly="1"/>
                     <field name="primetech_total_cost" readonly="1"
                            groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
                 </group>

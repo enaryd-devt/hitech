@@ -163,6 +163,13 @@ class HrPayslip(models.Model):
     prevent_compute_on_confirm = fields.Boolean(
         "Prevent Compute on Confirm", compute="_compute_prevent_compute_on_confirm"
     )
+    move_id = fields.Many2one(
+        "account.move",
+        string="Écriture comptable",
+        readonly=True,
+        copy=False,
+        check_company=True,
+    )
 
     def _compute_allow_cancel_payslips(self):
         self.allow_cancel_payslips = (
@@ -216,7 +223,77 @@ class HrPayslip(models.Model):
             and not self.prevent_compute_on_confirm
         ):
             self.compute_sheet()
-        return self.write({"state": "done"})
+        result = self.write({"state": "done"})
+        self._create_account_moves()
+        return result
+
+    def _create_account_moves(self):
+        """Post one accounting entry per confirmed payslip.
+
+        Only salary rules deliberately marked as accounting rules are included;
+        intermediate and total calculation rules therefore never duplicate an
+        amount in the general ledger.
+        """
+        for payslip in self:
+            if payslip.state != "done" or payslip.move_id:
+                continue
+            journal = payslip.company_id.payroll_journal_id
+            if not journal:
+                continue
+
+            move_lines = []
+            accounting_lines = payslip.line_ids.filtered(
+                lambda line: line.salary_rule_id.accounting_enabled
+                and not payslip.currency_id.is_zero(line.total)
+            )
+            for line in accounting_lines:
+                rule = line.salary_rule_id
+                if not rule.account_debit_id or not rule.account_credit_id:
+                    raise UserError(
+                        _(
+                            "Veuillez configurer les comptes de débit et de crédit de la règle « %(rule)s » avant de valider le bulletin."
+                        )
+                        % {"rule": rule.name}
+                    )
+                amount = abs(line.total)
+                debit_account = rule.account_debit_id if line.total > 0 else rule.account_credit_id
+                credit_account = rule.account_credit_id if line.total > 0 else rule.account_debit_id
+                label = "%s — %s" % (payslip.employee_id.name, line.name)
+                move_lines.extend(
+                    [
+                        (0, 0, {"name": label, "account_id": debit_account.id, "debit": amount}),
+                        (0, 0, {"name": label, "account_id": credit_account.id, "credit": amount}),
+                    ]
+                )
+            if not move_lines:
+                continue
+
+            move = self.env["account.move"].create(
+                {
+                    "move_type": "entry",
+                    "date": payslip.date_to,
+                    "journal_id": journal.id,
+                    "company_id": payslip.company_id.id,
+                    "ref": _("Bulletin %(reference)s — %(employee)s")
+                    % {"reference": payslip.number or payslip.name, "employee": payslip.employee_id.name},
+                    "line_ids": move_lines,
+                }
+            )
+            move.action_post()
+            payslip.move_id = move
+
+    def action_open_account_move(self):
+        self.ensure_one()
+        if not self.move_id:
+            return False
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Écriture comptable"),
+            "res_model": "account.move",
+            "res_id": self.move_id.id,
+            "view_mode": "form",
+            "target": "current",
+        }
 
     def action_payslip_cancel(self):
         for payslip in self:
@@ -231,6 +308,18 @@ class HrPayslip(models.Model):
             else:
                 if self.filtered(lambda slip: slip.state == "done"):
                     raise UserError(_("Cannot cancel a payslip that is done."))
+        for payslip in self.filtered("move_id"):
+            if payslip.move_id.state == "posted":
+                reversal = payslip.move_id._reverse_moves(
+                    default_values_list=[
+                        {
+                            "date": fields.Date.context_today(payslip),
+                            "ref": _("Annulation de %(reference)s") % payslip.move_id.name,
+                        }
+                    ],
+                    cancel=False,
+                )
+                reversal.action_post()
         return self.write({"state": "cancel"})
 
     def refund_sheet(self):

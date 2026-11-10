@@ -109,6 +109,11 @@
                             <field name="report_section" />
                         </group>
                     </group>
+                    <group string="Comptabilisation" name="accounting">
+                        <field name="accounting_enabled" />
+                        <field name="account_debit_id" invisible="not accounting_enabled" required="accounting_enabled" />
+                        <field name="account_credit_id" invisible="not accounting_enabled" required="accounting_enabled" />
+                    </group>
                     <notebook>
                         <page string="Rule Configuration">
                             <separator string="Notes" />

@@ -22,6 +22,14 @@
                     name="payroll"
                     groups="primetech_rh.group_payroll_manager"
                 >
+                    <block title="Comptabilisation" id="payroll_accounting">
+                        <setting
+                            string="Journal des salaires"
+                            help="Les bulletins validés génèrent leurs écritures dans ce journal."
+                        >
+                            <field name="payroll_journal_id" options="{'no_create': True}" />
+                        </setting>
+                    </block>
                     <block title="Calculation Settings" id="leaves_positive">
                         <setting
                             id=""

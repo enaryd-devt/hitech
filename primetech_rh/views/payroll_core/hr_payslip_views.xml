@@ -26,6 +26,7 @@
                     options="{'no_create': True}"
                 />
                 <field name="payslip_run_id" column_invisible="1" />
+                <field name="move_id" optional="hide" />
                 <field name="message_needaction" column_invisible="1" />
             </list>
         </field>
@@ -128,6 +129,9 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_open_account_move" type="object" class="oe_stat_button" icon="fa-book" invisible="not move_id">
+                            <field name="move_id" widget="statinfo" string="Écriture comptable" />
+                        </button>
                         <button
                             name="%(hr_payslip_line_action_computation_details)d"
                             class="oe_stat_button"
@@ -309,6 +313,7 @@
                                 </group>
                                 <group name="accounting" string="Accounting">
                                     <field name="paid" readonly="1" />
+                                    <field name="move_id" readonly="1" invisible="not move_id" />
                                 </group>
                             </group>
                             <div colspan="4">

@@ -6,6 +6,14 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
+    payroll_journal_id = fields.Many2one(
+        related="company_id.payroll_journal_id",
+        readonly=False,
+        string="Journal des salaires",
+        domain="[('type', '=', 'general'), ('company_id', '=', company_id)]",
+        help="Journal dans lequel les bulletins validés seront comptabilisés.",
+    )
+
     leaves_positive = fields.Boolean(
         config_parameter="primetech_rh.leaves_positive",
         string="Leaves with positive values",

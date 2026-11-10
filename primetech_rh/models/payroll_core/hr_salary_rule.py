@@ -169,6 +169,22 @@ class HrSalaryRule(models.Model):
         string="Contribution Register",
         help="Eventual third party involved in the salary payment of the employees.",
     )
+    accounting_enabled = fields.Boolean(
+        string="Comptabiliser cette règle",
+        help="Inclut cette règle dans l'écriture comptable du bulletin.",
+    )
+    account_debit_id = fields.Many2one(
+        "account.account",
+        string="Compte de débit",
+        check_company=True,
+        help="Compte débité lorsque le montant de la règle est positif.",
+    )
+    account_credit_id = fields.Many2one(
+        "account.account",
+        string="Compte de crédit",
+        check_company=True,
+        help="Compte crédité lorsque le montant de la règle est positif.",
+    )
     input_ids = fields.One2many("hr.rule.input", "input_id", string="Inputs", copy=True)
     note = fields.Text(string="Description")
     require_code_and_category = fields.Boolean(

@@ -24,6 +24,11 @@ class ProductTemplate(models.Model):
 
     weight = fields.Float(digits=(16, 6))
     volume = fields.Float(digits=(16, 6))
+    primetech_sale_proposal_rate = fields.Float(
+        string="Taux proposition de prix de vente",
+        default=0.0,
+        help="Pourcentage appliqué au coût de revient final pour proposer un prix de vente.",
+    )
     primetech_supplier_invoice_history_ids = fields.Many2many(
         "account.move.line", compute="_compute_primetech_supplier_invoice_history",
         string="Historique factures fournisseurs", readonly=True, compute_sudo=True,

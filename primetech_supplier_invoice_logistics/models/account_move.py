@@ -796,6 +796,34 @@ class AccountMove(models.Model):
                 move.primetech_picking_type_id = warehouse.in_type_id
                 move.primetech_stock_location_id = warehouse.lot_stock_id
 
+    def _primetech_set_supplier_warehouse_from_location(self, location):
+        """Complete a supplier bill header from one destination location."""
+        self.ensure_one()
+        if (
+            self.move_type not in ("in_invoice", "in_refund")
+            or self.primetech_warehouse_id
+            or not location
+        ):
+            return False
+        warehouse = self.env["stock.warehouse"].search([
+            ("company_id", "=", self.company_id.id),
+            ("lot_stock_id", "parent_of", location.id),
+        ], limit=1)
+        if not warehouse:
+            return False
+        self.primetech_warehouse_id = warehouse
+        self.primetech_picking_type_id = warehouse.in_type_id
+        self.primetech_stock_location_id = warehouse.lot_stock_id
+        return True
+
+    def _primetech_sync_supplier_warehouse_from_lines(self):
+        """Use the first line destination when the supplier-bill header is empty."""
+        for move in self.filtered(lambda item: item.move_type in ("in_invoice", "in_refund") and not item.primetech_warehouse_id):
+            location = move.invoice_line_ids.filtered(
+                lambda line: line.display_type in (False, "product") and line.primetech_destination_location_id
+            )[:1].primetech_destination_location_id
+            move._primetech_set_supplier_warehouse_from_location(location)
+
     @api.onchange("primetech_delivery_warehouse_id")
     def _onchange_primetech_delivery_warehouse_id(self):
         for move in self:
@@ -905,6 +933,7 @@ class AccountMove(models.Model):
             # onchange recomputation without the removed dynamic-lines API.
 
     def action_post(self):
+        self._primetech_sync_supplier_warehouse_from_lines()
         restricted_moves = self.filtered(
             lambda move: move.move_type == "in_invoice"
             and move.state == "draft"
@@ -2012,6 +2041,13 @@ class AccountMoveLine(models.Model):
         domain="[('usage', '=', 'internal'), ('company_id', 'in', (False, company_id))]",
         help="Si vide, l'emplacement de destination défini sur la facture est utilisé.",
     )
+
+    @api.onchange("primetech_destination_location_id")
+    def _onchange_primetech_destination_location_id(self):
+        for line in self:
+            line.move_id._primetech_set_supplier_warehouse_from_location(
+                line.primetech_destination_location_id
+            )
     primetech_weight = fields.Float(
         string="Poids", digits=(16, 6), default=0.0,
     )
@@ -2089,6 +2125,11 @@ class AccountMoveLine(models.Model):
     primetech_sale_price_by_volume = fields.Monetary(
         string="P.V. volume", compute="_compute_primetech_logistics", currency_field="company_currency_id",
     )
+    primetech_proposed_sale_price = fields.Monetary(
+        string="Props. PV", compute="_compute_primetech_proposed_sale_price",
+        currency_field="company_currency_id", readonly=True,
+        help="Proposition de prix de vente calculée à partir du coût de revient final et du taux défini sur l'article.",
+    )
     primetech_last_final_sale_price = fields.Monetary(
         string="Dernier Prix de V final", compute="_compute_primetech_logistics", currency_field="company_currency_id",
     )
@@ -2122,6 +2163,13 @@ class AccountMoveLine(models.Model):
         for line in self:
             line.primetech_final_sale_price_manual = line.primetech_final_sale_price
             line.primetech_final_sale_price_is_manual = True
+
+    @api.depends("primetech_final_cost", "product_id.primetech_sale_proposal_rate")
+    def _compute_primetech_proposed_sale_price(self):
+        for line in self:
+            rate = line.product_id.primetech_sale_proposal_rate or 0.0
+            final_cost = line.primetech_final_cost or 0.0
+            line.primetech_proposed_sale_price = final_cost + (final_cost * rate)
 
     @api.depends(
         "move_id.primetech_additional_logistic_cost",

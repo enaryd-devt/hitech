@@ -77,6 +77,12 @@
             <xpath expr="//group[@name='group_standard_price']//field[@name='standard_price']" position="attributes">
                 <attribute name="string">Coût de revient</attribute>
             </xpath>
+            <xpath expr="//group[@name='group_standard_price']//field[@name='standard_price']" position="after">
+                <label for="primetech_sale_proposal_rate" string="Taux vente"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+                <field name="primetech_sale_proposal_rate" widget="percentage" class="w-25"
+                       groups="primetech_supplier_invoice_logistics.group_supplier_invoice_administrator"/>
+            </xpath>
         </field>
     </record>
 
