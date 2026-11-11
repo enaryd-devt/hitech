@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.primetech.biometric</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr_attendance.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <block name="overtime_settings" position="after">
+                <block title="Pointeuses biométriques" name="primetech_biometric_settings">
+                    <setting string="Horaire de pointage par défaut" company_dependent="1"
+                             help="Appliqué aux employés sans horaire propre ni horaire de département.">
+                        <field name="biometric_default_schedule_id"/>
+                        <div class="mt-2">
+                            <button name="%(primetech_biometric_attendance.biometric_attendance_schedule_action)d" type="action" string="Gérer les horaires" icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting string="Heures de travail Odoo à défaut" company_dependent="1"
+                             help="Sans horaire de pointage, les heures de travail de l'employé servent à détecter retards et absences.">
+                        <field name="biometric_use_resource_calendar"/>
+                    </setting>
+                    <setting string="Interprétation des pointages" company_dependent="1"
+                             help="Comment déterminer les arrivées et les départs à partir des pointages de la journée.">
+                        <field name="biometric_punch_mode" widget="radio"/>
+                    </setting>
+                    <setting string="Anti-doublon" company_dependent="1"
+                             help="Les pointages répétés dans cet intervalle (minutes) sont ignorés.">
+                        <field name="biometric_min_punch_interval"/>
+                    </setting>
+                    <setting string="Générer les présences Odoo" company_dependent="1"
+                             help="Crée les présences du module Présences (feuilles de temps, heures supplémentaires, paie) à partir des pointages.">
+                        <field name="biometric_generate_attendance"/>
+                    </setting>
+                    <setting string="Conservation du journal des pointeuses" company_dependent="1"
+                             help="Nombre de jours de conservation du journal de synchronisation.">
+                        <field name="biometric_log_retention_days"/>
+                    </setting>
+                </block>
+            </block>
+        </field>
+    </record>
+</odoo>

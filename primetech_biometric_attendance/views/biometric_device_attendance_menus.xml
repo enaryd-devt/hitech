@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem id="menu_biometric_root"
+              name="Gestion des pointages"
+              sequence="206"
+              web_icon="primetech_biometric_attendance,static/description/icon.png"
+              groups="hr_attendance.group_hr_attendance_officer"/>
+
+    <menuitem id="menu_biometric_dashboard"
+              name="Tableau de bord"
+              parent="menu_biometric_root"
+              action="action_biometric_attendance_dashboard"
+              sequence="1"/>
+
+    <menuitem id="menu_biometric_follow_up" name="Suivi" parent="menu_biometric_root" sequence="10"/>
+    <menuitem id="menu_biometric_days" name="Journées de présence" parent="menu_biometric_follow_up"
+              action="biometric_attendance_day_action" sequence="1"/>
+    <menuitem id="menu_biometric_late" name="Retards" parent="menu_biometric_follow_up"
+              action="biometric_attendance_day_late_action" sequence="2"/>
+    <menuitem id="menu_biometric_absences" name="Absences" parent="menu_biometric_follow_up"
+              action="biometric_attendance_day_absence_action" sequence="3"/>
+    <menuitem id="menu_biometric_incomplete" name="Pointages à corriger" parent="menu_biometric_follow_up"
+              action="biometric_attendance_day_incomplete_action" sequence="4"/>
+    <menuitem id="menu_biometric_punches" name="Pointages bruts" parent="menu_biometric_follow_up"
+              action="zk_machine_attendance_action" sequence="10"/>
+
+    <menuitem id="menu_biometric_reporting" name="Rapports" parent="menu_biometric_root" sequence="20"/>
+    <menuitem id="menu_biometric_analysis" name="Analyse des présences" parent="menu_biometric_reporting"
+              action="biometric_attendance_day_analysis_action" sequence="1"/>
+    <menuitem id="menu_biometric_report" name="Rapport de présence (PDF)" parent="menu_biometric_reporting"
+              action="biometric_attendance_report_wizard_action" sequence="2"/>
+    <menuitem id="menu_biometric_recompute" name="Recalculer les présences" parent="menu_biometric_reporting"
+              action="biometric_attendance_recompute_wizard_action" sequence="10"/>
+
+    <menuitem id="menu_biometric_devices_root" name="Pointeuses" parent="menu_biometric_root" sequence="30"/>
+    <menuitem id="menu_biometric_devices" name="Appareils" parent="menu_biometric_devices_root"
+              action="biometric_device_details_action" sequence="1"/>
+    <menuitem id="menu_biometric_device_users" name="Utilisateurs des pointeuses" parent="menu_biometric_devices_root"
+              action="biometric_device_user_action" sequence="2"/>
+    <menuitem id="menu_biometric_sync_logs" name="Journal de synchronisation" parent="menu_biometric_devices_root"
+              action="biometric_sync_log_action" sequence="3"/>
+
+    <menuitem id="menu_biometric_configuration" name="Configuration" parent="menu_biometric_root" sequence="40"
+              groups="hr_attendance.group_hr_attendance_manager"/>
+    <menuitem id="menu_biometric_schedules" name="Horaires de pointage" parent="menu_biometric_configuration"
+              action="biometric_attendance_schedule_action" sequence="1"/>
+    <menuitem id="menu_biometric_settings" name="Paramètres" parent="menu_biometric_configuration"
+              action="hr_attendance.action_hr_attendance_settings" sequence="10"/>
+
+    <!-- Shortcut from the standard Attendances application -->
+    <menuitem id="menu_hr_attendance_biometric_dashboard"
+              name="Gestion des pointages"
+              parent="hr_attendance.menu_hr_attendance_root"
+              action="action_biometric_attendance_dashboard"
+              sequence="21"/>
+</odoo>

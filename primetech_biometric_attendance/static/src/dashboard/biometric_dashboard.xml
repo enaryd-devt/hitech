@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="primetech_biometric_attendance.Dashboard">
+        <div class="o_action o_pt_bio_dashboard h-100 overflow-auto">
+            <div class="o_pt_bio_header d-flex flex-wrap align-items-center gap-2 px-3 py-2 border-bottom">
+                <div class="me-auto">
+                    <h4 class="m-0">Gestion des pointages</h4>
+                    <small class="text-muted d-flex align-items-center gap-2" t-if="state.data">
+                        <span t-if="state.data.is_today" class="o_pt_bio_live"><span class="o_pt_bio_live_dot"/>En direct</span>
+                        <span><t t-if="state.data.is_today">Aujourd’hui, </t><t t-esc="state.data.date_label"/></span>
+                    </small>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" t-on-click="() => this.shiftDate(-1)" title="Jour précédent"><i class="fa fa-chevron-left"/></button>
+                    <input type="date" class="form-control o_pt_bio_date" t-att-value="state.date" t-on-change="onDateChange"/>
+                    <button class="btn btn-secondary" t-on-click="() => this.shiftDate(1)" t-att-disabled="state.data and state.data.is_today" title="Jour suivant"><i class="fa fa-chevron-right"/></button>
+                </div>
+                <button class="btn btn-secondary" t-on-click="goToday" t-if="state.data and !state.data.is_today">Aujourd’hui</button>
+                <button class="btn btn-primary" t-on-click="refresh" t-att-disabled="state.refreshing">
+                    <i t-attf-class="fa fa-refresh me-1 {{ state.refreshing ? 'fa-spin' : '' }}"/>Synchroniser
+                </button>
+            </div>
+            <div class="o_pt_bio_loadbar" t-if="state.loading or state.refreshing"/>
+
+            <div t-if="state.loading and !state.data" class="p-5 text-center text-muted">
+                <i class="fa fa-circle-o-notch fa-spin fa-2x"/>
+            </div>
+
+            <div t-if="state.data" t-key="state.renderKey" class="container-fluid py-3 o_pt_bio_body" t-att-class="{'o_pt_bio_dimmed': state.loading}">
+                <t t-set="k" t-value="state.data.kpis"/>
+
+                <!-- Quick actions -->
+                <div class="o_pt_bio_quick mb-3">
+                    <button t-foreach="quickActions" t-as="qa" t-key="qa.key" type="button"
+                            t-attf-class="o_pt_bio_quick_action o_pt_bio_enter o_pt_bio_tone_{{ qa.tone }}"
+                            t-att-style="delay(qa_index, 35)"
+                            t-att-disabled="state.busyAction and state.busyAction !== qa.key"
+                            t-att-title="qa.description"
+                            t-on-click="() => this.runQuickAction(qa)">
+                        <span class="o_pt_bio_quick_icon">
+                            <i t-attf-class="fa {{ state.busyAction === qa.key ? 'fa-circle-o-notch fa-spin' : qa.icon }}"/>
+                        </span>
+                        <span class="o_pt_bio_quick_text">
+                            <span class="o_pt_bio_quick_label" t-esc="qa.label"/>
+                            <span class="o_pt_bio_quick_desc" t-esc="qa.description"/>
+                        </span>
+                        <span t-if="qa.badge" class="o_pt_bio_quick_badge" t-esc="qa.badge"/>
+                    </button>
+                </div>
+
+                <!-- Indicators of the day -->
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-4 col-xl">
+                        <div class="o_pt_bio_kpi o_pt_bio_kpi_neutral o_pt_bio_enter" t-att-style="delay(0, 70, 100)" t-on-click="() => this.openKpi('expected')">
+                            <div class="o_pt_bio_kpi_label"><i class="fa fa-users me-1"/>Attendus</div>
+                            <div class="o_pt_bio_kpi_value"><AnimatedNumber value="k.expected"/></div>
+                            <div class="o_pt_bio_kpi_sub"><t t-esc="k.tracked"/> employés suivis</div>
+                            <i class="fa fa-users o_pt_bio_kpi_watermark"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl">
+                        <div class="o_pt_bio_kpi o_pt_bio_kpi_success o_pt_bio_enter" t-att-style="delay(1, 70, 100)" t-on-click="() => this.openKpi('present')">
+                            <div class="o_pt_bio_kpi_label"><i class="fa fa-check-circle me-1"/>Présents</div>
+                            <div class="o_pt_bio_kpi_value"><AnimatedNumber value="k.present"/></div>
+                            <div class="o_pt_bio_kpi_sub">Taux de présence <strong><AnimatedNumber value="k.attendance_rate" suffix="' %'"/></strong></div>
+                            <div class="o_pt_bio_kpi_meter"><div class="bg-success o_pt_bio_fill" t-att-style="'width: ' + k.attendance_rate + '%'"/></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl">
+                        <div class="o_pt_bio_kpi o_pt_bio_kpi_warning o_pt_bio_enter" t-att-class="{'o_pt_bio_kpi_alerting': k.late_unjustified}" t-att-style="delay(2, 70, 100)" t-on-click="() => this.openKpi('late')">
+                            <div class="o_pt_bio_kpi_label"><i class="fa fa-clock-o me-1"/>En retard</div>
+                            <div class="o_pt_bio_kpi_value"><AnimatedNumber value="k.late"/></div>
+                            <div class="o_pt_bio_kpi_sub">Cumul <t t-esc="formatMinutes(k.late_minutes)"/></div>
+                            <i class="fa fa-clock-o o_pt_bio_kpi_watermark"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl">
+                        <div class="o_pt_bio_kpi o_pt_bio_kpi_danger o_pt_bio_enter" t-att-class="{'o_pt_bio_kpi_alerting': k.absent}" t-att-style="delay(3, 70, 100)" t-on-click="() => this.openKpi('absent')">
+                            <div class="o_pt_bio_kpi_label"><i class="fa fa-user-times me-1"/>Absents</div>
+                            <div class="o_pt_bio_kpi_value"><AnimatedNumber value="k.absent"/></div>
+                            <div class="o_pt_bio_kpi_sub o_pt_bio_link" t-on-click.stop="() => this.openKpi('pending')"><t t-esc="k.pending"/> pas encore arrivé(s)</div>
+                            <i class="fa fa-user-times o_pt_bio_kpi_watermark"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl">
+                        <div class="o_pt_bio_kpi o_pt_bio_kpi_info o_pt_bio_enter" t-att-style="delay(4, 70, 100)" t-on-click="() => this.openKpi('leave')">
+                            <div class="o_pt_bio_kpi_label"><i class="fa fa-plane me-1"/>Congés / fériés</div>
+                            <div class="o_pt_bio_kpi_value"><AnimatedNumber value="k.leave"/></div>
+                            <div class="o_pt_bio_kpi_sub"><AnimatedNumber value="k.worked_hours" decimals="1" suffix="' h'"/> travaillées</div>
+                            <i class="fa fa-plane o_pt_bio_kpi_watermark"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl">
+                        <div class="o_pt_bio_kpi o_pt_bio_kpi_alert o_pt_bio_enter" t-att-class="{'o_pt_bio_kpi_alerting': k.incomplete}" t-att-style="delay(5, 70, 100)" t-on-click="() => this.openKpi('incomplete')">
+                            <div class="o_pt_bio_kpi_label"><i class="fa fa-exclamation-triangle me-1"/>À corriger</div>
+                            <div class="o_pt_bio_kpi_value"><AnimatedNumber value="k.incomplete"/></div>
+                            <div class="o_pt_bio_kpi_sub">Entrée ou sortie non pointée</div>
+                            <i class="fa fa-exclamation-triangle o_pt_bio_kpi_watermark"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Trend -->
+                    <div class="col-xl-8">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 450)">
+                            <div class="o_pt_bio_card_title">
+                                <span>Évolution sur 14 jours</span>
+                                <span class="o_pt_bio_legend">
+                                    <span><i class="o_pt_bio_dot bg-success"/>Présents</span>
+                                    <span><i class="o_pt_bio_dot bg-warning"/>Retards</span>
+                                    <span><i class="o_pt_bio_dot bg-danger"/>Absents</span>
+                                    <span><i class="o_pt_bio_dot bg-info"/>Congés</span>
+                                </span>
+                            </div>
+                            <div class="o_pt_bio_chart">
+                                <div t-foreach="state.data.trend" t-as="day" t-key="day.date" class="o_pt_bio_chart_col"
+                                     t-att-class="{'o_pt_bio_chart_current': day.date === state.date}"
+                                     t-on-click="() => this.openTrendDay(day)"
+                                     t-att-title="day.label + ' : ' + day.present + ' présent(s), ' + day.late + ' retard(s), ' + day.absent + ' absent(s), ' + day.leave + ' congé(s)'">
+                                    <div class="o_pt_bio_chart_total" t-esc="(day.present + day.late + day.absent + day.leave) or ''"/>
+                                    <div class="o_pt_bio_chart_stack" t-att-style="columnStyle(day_index)">
+                                        <div class="bg-info" t-att-style="barStyle(day.leave)"/>
+                                        <div class="bg-danger" t-att-style="barStyle(day.absent)"/>
+                                        <div class="bg-warning" t-att-style="barStyle(day.late)"/>
+                                        <div class="bg-success" t-att-style="barStyle(day.present)"/>
+                                    </div>
+                                    <div class="o_pt_bio_chart_label" t-esc="day.label"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Devices -->
+                    <div class="col-xl-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 520)">
+                            <div class="o_pt_bio_card_title">
+                                <span>Pointeuses</span>
+                                <a href="#" class="small" t-on-click.prevent="() => this.openAction('primetech_biometric_attendance.biometric_device_details_action')">Gérer</a>
+                            </div>
+                            <div t-if="!state.data.devices.length" class="text-muted small">Aucune pointeuse déclarée.</div>
+                            <div t-foreach="state.data.devices" t-as="device" t-key="device.id" class="o_pt_bio_device o_pt_bio_enter" t-att-style="delay(device_index, 80, 600)" t-on-click="() => this.openDevice(device)">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="d-flex align-items-center gap-2">
+                                        <span t-attf-class="o_pt_bio_status_dot {{ device.state === 'error' ? 'o_pt_bio_status_error' : (device.online ? 'o_pt_bio_status_online' : 'o_pt_bio_status_offline') }}"/>
+                                        <t t-esc="device.name"/>
+                                    </strong>
+                                    <span t-if="device.state === 'error'" class="badge text-bg-danger">Erreur</span>
+                                    <span t-elif="device.online" class="badge text-bg-success">En ligne</span>
+                                    <span t-else="" class="badge text-bg-secondary">Hors ligne</span>
+                                </div>
+                                <div class="small text-muted">
+                                    <t t-esc="device.ip"/> · synchro <t t-esc="device.last_sync or 'jamais'"/>
+                                </div>
+                                <div class="small text-muted" t-if="device.users or device.records">
+                                    <t t-esc="device.users"/> utilisateurs · <t t-esc="device.records"/> pointages en mémoire
+                                </div>
+                                <div class="small" t-att-class="device.state === 'error' ? 'text-danger' : 'text-muted'" t-if="device.message" t-esc="device.message"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Late arrivals -->
+                    <div class="col-lg-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 650)">
+                            <div class="o_pt_bio_card_title"><span><i class="fa fa-clock-o text-warning me-1"/>Retards du jour</span><span class="badge text-bg-warning" t-esc="state.data.late.length"/></div>
+                            <div t-if="!state.data.late.length" class="o_pt_bio_empty"><i class="fa fa-thumbs-o-up fa-2x d-block mb-2 o_pt_bio_float"/>Aucun retard</div>
+                            <table t-else="" class="table table-sm table-hover o_pt_bio_table">
+                                <thead><tr><th>Employé</th><th>Prévu</th><th>Arrivée</th><th class="text-end">Retard</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.late" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index, 40, 750)" t-on-click="() => this.openDay(row)">
+                                        <td><div t-esc="row.name"/><small class="text-muted" t-esc="row.department"/></td>
+                                        <td t-esc="row.planned_start"/>
+                                        <td t-esc="row.arrival"/>
+                                        <td class="text-end">
+                                            <span class="fw-bold text-danger" t-esc="formatMinutes(row.late_minutes)"/>
+                                            <i t-if="row.justified" class="fa fa-check text-success ms-1" title="Justifié"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Absences -->
+                    <div class="col-lg-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 720)">
+                            <div class="o_pt_bio_card_title"><span><i class="fa fa-user-times text-danger me-1"/>Absents et non arrivés</span><span class="badge text-bg-danger" t-esc="state.data.absent.length + state.data.pending.length"/></div>
+                            <div t-if="!state.data.absent.length and !state.data.pending.length" class="o_pt_bio_empty"><i class="fa fa-smile-o fa-2x d-block mb-2 o_pt_bio_float"/>Tout le monde est là</div>
+                            <table t-else="" class="table table-sm table-hover o_pt_bio_table">
+                                <thead><tr><th>Employé</th><th>Prévu</th><th class="text-end">Statut</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.absent" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index, 40, 820)" t-on-click="() => this.openDay(row)">
+                                        <td><div t-esc="row.name"/><small class="text-muted" t-esc="row.department"/></td>
+                                        <td t-esc="row.planned_start"/>
+                                        <td class="text-end">
+                                            <span t-if="row.justified" class="badge text-bg-success">Justifié</span>
+                                            <span t-else="" class="badge text-bg-danger">Absent</span>
+                                        </td>
+                                    </tr>
+                                    <tr t-foreach="state.data.pending" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index + state.data.absent.length, 40, 820)" t-on-click="() => this.openDay(row)">
+                                        <td><div t-esc="row.name"/><small class="text-muted" t-esc="row.department"/></td>
+                                        <td t-esc="row.planned_start"/>
+                                        <td class="text-end"><span class="badge text-bg-secondary">Attendu</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Incomplete -->
+                    <div class="col-lg-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 790)">
+                            <div class="o_pt_bio_card_title"><span><i class="fa fa-exclamation-triangle text-danger me-1"/>Pointages à corriger</span><span class="badge text-bg-secondary" t-esc="state.data.incomplete.length"/></div>
+                            <div t-if="!state.data.incomplete.length" class="o_pt_bio_empty"><i class="fa fa-check-circle-o fa-2x d-block mb-2 o_pt_bio_float"/>Rien à corriger</div>
+                            <table t-else="" class="table table-sm table-hover o_pt_bio_table">
+                                <thead><tr><th>Employé</th><th>Arrivée</th><th>Départ</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="state.data.incomplete" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index, 40, 890)" t-on-click="() => this.openDay(row)">
+                                        <td><div t-esc="row.name"/><small class="text-muted" t-esc="row.anomaly"/></td>
+                                        <td t-esc="row.arrival or '—'"/>
+                                        <td t-esc="row.departure or '—'"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Month -->
+                    <div class="col-lg-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 860)">
+                            <div class="o_pt_bio_card_title"><span><i class="fa fa-calendar me-1"/>Mois en cours</span></div>
+                            <div class="row text-center mb-3 g-2">
+                                <div class="col-4 o_pt_bio_mini" t-on-click="() => this.openKpi('month_late')">
+                                    <div class="fs-4 fw-bold text-warning"><AnimatedNumber value="k.month_late_count"/></div>
+                                    <div class="small text-muted">retards</div>
+                                </div>
+                                <div class="col-4 o_pt_bio_mini" t-on-click="() => this.openKpi('month_late')">
+                                    <div class="fs-4 fw-bold" t-esc="formatMinutes(k.month_late_minutes)"/>
+                                    <div class="small text-muted">de retard</div>
+                                </div>
+                                <div class="col-4 o_pt_bio_mini" t-on-click="() => this.openKpi('month_absent')">
+                                    <div class="fs-4 fw-bold text-danger"><AnimatedNumber value="k.month_absent"/></div>
+                                    <div class="small text-muted">absences non just.</div>
+                                </div>
+                            </div>
+                            <div class="small mb-1">Ponctualité du mois : <strong><AnimatedNumber value="k.month_punctuality" suffix="' %'"/></strong></div>
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-success o_pt_bio_fill" t-att-style="'width: ' + k.month_punctuality + '%'"/>
+                            </div>
+                            <div class="small fw-bold mb-1">Principaux retardataires</div>
+                            <div t-if="!state.data.top_late.length" class="text-muted small">Aucun retard ce mois-ci.</div>
+                            <div t-foreach="state.data.top_late" t-as="row" t-key="row.employee_id" class="o_pt_bio_rank o_pt_bio_row" t-att-style="delay(row_index, 50, 950)" t-on-click="() => this.openEmployeeLate(row)">
+                                <span class="o_pt_bio_rank_index" t-att-class="{'o_pt_bio_rank_first': row_index === 0}" t-esc="row_index + 1"/>
+                                <span class="flex-grow-1" t-esc="row.name"/>
+                                <span class="text-muted small me-2"><t t-esc="row.count"/>×</span>
+                                <span class="fw-bold text-danger" t-esc="formatMinutes(row.minutes)"/>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Departments -->
+                    <div class="col-lg-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 930)">
+                            <div class="o_pt_bio_card_title"><span><i class="fa fa-sitemap me-1"/>Présence par département</span></div>
+                            <div t-if="!state.data.departments.length" class="text-muted small">Aucune donnée pour cette date.</div>
+                            <div t-foreach="state.data.departments" t-as="department" t-key="department_index" class="o_pt_bio_department o_pt_bio_row" t-att-style="delay(department_index, 50, 1000)" t-on-click="() => this.openDepartment(department)">
+                                <div class="d-flex justify-content-between small">
+                                    <span t-esc="department.name"/>
+                                    <span>
+                                        <t t-esc="department.present"/>/<t t-esc="department.expected"/>
+                                        <span t-if="department.late" class="text-warning ms-1">(<t t-esc="department.late"/> retard)</span>
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar o_pt_bio_fill" t-att-class="departmentRate(department) &gt;= 90 ? 'bg-success' : (departmentRate(department) &gt;= 70 ? 'bg-warning' : 'bg-danger')" t-att-style="'width: ' + departmentRate(department) + '%'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Recent punches -->
+                    <div class="col-lg-4">
+                        <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 1000)">
+                            <div class="o_pt_bio_card_title">
+                                <span><i class="fa fa-hand-pointer-o me-1"/>Derniers pointages</span>
+                                <a href="#" class="small" t-on-click.prevent="() => this.openAction('primetech_biometric_attendance.zk_machine_attendance_action')">Tout voir</a>
+                            </div>
+                            <div t-if="!state.data.recent_punches.length" class="text-muted small">Aucun pointage depuis 24 h.</div>
+                            <div class="o_pt_bio_timeline">
+                                <div t-foreach="state.data.recent_punches" t-as="punch" t-key="punch_index" class="o_pt_bio_timeline_item o_pt_bio_row" t-att-style="delay(punch_index, 50, 1050)">
+                                    <span class="fw-semibold" t-esc="punch.name"/>
+                                    <span class="text-muted small"><t t-esc="punch.time"/> · <t t-esc="punch.device"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

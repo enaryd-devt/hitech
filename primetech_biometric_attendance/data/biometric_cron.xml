@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_primetech_biometric_sync" model="ir.cron">
+        <field name="name">PrimeTech : synchronisation des pointages biométriques</field>
+        <field name="model_id" ref="model_biometric_device_details"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_download()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

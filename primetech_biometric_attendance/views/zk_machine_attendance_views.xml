@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="zk_machine_attendance_view_list" model="ir.ui.view">
+        <field name="name">zk.machine.attendance.list</field>
+        <field name="model">zk.machine.attendance</field>
+        <field name="arch" type="xml">
+            <list create="false" decoration-muted="punch_role == 'duplicate'" decoration-warning="punch_role == 'outside'" decoration-info="source == 'manual'">
+                <field name="punching_time"/>
+                <field name="employee_id"/>
+                <field name="department_id" optional="show"/>
+                <field name="device_id" optional="show"/>
+                <field name="device_id_num" optional="hide"/>
+                <field name="punch_role" widget="badge" decoration-success="punch_role == 'in'" decoration-info="punch_role == 'out'" decoration-warning="punch_role == 'outside'"/>
+                <field name="punch_type" optional="hide"/>
+                <field name="attendance_type" optional="show"/>
+                <field name="source" optional="show"/>
+                <field name="note" optional="hide"/>
+                <field name="address_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="zk_machine_attendance_view_form" model="ir.ui.view">
+        <field name="name">zk.machine.attendance.form</field>
+        <field name="model">zk.machine.attendance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="source == 'device'"/>
+                            <field name="punching_time" readonly="source == 'device'"/>
+                            <field name="source" readonly="1"/>
+                            <field name="note"/>
+                        </group>
+                        <group>
+                            <field name="device_id" readonly="1"/>
+                            <field name="device_id_num" readonly="1"/>
+                            <field name="punch_type" readonly="1"/>
+                            <field name="attendance_type" readonly="1"/>
+                            <field name="day_id" readonly="1"/>
+                            <field name="punch_role" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="zk_machine_attendance_view_form_manual" model="ir.ui.view">
+        <field name="name">zk.machine.attendance.form.manual</field>
+        <field name="model">zk.machine.attendance</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Ajouter un pointage">
+                <p class="text-muted">Ajoutez le pointage oublié : la journée de présence est recalculée immédiatement.</p>
+                <group>
+                    <field name="employee_id"/>
+                    <field name="punching_time"/>
+                    <field name="note" placeholder="ex. Oubli de pointage signalé par le responsable" required="1"/>
+                    <field name="source" invisible="1"/>
+                </group>
+                <footer>
+                    <button string="Enregistrer" special="save" class="btn-primary"/>
+                    <button string="Annuler" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="zk_machine_attendance_view_search" model="ir.ui.view">
+        <field name="name">zk.machine.attendance.search</field>
+        <field name="model">zk.machine.attendance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="device_id"/>
+                <field name="device_id_num"/>
+                <filter string="Date" name="date" date="punching_time"/>
+                <separator/>
+                <filter string="Saisies manuelles" name="manual" domain="[('source', '=', 'manual')]"/>
+                <filter string="Doublons ignorés" name="duplicates" domain="[('punch_role', '=', 'duplicate')]"/>
+                <filter string="Hors période" name="outside" domain="[('punch_role', '=', 'outside')]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Employé" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Pointeuse" name="group_device" context="{'group_by': 'device_id'}"/>
+                    <filter string="Jour" name="group_day" context="{'group_by': 'punching_time:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="zk_machine_attendance_action" model="ir.actions.act_window">
+        <field name="name">Pointages bruts</field>
+        <field name="res_model">zk.machine.attendance</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="zk_machine_attendance_view_search"/>
+        <field name="context">{'search_default_date': 1}</field>
+    </record>
+
+    <record id="zk_machine_attendance_manual_action" model="ir.actions.act_window">
+        <field name="name">Ajouter un pointage</field>
+        <field name="res_model">zk.machine.attendance</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="zk_machine_attendance_view_form_manual"/>
+        <field name="target">new</field>
+        <field name="context">{'default_source': 'manual'}</field>
+    </record>
+</odoo>

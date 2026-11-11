@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="biometric_attendance_day_view_list" model="ir.ui.view">
+        <field name="name">biometric.attendance.day.list</field>
+        <field name="model">biometric.attendance.day</field>
+        <field name="arch" type="xml">
+            <list create="false" decoration-muted="justified" decoration-danger="status == 'absent' and not justified">
+                <field name="date"/>
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="department_id" optional="show"/>
+                <field name="planned_start" widget="float_time" optional="show" invisible="plan_source == 'none'"/>
+                <field name="arrival_time" widget="float_time" invisible="not arrival"/>
+                <field name="planned_end" widget="float_time" optional="hide" invisible="plan_source == 'none'"/>
+                <field name="departure_time" widget="float_time" invisible="not departure"/>
+                <field name="worked_hours" widget="float_time" sum="Total" optional="show"/>
+                <field name="late_minutes" sum="Total" decoration-danger="late_minutes &gt; 0" decoration-bf="late_minutes &gt; 0"/>
+                <field name="early_leave_minutes" sum="Total" optional="show" decoration-warning="early_leave_minutes &gt; 0"/>
+                <field name="overtime_minutes" sum="Total" optional="hide"/>
+                <field name="status" widget="badge" decoration-success="status == 'present'" decoration-warning="status in ('late', 'incomplete')" decoration-danger="status == 'absent'" decoration-info="status in ('leave', 'holiday', 'extra')"/>
+                <field name="anomaly" optional="show"/>
+                <field name="justified" widget="boolean_toggle" optional="show"/>
+                <field name="arrival" column_invisible="1"/>
+                <field name="departure" column_invisible="1"/>
+                <field name="plan_source" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_view_form" model="ir.ui.view">
+        <field name="name">biometric.attendance.day.form</field>
+        <field name="model">biometric.attendance.day</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button name="action_add_punch" string="Ajouter un pointage" type="object" class="oe_highlight" icon="fa-plus" invisible="status in ('present', 'leave', 'holiday')"/>
+                    <button name="action_add_punch" string="Ajouter un pointage" type="object" icon="fa-plus" invisible="status not in ('present', 'leave', 'holiday')"/>
+                    <button name="action_justify" string="Justifier" type="object" icon="fa-check" invisible="justified or status in ('present', 'leave', 'holiday', 'pending')"/>
+                    <button name="action_unjustify" string="Retirer la justification" type="object" invisible="not justified"/>
+                    <button name="action_recompute" string="Recalculer" type="object" icon="fa-refresh"/>
+                    <field name="status" widget="statusbar" statusbar_visible="pending,present,late,absent"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Justifié" bg_color="text-bg-success" invisible="not justified"/>
+                    <div class="oe_title">
+                        <h1><field name="employee_id" readonly="1" widget="many2one_avatar_employee"/></h1>
+                        <h3><field name="date" readonly="1"/></h3>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not anomaly">
+                        <i class="fa fa-exclamation-triangle me-1" title="Observations"/><field name="anomaly" readonly="1" class="d-inline"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="not attendance_sync_message">
+                        Présence Odoo non générée : <field name="attendance_sync_message" class="d-inline"/>
+                    </div>
+                    <group>
+                        <group string="Prévu">
+                            <field name="plan_source" readonly="1"/>
+                            <field name="schedule_id" readonly="1" invisible="not schedule_id"/>
+                            <field name="planned_start" widget="float_time" readonly="1" invisible="plan_source == 'none'"/>
+                            <field name="planned_end" widget="float_time" readonly="1" invisible="plan_source == 'none'"/>
+                            <field name="planned_hours" widget="float_time" readonly="1" invisible="plan_source == 'none'"/>
+                        </group>
+                        <group string="Réalisé">
+                            <field name="arrival" readonly="1"/>
+                            <field name="departure" readonly="1"/>
+                            <field name="worked_hours" widget="float_time" readonly="1"/>
+                            <field name="punch_count" readonly="1"/>
+                        </group>
+                        <group string="Écarts">
+                            <field name="late_minutes" readonly="1" decoration-danger="late_minutes &gt; 0"/>
+                            <field name="early_leave_minutes" readonly="1"/>
+                            <field name="overtime_minutes" readonly="1"/>
+                            <field name="missing_check_in" readonly="1" invisible="not missing_check_in"/>
+                            <field name="missing_check_out" readonly="1" invisible="not missing_check_out"/>
+                            <field name="outside_window" readonly="1" invisible="not outside_window"/>
+                        </group>
+                        <group string="Justification">
+                            <field name="justified"/>
+                            <field name="justification_note" placeholder="Motif : maladie, mission, panne de transport…"/>
+                            <field name="justified_by" invisible="not justified"/>
+                            <field name="justified_on" invisible="not justified"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pointages du jour" name="punches">
+                            <field name="punch_ids" readonly="1">
+                                <list decoration-muted="punch_role == 'duplicate'" decoration-warning="punch_role == 'outside'">
+                                    <field name="punching_time"/>
+                                    <field name="punch_role" widget="badge"/>
+                                    <field name="device_id"/>
+                                    <field name="attendance_type"/>
+                                    <field name="source"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Présences Odoo" name="attendances">
+                            <field name="hr_attendance_ids" readonly="1">
+                                <list>
+                                    <field name="check_in"/>
+                                    <field name="check_out"/>
+                                    <field name="worked_hours" widget="float_time"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_view_search" model="ir.ui.view">
+        <field name="name">biometric.attendance.day.search</field>
+        <field name="model">biometric.attendance.day</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="department_id" operator="child_of"/>
+                <field name="schedule_id"/>
+                <filter string="Aujourd’hui" name="today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Hier" name="yesterday" domain="[('date', '=', (context_today() - relativedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="7 derniers jours" name="last_7_days" domain="[('date', '&gt;=', (context_today() - relativedelta(days=6)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Ce mois-ci" name="this_month" domain="[('date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+                <filter string="Date" name="date" date="date"/>
+                <separator/>
+                <filter string="Retards" name="late" domain="[('is_late', '=', True)]"/>
+                <filter string="Absences" name="absent" domain="[('status', '=', 'absent')]"/>
+                <filter string="Pointages incomplets" name="incomplete" domain="['|', ('missing_check_in', '=', True), ('missing_check_out', '=', True)]"/>
+                <filter string="Départs anticipés" name="early_leave" domain="[('is_early_leave', '=', True)]"/>
+                <filter string="Hors période" name="outside_window" domain="[('outside_window', '=', True)]"/>
+                <filter string="Heures supplémentaires" name="overtime" domain="[('overtime_minutes', '&gt;', 0)]"/>
+                <filter string="Congés et fériés" name="leave" domain="[('status', 'in', ('leave', 'holiday'))]"/>
+                <separator/>
+                <filter string="Non justifiés" name="unjustified" domain="[('justified', '=', False)]"/>
+                <filter string="Justifiés" name="justified" domain="[('justified', '=', True)]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Employé" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Département" name="group_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Statut" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Jour" name="group_day" context="{'group_by': 'date:day'}"/>
+                    <filter string="Semaine" name="group_week" context="{'group_by': 'date:week'}"/>
+                    <filter string="Mois" name="group_month" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_view_pivot" model="ir.ui.view">
+        <field name="name">biometric.attendance.day.pivot</field>
+        <field name="model">biometric.attendance.day</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse des présences" sample="1">
+                <field name="employee_id" type="row"/>
+                <field name="status" type="col"/>
+                <field name="late_minutes" type="measure"/>
+                <field name="worked_hours" type="measure" widget="float_time"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_view_graph" model="ir.ui.view">
+        <field name="name">biometric.attendance.day.graph</field>
+        <field name="model">biometric.attendance.day</field>
+        <field name="arch" type="xml">
+            <graph string="Retards par employé" type="bar" sample="1">
+                <field name="employee_id"/>
+                <field name="late_minutes" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_view_calendar" model="ir.ui.view">
+        <field name="name">biometric.attendance.day.calendar</field>
+        <field name="model">biometric.attendance.day</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendrier des présences" date_start="date" mode="month" color="color" quick_create="0" create="0" event_open_popup="1">
+                <field name="employee_id" filters="1" avatar_field="avatar_128"/>
+                <field name="status" filters="1"/>
+                <field name="arrival_time" widget="float_time"/>
+                <field name="late_minutes"/>
+                <field name="anomaly"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_action" model="ir.actions.act_window">
+        <field name="name">Journées de présence</field>
+        <field name="res_model">biometric.attendance.day</field>
+        <field name="view_mode">list,calendar,pivot,graph,form</field>
+        <field name="search_view_id" ref="biometric_attendance_day_view_search"/>
+        <field name="context">{'search_default_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aucune journée de présence</p>
+            <p>Les journées sont calculées automatiquement à partir des pointages et des horaires. Utilisez Rapports &gt; Recalculer les présences pour analyser une période passée.</p>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_day_late_action" model="ir.actions.act_window">
+        <field name="name">Retards</field>
+        <field name="res_model">biometric.attendance.day</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+        <field name="search_view_id" ref="biometric_attendance_day_view_search"/>
+        <field name="domain">[('is_late', '=', True)]</field>
+        <field name="context">{'search_default_this_month': 1}</field>
+    </record>
+
+    <record id="biometric_attendance_day_absence_action" model="ir.actions.act_window">
+        <field name="name">Absences</field>
+        <field name="res_model">biometric.attendance.day</field>
+        <field name="view_mode">list,calendar,pivot,form</field>
+        <field name="search_view_id" ref="biometric_attendance_day_view_search"/>
+        <field name="domain">[('status', '=', 'absent')]</field>
+        <field name="context">{'search_default_this_month': 1, 'search_default_unjustified': 1}</field>
+    </record>
+
+    <record id="biometric_attendance_day_incomplete_action" model="ir.actions.act_window">
+        <field name="name">Pointages à corriger</field>
+        <field name="res_model">biometric.attendance.day</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="biometric_attendance_day_view_search"/>
+        <field name="domain">['|', '|', ('missing_check_in', '=', True), ('missing_check_out', '=', True), ('outside_window', '=', True)]</field>
+        <field name="context">{'search_default_this_month': 1, 'search_default_unjustified': 1}</field>
+    </record>
+
+    <record id="biometric_attendance_day_analysis_action" model="ir.actions.act_window">
+        <field name="name">Analyse des présences</field>
+        <field name="res_model">biometric.attendance.day</field>
+        <field name="view_mode">pivot,graph,list,form</field>
+        <field name="search_view_id" ref="biometric_attendance_day_view_search"/>
+        <field name="context">{'search_default_this_month': 1}</field>
+    </record>
+
+    <record id="action_biometric_attendance_dashboard" model="ir.actions.client">
+        <field name="name">Tableau de bord des pointages</field>
+        <field name="tag">primetech_biometric_attendance.dashboard</field>
+    </record>
+</odoo>

@@ -1,0 +1,626 @@
+// ----------------------------------------------------------------------------
+// Animations
+// ----------------------------------------------------------------------------
+@keyframes o_pt_bio_enter {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes o_pt_bio_row_enter {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes o_pt_bio_grow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+// No "to" frame: the bar grows up to its inline width.
+@keyframes o_pt_bio_fill {
+    from { width: 0; }
+}
+
+@keyframes o_pt_bio_pulse {
+    0% { box-shadow: 0 0 0 0 rgba(var(--o-pt-bio-pulse), 0.55); }
+    70% { box-shadow: 0 0 0 7px rgba(var(--o-pt-bio-pulse), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--o-pt-bio-pulse), 0); }
+}
+
+@keyframes o_pt_bio_float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes o_pt_bio_loading {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+}
+
+@keyframes o_pt_bio_badge_pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+$o-pt-bio-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+.o_pt_bio_dashboard {
+    background-color: $o-webclient-background-color;
+
+    .o_pt_bio_header {
+        background-color: $o-view-background-color;
+        position: sticky;
+        top: 0;
+        z-index: 3;
+    }
+
+    .o_pt_bio_loadbar {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        height: 3px;
+        overflow: hidden;
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 40%;
+            background: linear-gradient(90deg, transparent, $o-brand-primary, transparent);
+            animation: o_pt_bio_loading 1.1s ease-in-out infinite;
+        }
+    }
+
+    .o_pt_bio_body {
+        transition: opacity 0.25s ease;
+    }
+
+    .o_pt_bio_dimmed {
+        opacity: 0.6;
+    }
+
+    .o_pt_bio_date {
+        width: 10.5rem;
+    }
+
+    .o_pt_bio_enter {
+        animation: o_pt_bio_enter 0.55s $o-pt-bio-ease both;
+    }
+
+    .o_pt_bio_row {
+        animation: o_pt_bio_row_enter 0.4s $o-pt-bio-ease both;
+    }
+
+    .o_pt_bio_float {
+        animation: o_pt_bio_float 2.6s ease-in-out infinite;
+    }
+
+    .o_pt_bio_fill {
+        animation: o_pt_bio_fill 1s $o-pt-bio-ease both;
+        animation-delay: 0.45s;
+        transition: width 0.6s $o-pt-bio-ease;
+    }
+
+    .o_pt_bio_number {
+        font-variant-numeric: tabular-nums;
+    }
+
+    // Live indicator
+    .o_pt_bio_live {
+        --o-pt-bio-pulse: 40, 167, 69;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: $success;
+        font-weight: 600;
+    }
+
+    .o_pt_bio_live_dot,
+    .o_pt_bio_status_dot {
+        display: inline-block;
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+    }
+
+    .o_pt_bio_live_dot {
+        background-color: $success;
+        animation: o_pt_bio_pulse 1.8s infinite;
+    }
+
+    .o_pt_bio_status_online {
+        --o-pt-bio-pulse: 40, 167, 69;
+        background-color: $success;
+        animation: o_pt_bio_pulse 2s infinite;
+    }
+
+    .o_pt_bio_status_error {
+        --o-pt-bio-pulse: 220, 53, 69;
+        background-color: $danger;
+        animation: o_pt_bio_pulse 1.4s infinite;
+    }
+
+    .o_pt_bio_status_offline {
+        background-color: $o-gray-400;
+    }
+
+    // ------------------------------------------------------------------------
+    // Quick actions
+    // ------------------------------------------------------------------------
+    .o_pt_bio_quick {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
+        padding: 0.55rem 0.4rem 0.4rem;
+        background-color: $o-view-background-color;
+        border: 1px solid $border-color;
+        border-radius: 0.6rem;
+        overflow-x: auto;
+        scrollbar-width: thin;
+
+        @include media-breakpoint-up(xl) {
+            overflow: visible;
+        }
+    }
+
+    .o_pt_bio_quick_action {
+        --o-pt-bio-tone: #{$o-brand-primary};
+        position: relative;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-width: 0;
+        background-color: transparent;
+        border: 1px solid transparent;
+        border-radius: 0.45rem;
+        padding: 0.3rem 0.5rem 0.3rem 0.3rem;
+        color: inherit;
+        white-space: nowrap;
+        transition: transform 0.2s $o-pt-bio-ease, background-color 0.2s ease, border-color 0.2s ease;
+
+        @include media-breakpoint-up(xl) {
+            flex: 1 1 0;
+        }
+
+        &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            border-color: var(--o-pt-bio-tone);
+            background-color: rgba(0, 0, 0, 0.02);
+
+            .o_pt_bio_quick_icon {
+                transform: scale(1.1) rotate(-6deg);
+                background-color: var(--o-pt-bio-tone);
+                color: #fff;
+            }
+        }
+
+        &:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        &:disabled {
+            opacity: 0.55;
+        }
+    }
+
+    .o_pt_bio_quick_icon {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.4rem;
+        font-size: 0.9rem;
+        color: var(--o-pt-bio-tone);
+        background-color: rgba(0, 0, 0, 0.05);
+        transition: transform 0.25s $o-pt-bio-ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .o_pt_bio_quick_text {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .o_pt_bio_quick_label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // The description stays available as a tooltip (title attribute).
+    .o_pt_bio_quick_desc {
+        display: none;
+    }
+
+    .o_pt_bio_quick_badge {
+        position: absolute;
+        top: -0.4rem;
+        right: -0.3rem;
+        min-width: 1.1rem;
+        height: 1.1rem;
+        padding: 0 0.3rem;
+        border-radius: 1rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 1.1rem;
+        text-align: center;
+        color: #fff;
+        background-color: var(--o-pt-bio-tone);
+        animation: o_pt_bio_badge_pop 0.45s $o-pt-bio-ease 0.6s both;
+    }
+
+    .o_pt_bio_tone_primary { --o-pt-bio-tone: #{$o-brand-primary}; }
+    .o_pt_bio_tone_success { --o-pt-bio-tone: #{$success}; }
+    .o_pt_bio_tone_warning { --o-pt-bio-tone: #{darken($warning, 12%)}; }
+    .o_pt_bio_tone_danger { --o-pt-bio-tone: #{$danger}; }
+    .o_pt_bio_tone_info { --o-pt-bio-tone: #{$info}; }
+    .o_pt_bio_tone_secondary { --o-pt-bio-tone: #{$o-gray-700}; }
+
+    // ------------------------------------------------------------------------
+    // Cards and indicators
+    // ------------------------------------------------------------------------
+    .o_pt_bio_card {
+        background-color: $o-view-background-color;
+        border: 1px solid $border-color;
+        border-radius: 0.6rem;
+        padding: 1rem;
+        transition: box-shadow 0.25s ease;
+
+        &:hover {
+            box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .o_pt_bio_card_title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .o_pt_bio_kpi {
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        cursor: pointer;
+        background-color: $o-view-background-color;
+        border: 1px solid $border-color;
+        border-left-width: 4px;
+        border-radius: 0.6rem;
+        padding: 0.75rem 1rem;
+        transition: box-shadow 0.25s ease, transform 0.25s $o-pt-bio-ease;
+
+        &:hover {
+            box-shadow: 0 0.5rem 1.2rem rgba(0, 0, 0, 0.09);
+            transform: translateY(-3px);
+
+            .o_pt_bio_kpi_watermark {
+                transform: scale(1.15) rotate(-8deg);
+                opacity: 0.12;
+            }
+        }
+
+        .o_pt_bio_kpi_label {
+            font-size: 0.85rem;
+            color: $text-muted;
+        }
+
+        .o_pt_bio_kpi_value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .o_pt_bio_kpi_sub {
+            position: relative;
+            z-index: 1;
+            font-size: 0.8rem;
+            color: $text-muted;
+        }
+
+        .o_pt_bio_kpi_watermark {
+            position: absolute;
+            right: 0.6rem;
+            bottom: 0.3rem;
+            font-size: 3rem;
+            opacity: 0.06;
+            pointer-events: none;
+            transition: transform 0.4s $o-pt-bio-ease, opacity 0.3s ease;
+        }
+
+        .o_pt_bio_kpi_meter {
+            height: 4px;
+            margin-top: 0.4rem;
+            border-radius: 2px;
+            background-color: rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+
+            > div {
+                height: 100%;
+                border-radius: 2px;
+            }
+        }
+    }
+
+    .o_pt_bio_kpi_alerting {
+        --o-pt-bio-pulse: 220, 53, 69;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 0.7rem;
+            right: 0.7rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background-color: $danger;
+            animation: o_pt_bio_pulse 1.6s infinite;
+        }
+    }
+
+    .o_pt_bio_link:hover {
+        text-decoration: underline;
+    }
+
+    .o_pt_bio_kpi_neutral { border-left-color: $o-gray-500; }
+    .o_pt_bio_kpi_success { border-left-color: $success; .o_pt_bio_kpi_value { color: $success; } }
+    .o_pt_bio_kpi_warning { border-left-color: $warning; .o_pt_bio_kpi_value { color: darken($warning, 15%); } }
+    .o_pt_bio_kpi_danger { border-left-color: $danger; .o_pt_bio_kpi_value { color: $danger; } }
+    .o_pt_bio_kpi_info { border-left-color: $info; .o_pt_bio_kpi_value { color: $info; } }
+    .o_pt_bio_kpi_alert { border-left-color: $o-gray-700; }
+
+    // ------------------------------------------------------------------------
+    // Trend chart
+    // ------------------------------------------------------------------------
+    .o_pt_bio_legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        font-weight: normal;
+        font-size: 0.8rem;
+        color: $text-muted;
+    }
+
+    .o_pt_bio_dot {
+        display: inline-block;
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        margin-right: 0.25rem;
+    }
+
+    .o_pt_bio_chart {
+        display: flex;
+        align-items: stretch;
+        gap: 0.4rem;
+        height: 230px;
+    }
+
+    .o_pt_bio_chart_col {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        border-radius: 0.3rem;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+
+            .o_pt_bio_chart_stack {
+                filter: brightness(1.08) saturate(1.1);
+            }
+
+            .o_pt_bio_chart_total {
+                opacity: 1;
+            }
+        }
+
+        &.o_pt_bio_chart_current {
+            background-color: rgba(0, 0, 0, 0.03);
+
+            .o_pt_bio_chart_label {
+                font-weight: 700;
+                color: $o-brand-primary;
+            }
+
+            .o_pt_bio_chart_total {
+                opacity: 1;
+            }
+        }
+    }
+
+    .o_pt_bio_chart_total {
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        min-height: 1rem;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .o_pt_bio_chart_stack {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0 15%;
+        transform-origin: bottom;
+        animation: o_pt_bio_grow 0.7s $o-pt-bio-ease both;
+        transition: filter 0.2s ease;
+
+        > div {
+            transition: height 0.6s $o-pt-bio-ease;
+        }
+
+        > div:first-child {
+            border-radius: 0.25rem 0.25rem 0 0;
+        }
+    }
+
+    .o_pt_bio_chart_label {
+        text-align: center;
+        font-size: 0.7rem;
+        color: $text-muted;
+        padding-top: 0.25rem;
+    }
+
+    // ------------------------------------------------------------------------
+    // Lists
+    // ------------------------------------------------------------------------
+    .o_pt_bio_table {
+        margin-bottom: 0;
+
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        td, th {
+            vertical-align: middle;
+        }
+
+        small {
+            display: block;
+        }
+    }
+
+    .o_pt_bio_empty {
+        text-align: center;
+        color: $text-muted;
+        padding: 1.5rem 0;
+    }
+
+    .o_pt_bio_device {
+        cursor: pointer;
+        border-bottom: 1px solid $border-color;
+        padding: 0.5rem 0.35rem;
+        border-radius: 0.3rem;
+        transition: background-color 0.15s ease;
+
+        &:last-child {
+            border-bottom: 0;
+        }
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+    }
+
+    .o_pt_bio_mini,
+    .o_pt_bio_department,
+    .o_pt_bio_rank {
+        cursor: pointer;
+        border-radius: 0.3rem;
+        transition: background-color 0.15s ease, transform 0.2s $o-pt-bio-ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+    }
+
+    .o_pt_bio_rank:hover,
+    .o_pt_bio_department:hover {
+        transform: translateX(3px);
+    }
+
+    .o_pt_bio_department {
+        padding: 0.3rem 0.25rem;
+    }
+
+    .o_pt_bio_rank {
+        display: flex;
+        align-items: center;
+        padding: 0.3rem 0.25rem;
+        border-bottom: 1px solid $border-color;
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    .o_pt_bio_rank_index {
+        width: 1.5rem;
+        height: 1.5rem;
+        line-height: 1.5rem;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-right: 0.5rem;
+        background-color: $o-gray-200;
+    }
+
+    .o_pt_bio_rank_first {
+        color: #fff;
+        background-color: $danger;
+    }
+
+    .o_pt_bio_timeline {
+        position: relative;
+        padding-left: 1rem;
+
+        &::before {
+            content: "";
+            position: absolute;
+            left: 0.3rem;
+            top: 0.4rem;
+            bottom: 0.4rem;
+            width: 2px;
+            background-color: $border-color;
+        }
+    }
+
+    .o_pt_bio_timeline_item {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.3rem 0;
+
+        &::before {
+            content: "";
+            position: absolute;
+            left: -0.9rem;
+            top: 0.6rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background-color: $o-brand-primary;
+        }
+
+        &:first-child::before {
+            --o-pt-bio-pulse: 113, 75, 103;
+            animation: o_pt_bio_pulse 2s infinite;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_pt_bio_dashboard *,
+    .o_pt_bio_dashboard *::before,
+    .o_pt_bio_dashboard *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}

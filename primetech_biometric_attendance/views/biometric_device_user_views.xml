@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="biometric_device_user_view_list" model="ir.ui.view">
+        <field name="name">biometric.device.user.list</field>
+        <field name="model">biometric.device.user</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-danger="not employee_id" decoration-muted="sync_state == 'pending'">
+                <field name="device_id"/>
+                <field name="device_user_id"/>
+                <field name="device_user_name"/>
+                <field name="employee_id"/>
+                <field name="department_id" optional="show"/>
+                <field name="device_uid" readonly="1" optional="hide"/>
+                <field name="privilege"/>
+                <field name="card" optional="hide"/>
+                <field name="sync_state" widget="badge" decoration-success="sync_state == 'synced'" decoration-danger="sync_state == 'error'"/>
+                <field name="last_synced_at" optional="hide"/>
+                <button name="action_push_to_device" string="Envoyer" type="object" icon="fa-upload" invisible="not employee_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="biometric_device_user_view_form" model="ir.ui.view">
+        <field name="name">biometric.device.user.form</field>
+        <field name="model">biometric.device.user</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_push_to_device" string="Envoyer vers la pointeuse" type="object" class="oe_highlight" icon="fa-upload" invisible="not employee_id"/>
+                    <button name="action_remove_from_device" string="Retirer de la pointeuse" type="object" icon="fa-trash" confirm="Voulez-vous vraiment retirer cet utilisateur de la pointeuse ?"/>
+                    <field name="sync_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><label for="employee_id"/><h1><field name="employee_id" placeholder="Employé associé"/></h1></div>
+                    <group>
+                        <group string="Affectation">
+                            <field name="device_id"/>
+                            <field name="department_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Identité sur la pointeuse">
+                            <field name="device_user_id"/>
+                            <field name="device_user_name"/>
+                            <field name="device_uid" readonly="1"/>
+                            <field name="privilege"/>
+                            <field name="card"/>
+                            <field name="password" password="True"/>
+                        </group>
+                    </group>
+                    <group string="Synchronisation">
+                        <field name="last_synced_at"/>
+                        <field name="sync_message"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="biometric_device_user_view_search" model="ir.ui.view">
+        <field name="name">biometric.device.user.search</field>
+        <field name="model">biometric.device.user</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="device_user_id"/>
+                <field name="device_user_name"/>
+                <field name="device_id"/>
+                <filter string="Sans employé associé" name="unmapped" domain="[('employee_id', '=', False)]"/>
+                <filter string="En erreur" name="error" domain="[('sync_state', '=', 'error')]"/>
+                <separator/>
+                <filter string="Archivés" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Pointeuse" name="group_device" context="{'group_by': 'device_id'}"/>
+                    <filter string="Département" name="group_department" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="biometric_device_user_action" model="ir.actions.act_window">
+        <field name="name">Utilisateurs des pointeuses</field>
+        <field name="res_model">biometric.device.user</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aucun utilisateur de pointeuse</p>
+            <p>Ouvrez une pointeuse et cliquez sur « Importer les utilisateurs » pour récupérer les comptes enregistrés sur l’appareil, puis associez chacun à un employé.</p>
+        </field>
+    </record>
+</odoo>

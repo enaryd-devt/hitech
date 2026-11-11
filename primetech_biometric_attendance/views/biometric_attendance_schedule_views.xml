@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="biometric_attendance_schedule_view_list" model="ir.ui.view">
+        <field name="name">biometric.attendance.schedule.list</field>
+        <field name="model">biometric.attendance.schedule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="weekly_hours" widget="float_time"/>
+                <field name="grace_minutes"/>
+                <field name="enforce_windows"/>
+                <field name="employee_count"/>
+                <field name="department_ids" widget="many2many_tags" optional="show"/>
+                <field name="is_company_default" widget="boolean" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_schedule_view_form" model="ir.ui.view">
+        <field name="name">biometric.attendance.schedule.form</field>
+        <field name="model">biometric.attendance.schedule</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_set_company_default" string="Définir comme horaire par défaut" type="object" icon="fa-star" invisible="is_company_default"/>
+                    <button name="action_recalculate" string="Recalculer les présences" type="object" icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_employees" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="employee_count" widget="statinfo" string="Employés"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archivé" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Par défaut" bg_color="text-bg-info" invisible="not is_company_default"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title"><label for="name"/><h1><field name="name" placeholder="ex. Horaire administratif"/></h1></div>
+                    <group>
+                        <group string="Tolérances">
+                            <field name="grace_minutes"/>
+                            <field name="late_count_mode" widget="radio"/>
+                            <field name="early_leave_tolerance"/>
+                            <field name="overtime_threshold"/>
+                        </group>
+                        <group string="Application">
+                            <field name="timezone"/>
+                            <field name="employee_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="department_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="weekly_hours" widget="float_time"/>
+                        </group>
+                    </group>
+                    <div class="text-muted small mb-3">
+                        Ordre d’application : horaire de l’employé, puis horaire de son département (ou du département parent), puis horaire par défaut de la société.
+                    </div>
+                    <field name="enforce_windows" class="oe_inline"/>
+                    <label for="enforce_windows"/>
+                    <div class="text-muted small mb-2">Les arrivées et départs pointés hors des périodes ci-dessous sont signalés comme anomalies.</div>
+                    <notebook>
+                        <page string="Jours travaillés" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="day_of_week"/>
+                                    <field name="planned_start" widget="float_time"/>
+                                    <field name="planned_end" widget="float_time"/>
+                                    <field name="break_start" widget="float_time" optional="show"/>
+                                    <field name="break_end" widget="float_time" optional="show"/>
+                                    <field name="check_in_from" widget="float_time" column_invisible="not parent.enforce_windows"/>
+                                    <field name="check_in_until" widget="float_time" column_invisible="not parent.enforce_windows"/>
+                                    <field name="check_out_from" widget="float_time" column_invisible="not parent.enforce_windows"/>
+                                    <field name="check_out_until" widget="float_time" column_invisible="not parent.enforce_windows"/>
+                                    <field name="planned_hours" widget="float_time" sum="Total"/>
+                                </list>
+                            </field>
+                            <div class="text-muted small">Un jour absent de la liste est un jour de repos : un pointage ce jour-là est compté en heures supplémentaires.</div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_schedule_view_search" model="ir.ui.view">
+        <field name="name">biometric.attendance.schedule.search</field>
+        <field name="model">biometric.attendance.schedule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Archivés" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="biometric_attendance_schedule_action" model="ir.actions.act_window">
+        <field name="name">Horaires de pointage</field>
+        <field name="res_model">biometric.attendance.schedule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créez votre premier horaire de pointage</p>
+            <p>Un horaire définit pour chaque jour l’heure d’arrivée et de départ prévues, la pause, la tolérance de retard et les périodes de pointage autorisées. Affectez-le à des employés, à des départements, ou définissez-le comme horaire par défaut de la société.</p>
+        </field>
+    </record>
+</odoo>

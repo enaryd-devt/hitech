@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="paperformat_biometric_attendance" model="report.paperformat">
+        <field name="name">Rapport de présence (A4 paysage)</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">30</field>
+        <field name="margin_bottom">18</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_spacing">25</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_biometric_attendance" model="ir.actions.report">
+        <field name="name">Rapport de présence</field>
+        <field name="model">biometric.attendance.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_biometric_attendance.attendance_summary</field>
+        <field name="report_file">primetech_biometric_attendance.attendance_summary</field>
+        <field name="print_report_name">'Rapport de présence %s au %s' % (object.date_from.strftime('%d-%m-%Y'), object.date_to.strftime('%d-%m-%Y'))</field>
+        <field name="paperformat_id" ref="paperformat_biometric_attendance"/>
+    </record>
+
+    <template id="attendance_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="reports" t-as="report">
+                <t t-set="wizard" t-value="report['wizard']"/>
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="wizard"/>
+                    <div class="page" style="font-size: 11px;">
+                        <h3>Rapport de présence</h3>
+                        <p>
+                            Période du <strong t-esc="wizard.date_from.strftime('%d/%m/%Y')"/>
+                            au <strong t-esc="wizard.date_to.strftime('%d/%m/%Y')"/>
+                            <t t-if="wizard.department_id"> · Département : <strong t-field="wizard.department_id.name"/></t>
+                        </p>
+
+                        <h5 class="mt-3">Synthèse</h5>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr class="text-center">
+                                    <th class="text-start">Employé</th>
+                                    <th>Jours prévus</th>
+                                    <th>Présent</th>
+                                    <th>Absences (non just.)</th>
+                                    <th>Congés / fériés</th>
+                                    <th>Retards</th>
+                                    <th>Total retard</th>
+                                    <th>Départs anticipés</th>
+                                    <th>Heures sup.</th>
+                                    <th>Incomplets</th>
+                                    <th>Heures travaillées / prévues</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="report['employees']" t-as="line" class="text-center">
+                                    <td class="text-start"><t t-esc="line['employee'].name"/></td>
+                                    <td><t t-esc="line['planned_days']"/></td>
+                                    <td><t t-esc="line['present_days']"/></td>
+                                    <td><t t-esc="line['absent_days']"/> (<t t-esc="line['unjustified_absences']"/>)</td>
+                                    <td><t t-esc="line['leave_days']"/></td>
+                                    <td><t t-esc="line['late_count']"/></td>
+                                    <td><t t-esc="minutes_label(line['late_minutes'])"/></td>
+                                    <td><t t-esc="minutes_label(line['early_minutes'])"/></td>
+                                    <td><t t-esc="minutes_label(line['overtime_minutes'])"/></td>
+                                    <td><t t-esc="line['incomplete_days']"/></td>
+                                    <td><t t-esc="hhmm(line['worked_hours'])"/> / <t t-esc="hhmm(line['planned_hours'])"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <t t-if="wizard.show_details">
+                            <t t-foreach="report['employees']" t-as="line">
+                                <div style="page-break-inside: avoid;">
+                                    <h5 class="mt-4"><t t-esc="line['employee'].name"/>
+                                        <small class="text-muted" t-if="line['employee'].department_id"> · <t t-esc="line['employee'].department_id.name"/></small>
+                                    </h5>
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                            <tr class="text-center">
+                                                <th>Date</th>
+                                                <th>Prévu</th>
+                                                <th>Arrivée</th>
+                                                <th>Départ</th>
+                                                <th>Travaillé</th>
+                                                <th>Retard</th>
+                                                <th>Statut</th>
+                                                <th class="text-start">Observations</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="line['days']" t-as="day" class="text-center">
+                                                <td><t t-esc="day_label(day.date)"/></td>
+                                                <td><t t-if="day.plan_source != 'none'"><t t-esc="hhmm(day.planned_start)"/> - <t t-esc="hhmm(day.planned_end)"/></t></td>
+                                                <td><t t-if="day.arrival" t-esc="hhmm(day.arrival_time)"/></td>
+                                                <td><t t-if="day.departure" t-esc="hhmm(day.departure_time)"/></td>
+                                                <td><t t-esc="hhmm(day.worked_hours)"/></td>
+                                                <td><t t-if="day.late_minutes" t-esc="'%s min' % day.late_minutes"/></td>
+                                                <td><t t-esc="status_labels.get(day.status)"/><t t-if="day.justified"> (justifié)</t></td>
+                                                <td class="text-start">
+                                                    <t t-esc="day.anomaly"/>
+                                                    <div t-if="day.justification_note" class="text-muted"><t t-esc="day.justification_note"/></div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

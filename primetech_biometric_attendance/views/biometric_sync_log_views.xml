@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="biometric_sync_log_view_list" model="ir.ui.view">
+        <field name="name">biometric.sync.log.list</field>
+        <field name="model">biometric.sync.log</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" decoration-danger="state == 'error'" decoration-warning="state == 'warning'">
+                <field name="date"/>
+                <field name="device_id"/>
+                <field name="operation"/>
+                <field name="state" widget="badge" decoration-success="state == 'success'" decoration-warning="state == 'warning'" decoration-danger="state == 'error'"/>
+                <field name="records_read" optional="hide"/>
+                <field name="records_created" sum="Total"/>
+                <field name="unknown_user_ids" optional="show"/>
+                <field name="duration" optional="hide"/>
+                <field name="message"/>
+                <field name="user_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="biometric_sync_log_view_form" model="ir.ui.view">
+        <field name="name">biometric.sync.log.form</field>
+        <field name="model">biometric.sync.log</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="device_id"/>
+                            <field name="operation"/>
+                            <field name="state" widget="badge"/>
+                            <field name="date"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="records_read"/>
+                            <field name="records_created"/>
+                            <field name="unknown_user_ids"/>
+                            <field name="duration"/>
+                        </group>
+                    </group>
+                    <field name="message"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="biometric_sync_log_view_search" model="ir.ui.view">
+        <field name="name">biometric.sync.log.search</field>
+        <field name="model">biometric.sync.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="device_id"/>
+                <field name="message"/>
+                <filter string="Erreurs" name="errors" domain="[('state', '=', 'error')]"/>
+                <filter string="Avertissements" name="warnings" domain="[('state', '=', 'warning')]"/>
+                <separator/>
+                <filter string="Aujourd’hui" name="today" domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Date" name="date" date="date"/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Pointeuse" name="group_device" context="{'group_by': 'device_id'}"/>
+                    <filter string="Opération" name="group_operation" context="{'group_by': 'operation'}"/>
+                    <filter string="Jour" name="group_day" context="{'group_by': 'date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="biometric_sync_log_action" model="ir.actions.act_window">
+        <field name="name">Journal des pointeuses</field>
+        <field name="res_model">biometric.sync.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
