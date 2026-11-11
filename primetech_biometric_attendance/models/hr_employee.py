@@ -30,24 +30,24 @@ class HrEmployee(models.Model):
                                 help="Identifiant de l'employé sur la pointeuse")
     biometric_device_user_ids = fields.One2many(
         'biometric.device.user', 'employee_id', string='Comptes sur les pointeuses',
-        groups='hr_attendance.group_hr_attendance_officer')
+        groups='hr_attendance.group_hr_attendance_manager')
     biometric_tracked = fields.Boolean(
         string='Suivi par pointeuse', compute='_compute_biometric_tracked',
         store=True, readonly=False,
-        groups='hr_attendance.group_hr_attendance_officer',
+        groups='hr_attendance.group_hr_attendance_manager',
         help="Seuls les employés suivis apparaissent comme absents lorsqu'ils "
              "n'ont pas pointé un jour travaillé.")
     biometric_schedule_id = fields.Many2one(
         'biometric.attendance.schedule', string='Horaire de pointage',
-        groups='hr_attendance.group_hr_attendance_officer',
+        groups='hr_attendance.group_hr_attendance_manager',
         help="Laissez vide pour utiliser l'horaire du département ou celui de la société.")
     biometric_effective_schedule_id = fields.Many2one(
         'biometric.attendance.schedule', string='Horaire appliqué',
         compute='_compute_biometric_effective_schedule_id',
-        groups='hr_attendance.group_hr_attendance_officer')
+        groups='hr_attendance.group_hr_attendance_manager')
     biometric_day_count = fields.Integer(
         compute='_compute_biometric_day_count',
-        groups='hr_attendance.group_hr_attendance_officer')
+        groups='hr_attendance.group_hr_attendance_manager')
 
     @api.depends('device_id_num', 'biometric_device_user_ids')
     def _compute_biometric_tracked(self):

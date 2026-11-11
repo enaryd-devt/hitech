@@ -6,12 +6,12 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <div name="button_box" position="inside">
-                <button name="action_view_biometric_days" type="object" class="oe_stat_button" icon="fa-calendar-check-o" groups="hr_attendance.group_hr_attendance_officer">
+                <button name="action_view_biometric_days" type="object" class="oe_stat_button" icon="fa-calendar-check-o" groups="hr_attendance.group_hr_attendance_manager">
                     <field name="biometric_day_count" widget="statinfo" string="Journées pointées"/>
                 </button>
             </div>
             <xpath expr="//group[@name='identification_group']" position="after">
-                <group string="Pointeuse biométrique" name="biometric_group" groups="hr_attendance.group_hr_attendance_officer">
+                <group string="Pointeuse biométrique" name="biometric_group" groups="hr_attendance.group_hr_attendance_manager">
                     <field name="device_id_num"/>
                     <field name="biometric_tracked"/>
                     <field name="biometric_schedule_id" placeholder="Horaire du département ou de la société"/>
@@ -27,9 +27,9 @@
         <field name="inherit_id" ref="hr.view_employee_tree"/>
         <field name="arch" type="xml">
             <field name="work_email" position="after">
-                <field name="device_id_num" optional="hide" groups="hr_attendance.group_hr_attendance_officer"/>
-                <field name="biometric_schedule_id" optional="hide" groups="hr_attendance.group_hr_attendance_officer"/>
-                <field name="biometric_tracked" optional="hide" groups="hr_attendance.group_hr_attendance_officer"/>
+                <field name="device_id_num" optional="hide" groups="hr_attendance.group_hr_attendance_manager"/>
+                <field name="biometric_schedule_id" optional="hide" groups="hr_attendance.group_hr_attendance_manager"/>
+                <field name="biometric_tracked" optional="hide" groups="hr_attendance.group_hr_attendance_manager"/>
             </field>
         </field>
     </record>
@@ -40,7 +40,7 @@
         <field name="inherit_id" ref="hr.view_department_form"/>
         <field name="arch" type="xml">
             <field name="parent_id" position="after">
-                <field name="biometric_schedule_id" groups="hr_attendance.group_hr_attendance_officer"/>
+                <field name="biometric_schedule_id" groups="hr_attendance.group_hr_attendance_manager"/>
             </field>
         </field>
     </record>

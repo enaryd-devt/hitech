@@ -67,8 +67,51 @@ class hr_employee(models.Model):
         ('matricule_uniq', 'unique(matricule)', 'The matricule must be unique!'),
     ]
 
+    # Dashboard sections and the "Administrator" group of the matching application.
+    RH_DASHBOARD_RIGHTS = {
+        'employees': 'hr.group_hr_manager',
+        'attendance': 'hr_attendance.group_hr_attendance_manager',
+        'leaves': 'hr_holidays.group_hr_holidays_manager',
+        'payroll': 'primetech_rh.group_payroll_manager',
+    }
+    # Values returned for each section; emptied when the user is not its administrator.
+    RH_DASHBOARD_SECTION_KEYS = {
+        'employees': ('employees', 'active_contracts', 'recruitments', 'distribution', 'workforce_chart'),
+        'attendance': ('attendance_count', 'attendance_employees', 'attendance_hours', 'attendance_open',
+                       'attendance_present_today', 'attendance_rate', 'attendance_panel_count',
+                       'attendance_panel_hours', 'recent_attendance'),
+        'leaves': ('absences', 'leave_pending', 'leave_today', 'leave_days', 'leave_distribution',
+                   'recent_leaves'),
+        'payroll': ('payroll', 'payroll_gross', 'payroll_count', 'payroll_average_net',
+                    'payroll_to_process', 'payroll_panel_total', 'payroll_panel_count',
+                    'payroll_chart', 'chart', 'recent'),
+    }
+
+    @api.model
+    def _get_rh_dashboard_rights(self):
+        user = self.env.user
+        return {section: user.has_group(group) for section, group in self.RH_DASHBOARD_RIGHTS.items()}
+
     @api.model
     def get_rh_dashboard_data(self, options=None):
+        """Indicateurs RH du tableau de bord, limités aux applications que
+        l'utilisateur administre (Employés, Présences, Congés, Paie)."""
+        rights = self._get_rh_dashboard_rights()
+        if not any(rights.values()):
+            raise AccessError(_("Le tableau de bord RH est réservé aux administrateurs "
+                                "(Employés, Présences, Congés ou Paie)."))
+        # Rights are checked above; the figures are aggregated company-wide.
+        data = self.sudo()._compute_rh_dashboard_data(options)
+        for section, keys in self.RH_DASHBOARD_SECTION_KEYS.items():
+            if rights[section]:
+                continue
+            for key in keys:
+                data[key] = [] if isinstance(data.get(key), list) else 0
+        data['rights'] = rights
+        return data
+
+    @api.model
+    def _compute_rh_dashboard_data(self, options=None):
         """Indicateurs RH utilisés par le tableau de bord interactif."""
         options = options or {}
         today = fields.Date.context_today(self)

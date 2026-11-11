@@ -14,4 +14,5 @@ class HrAttendance(models.Model):
     biometric_day_id = fields.Many2one(
         'biometric.attendance.day', string='Journée de pointage', index='btree_not_null',
         ondelete='set null', readonly=True, copy=False,
+        groups='hr_attendance.group_hr_attendance_manager',
         help="Présence générée automatiquement à partir des pointages biométriques.")

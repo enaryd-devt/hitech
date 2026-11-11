@@ -16,7 +16,7 @@ export class OrickRhDashboard extends Component {
         this.restoreScroll = saved?.scrollTop || 0;
         this.state = useState({
             loading: true,
-            data: { departments: [], distribution: [], chart: [], recent: [], workforce_chart: [], payroll_chart: [], leave_distribution: [] },
+            data: { rights: {}, departments: [], distribution: [], chart: [], recent: [], workforce_chart: [], payroll_chart: [], leave_distribution: [], recent_attendance: [], recent_leaves: [] },
             filters: { period: "month", department_id: "", date_from: "", date_to: "", workforce_period: "year", attendance_period: "month", leave_period: "year", payroll_period: "year", ...(saved?.filters || {}) },
         });
         this.load = this.load.bind(this);
@@ -61,6 +61,7 @@ export class OrickRhDashboard extends Component {
         return this.load();
     }
     money(value) { return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(value || 0)} ${this.state.data.currency || "FCFA"}`; }
+    can(section) { return Boolean(this.state.data.rights?.[section]); }
     maxPayroll() { return Math.max(1, ...this.state.data.chart.map((item) => item.payroll || 0)); }
     bar(value) { return `${Math.max(2, ((value || 0) / this.maxPayroll()) * 100)}%`; }
     distributionWidth(value) { return `${Math.max(8, ((value || 0) / Math.max(1, this.state.data.employees)) * 100)}%`; }

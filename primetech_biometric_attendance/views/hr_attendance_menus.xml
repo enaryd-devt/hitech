@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        Attendance access policy:
+        * Attendance administrators: everything (attendance management module included);
+        * every other user: the Attendances application with its Overview only,
+          restricted to his own attendances by the standard rule
+          "Attendance base user: Read his own attendances" (read only).
+    -->
+    <record id="hr_attendance.menu_hr_attendance_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('hr_attendance.group_hr_attendance_own_reader'))]"/>
+    </record>
+    <record id="hr_attendance.menu_hr_attendance_view_attendances" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('hr_attendance.group_hr_attendance_own_reader'))]"/>
+    </record>
+    <record id="hr_attendance.menu_hr_attendance_view_attendances_management" model="ir.ui.menu">
+        <field name="groups_id" eval="[(3, ref('hr_attendance.group_hr_attendance_officer')), (4, ref('hr_attendance.group_hr_attendance_manager'))]"/>
+    </record>
+    <record id="hr_attendance.menu_hr_attendance_reporting" model="ir.ui.menu">
+        <field name="groups_id" eval="[(3, ref('hr_attendance.group_hr_attendance_officer')), (4, ref('hr_attendance.group_hr_attendance_manager'))]"/>
+    </record>
+</odoo>

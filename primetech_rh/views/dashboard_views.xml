@@ -4,5 +4,5 @@
         <field name="name">Tableau de bord RH</field>
         <field name="tag">primetech_rh.dashboard</field>
     </record>
-    <menuitem id="menu_rh_dashboard" name="Tableau de bord" parent="menu_hr_ktco_root" action="action_rh_dashboard" groups="hr.group_hr_user,hr.group_hr_manager" sequence="0"/>
+    <menuitem id="menu_rh_dashboard" name="Tableau de bord" parent="menu_hr_ktco_root" action="action_rh_dashboard" groups="hr.group_hr_manager,hr_attendance.group_hr_attendance_manager,hr_holidays.group_hr_holidays_manager,primetech_rh.group_payroll_manager" sequence="0"/>
 </odoo>

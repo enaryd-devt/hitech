@@ -4,7 +4,7 @@
               name="Gestion des pointages"
               sequence="206"
               web_icon="primetech_biometric_attendance,static/description/icon.png"
-              groups="hr_attendance.group_hr_attendance_officer"/>
+              groups="hr_attendance.group_hr_attendance_manager"/>
 
     <menuitem id="menu_biometric_dashboard"
               name="Tableau de bord"
@@ -52,5 +52,6 @@
               name="Gestion des pointages"
               parent="hr_attendance.menu_hr_attendance_root"
               action="action_biometric_attendance_dashboard"
-              sequence="21"/>
+              sequence="21"
+              groups="hr_attendance.group_hr_attendance_manager"/>
 </odoo>
