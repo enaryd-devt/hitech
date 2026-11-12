@@ -117,6 +117,37 @@ class TestRelay(HttpCase):
         status, body = self.call('hello', {})
         self.assertEqual(status, 409)
 
+    def test_pairing_code(self):
+        device = self.env['biometric.device.details'].create({
+            'name': 'Pointeuse à associer', 'device_ip': '192.168.1.251', 'port_number': 4370})
+        self.assertEqual(device.connection_mode, 'direct')
+        device.action_generate_pairing_code()
+        code = device.relay_pairing_code
+        self.assertRegex(code, r'^[A-Z0-9]{4}-[A-Z0-9]{4}$')
+
+        status, body = self.call('ping', {}, token='-')
+        self.assertEqual(status, 200)
+        self.assertTrue(body['module_version'])
+
+        status, body = self.call('pair', {'code': 'AAAA-BBBB'}, token='-')
+        self.assertEqual(status, 403)
+
+        status, body = self.call('pair', {'code': code.replace('-', '').lower(),
+                                          'agent': {'host': 'PC-RH'}}, token='-')
+        self.assertEqual(status, 200, body)
+        self.assertEqual(body['device']['ip'], '192.168.1.251')
+        self.assertEqual(body['token'], device.relay_token)
+        self.assertEqual(device.connection_mode, 'relay', 'Pairing switches the device to relay mode')
+        self.assertFalse(device.relay_pairing_code, 'A pairing code can only be used once')
+
+        status, body = self.call('pair', {'code': code}, token='-')
+        self.assertEqual(status, 403)
+
+        # The received key works for the regular synchronisation.
+        status, body = self.call('hello', {}, token=device.relay_token)
+        self.assertEqual(status, 200)
+        self.assertEqual(body['device'], 'Pointeuse à associer')
+
     def test_package_download(self):
         self.authenticate('admin', 'admin')
         response = self.url_open('/primetech_biometric/relay/package/%s' % self.device.id)

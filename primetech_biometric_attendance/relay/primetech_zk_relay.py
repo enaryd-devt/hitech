@@ -776,8 +776,8 @@ def make_handler(config, engine):
     return Handler
 
 
-def start_console(config, engine):
-    server = ConsoleServer(('127.0.0.1', UI_PORT), make_handler(config, engine))
+def start_console(config, engine, port=UI_PORT):
+    server = ConsoleServer(('127.0.0.1', port), make_handler(config, engine))
     threading.Thread(target=server.serve_forever, name='console', daemon=True).start()
     return server
 
@@ -813,7 +813,8 @@ button:hover{border-color:var(--brand);color:var(--brand)}button:disabled{opacit
 button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}button.primary:hover{background:var(--brand-2);color:#fff}
 button.danger:hover{border-color:var(--err);color:var(--err)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.03);animation:enter .35s ease both}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.card.enter{animation:enter .35s ease both}
 @keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .card h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
 .card .sub{color:var(--muted);font-size:13px;margin-top:2px}
@@ -861,6 +862,7 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state = null;
 let wizard = null;
+const shown = new Set();  // cards already animated (the page refreshes every 3 s)
 
 async function api(path, body) {
   const response = await fetch(path, body === undefined ? {} : {
@@ -877,7 +879,8 @@ const STATE_LABEL = {ok: 'Synchronisée', warning: 'Synchronisée (à vérifier)
 function deviceCard(item, index) {
   const c = item.config, s = item.status, info = s.info || {};
   const memory = info.records_cap ? Math.round(100 * (info.records || 0) / info.records_cap) : null;
-  return `<div class="card" style="animation-delay:${index * 60}ms">
+  const fresh = !shown.has(c.id); shown.add(c.id);
+  return `<div class="card${fresh ? ' enter' : ''}" style="animation-delay:${index * 60}ms">
     <h3><span class="dot ${esc(s.state)}"></span>${esc(c.name)}</h3>
     <div class="sub">${esc(info.device_name || 'ZKTeco')} ${info.serial ? '· n° ' + esc(info.serial) : ''} · ${esc(c.ip)}:${esc(c.port)}</div>
     <div class="status ${esc(s.state)}"><b>${esc(STATE_LABEL[s.state] || s.state)}</b> — ${esc(s.message)}</div>
@@ -1085,7 +1088,10 @@ function editDevice(id) {
 }
 
 $('#modal').addEventListener('click', (event) => { if (event.target.id === 'modal' && wizard === null) closeModal(); });
-refresh();
+refresh().then(() => {
+  // console.html#ajouter opens the "add a device" wizard directly (link from the installer).
+  if (location.hash === '#ajouter' && state && state.unlocked) openWizard();
+});
 setInterval(refresh, 3000);
 </script>
 </body>
@@ -1096,20 +1102,21 @@ setInterval(refresh, 3000);
 # ---------------------------------------------------------------------------
 # Entry points
 # ---------------------------------------------------------------------------
-def run_service(open_browser):
+def run_service(open_browser, port=UI_PORT):
+    url = 'http://localhost:%s' % port
     config = Config()
     engine = Engine(config)
     try:
-        start_console(config, engine)
+        start_console(config, engine, port)
     except OSError:
         _logger.info('La passerelle tourne déjà sur ce PC : ouverture de la console.')
         if open_browser:
-            webbrowser.open(CONSOLE_URL)
+            webbrowser.open(url)
         return
     _logger.info('Passerelle PrimeTech %s démarrée sur %s (%s pointeuse(s)). Console : %s',
-                 VERSION, socket.gethostname(), len(config.devices()), CONSOLE_URL)
+                 VERSION, socket.gethostname(), len(config.devices()), url)
     if open_browser:
-        webbrowser.open(CONSOLE_URL)
+        webbrowser.open(url)
     engine.run_forever()
 
 
@@ -1145,6 +1152,7 @@ def main():
     parser.add_argument('--once', action='store_true', help='une synchronisation de chaque pointeuse')
     parser.add_argument('--test', action='store_true', help='tester les pointeuses et Odoo')
     parser.add_argument('--service', action='store_true', help='mode tâche de fond (sans navigateur)')
+    parser.add_argument('--port', type=int, default=UI_PORT, help='port de la console (défaut %s)' % UI_PORT)
     args = parser.parse_args()
     setup_logging()
     if args.test:
@@ -1155,7 +1163,7 @@ def main():
             DeviceWorker(values).run_if_due(force=True)
         return
     # Double-click: start (or join) the gateway and open its console.
-    run_service(open_browser=not args.service)
+    run_service(open_browser=not args.service, port=args.port)
 
 
 if __name__ == '__main__':

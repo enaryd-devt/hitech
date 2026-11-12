@@ -29,6 +29,13 @@
   fiche de la pointeuse. Les pointages faits PC éteints restent dans la
   pointeuse et sont envoyés avec leur heure réelle ; commandes à distance
   (heure, vidage de la mémoire après envoi, redémarrage).
+- Passerelle 2.0 : console Web locale (http://localhost:47321, raccourci
+  « Pointeuse PrimeTech » sur le Bureau) ; association par code temporaire
+  généré dans Odoo (onglet Passerelle, bascule automatique en mode passerelle) ;
+  adresse du serveur par nom de domaine ou IP:port avec détection d'Odoo et des
+  bases ; recherche automatique des pointeuses sur le réseau local ; plusieurs
+  pointeuses par passerelle ; PIN administrateur ; protections contre les
+  requêtes d'autres sites. Routes serveur `ping` et `pair`.
 - Paramètres (Présences > Configuration) : interprétation des pointages
   (premier/dernier, paires, sens envoyé par l'appareil), anti-doublon,
   génération des présences Odoo, conservation du journal.
