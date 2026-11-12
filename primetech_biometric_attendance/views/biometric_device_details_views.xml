@@ -153,9 +153,19 @@
                                     <field name="device_uid" readonly="1" optional="hide"/>
                                     <field name="privilege"/>
                                     <field name="card" optional="hide"/>
+                                    <field name="password" password="True"
+                                           placeholder="Nouveau mot de passe"
+                                           groups="hr_attendance.group_hr_attendance_manager"/>
+                                    <field name="allow_password" widget="boolean_toggle"/>
+                                    <field name="allow_fingerprint" widget="boolean_toggle"/>
+                                    <field name="allow_card" widget="boolean_toggle"/>
+                                    <field name="allow_face" widget="boolean_toggle"/>
                                     <field name="sync_state" widget="badge" decoration-success="sync_state == 'synced'" decoration-danger="sync_state == 'error'"/>
                                     <field name="active" optional="hide"/>
-                                    <button name="action_push_to_device" string="Envoyer" type="object" icon="fa-upload" invisible="not employee_id"/>
+                                    <button name="action_push_to_device" string="Envoyer" type="object" icon="fa-upload"
+                                            invisible="device_uid or sync_state == 'synced'"/>
+                                    <button name="action_push_to_device" string="Mettre à jour" type="object" icon="fa-upload"
+                                            invisible="not device_uid or sync_state == 'synced'"/>
                                     <button name="action_remove_from_device" string="Retirer" type="object" icon="fa-trash" confirm="Retirer cet utilisateur de la pointeuse ?"/>
                                 </list>
                             </field>

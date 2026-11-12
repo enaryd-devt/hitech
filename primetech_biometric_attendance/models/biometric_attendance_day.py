@@ -319,6 +319,9 @@ class BiometricAttendanceDay(models.Model):
         min_gap = timedelta(minutes=max(0, company.biometric_min_punch_interval))
         roles, valid, last = {}, [], None
         for punch in punches:
+            if not punch.method_allowed:
+                roles[punch.id] = 'unauthorized'
+                continue
             if last and punch.punching_time - last.punching_time < min_gap:
                 roles[punch.id] = 'duplicate'
                 continue

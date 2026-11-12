@@ -36,6 +36,14 @@ class BiometricDeviceUser(models.Model):
     password = fields.Char(string='Mot de passe de l’appareil', copy=False,
                            groups='hr_attendance.group_hr_attendance_manager')
     card = fields.Char(string='Numéro de carte')
+    allow_password = fields.Boolean(string='Mot de passe', default=True,
+                                    help='Autoriser les pointages validés par mot de passe.')
+    allow_fingerprint = fields.Boolean(string='Empreinte', default=True,
+                                       help='Autoriser les pointages par empreinte enregistrée sur la pointeuse.')
+    allow_card = fields.Boolean(string='Carte', default=True,
+                                help='Autoriser les pointages par carte enregistrée sur la pointeuse.')
+    allow_face = fields.Boolean(string='Visage', default=True,
+                                help='Autoriser les pointages par visage enregistré sur la pointeuse.')
     last_synced_at = fields.Datetime(string='Dernière synchronisation avec l’appareil', readonly=True)
     sync_state = fields.Selection([
         ('pending', 'À synchroniser'), ('synced', 'Synchronisé'), ('error', 'Erreur'),
@@ -49,6 +57,22 @@ class BiometricDeviceUser(models.Model):
                 'Identifiant %s', record.device_user_id or '?')
 
     DEVICE_FIELDS = ('device_user_name', 'privilege', 'card', 'password', 'device_user_id')
+
+    def allows_verification_method(self, method):
+        """Whether Odoo accepts this terminal verification method for the user.
+
+        Templates for fingerprints and faces are enrolled on the terminal; this
+        setting controls whether their resulting punches are accepted by Odoo.
+        """
+        self.ensure_one()
+        return {
+            '0': self.allow_password,
+            '1': self.allow_fingerprint,
+            '2': self.allow_card,
+            '3': self.allow_password,
+            '4': self.allow_card,
+            '15': self.allow_face,
+        }.get(str(method), True)
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):

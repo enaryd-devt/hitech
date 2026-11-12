@@ -44,7 +44,7 @@ from logging.handlers import RotatingFileHandler
 
 from zk import ZK
 
-VERSION = '2.5.0'
+VERSION = '2.5.1'
 UI_PORT = 47321
 BATCH_SIZE = 2000
 POLL_SECONDS = 10  # how often Odoo is asked whether a request is waiting
@@ -176,6 +176,12 @@ class Config:
         return hashlib.pbkdf2_hmac('sha256', pin.encode('utf-8'), bytes.fromhex(salt), 120000).hex()
 
     def set_pin(self, pin):
+        """Store a normalized console PIN.
+
+        The web console submits text, but normalising here as well keeps the
+        value that is hashed and the value checked at unlock strictly aligned.
+        """
+        pin = str(pin or '').strip()
         with self.lock:
             if pin:
                 salt = secrets.token_hex(16)
@@ -188,8 +194,14 @@ class Config:
         stored = self.data.get('pin_hash')
         if not stored:
             return True
-        salt, digest = stored.split('$', 1)
-        return secrets.compare_digest(self._hash(pin or '', salt), digest)
+        try:
+            salt, digest = stored.split('$', 1)
+            return secrets.compare_digest(self._hash(str(pin or '').strip(), salt), digest)
+        except (TypeError, ValueError):
+            # A malformed value must never make the unlock endpoint fail open
+            # or return a server error to the person entering their PIN.
+            _logger.error('Le code PIN enregistré est invalide.')
+            return False
 
 
 # ---------------------------------------------------------------------------
@@ -981,9 +993,18 @@ def make_handler(config, engine):
             if route == '/api/scan':
                 return dict(scan_devices(int(payload.get('port') or 4370)), ok=True)
             if route == '/api/pin':
-                config.set_pin(payload.get('pin') or '')
+                pin = str(payload.get('pin') or '').strip()
+                config.set_pin(pin)
                 sessions.clear()
-                _logger.info('Code PIN de la console %s.', 'défini' if payload.get('pin') else 'supprimé')
+                _logger.info('Code PIN de la console %s.', 'défini' if pin else 'supprimé')
+                # The PIN can only be changed from an already-unlocked console.
+                # Keep that browser authenticated after saving it; other existing
+                # sessions are still invalidated above and must enter the new PIN.
+                if pin:
+                    session = secrets.token_urlsafe(24)
+                    sessions.add(session)
+                    return self._send(200, {'ok': True}, headers={
+                        'Set-Cookie': 'pt_relay_session=%s; HttpOnly; SameSite=Strict; Path=/' % session})
                 return {'ok': True}
             raise KeyError('route inconnue %s' % route)
 

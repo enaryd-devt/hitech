@@ -31,12 +31,12 @@ PUNCH_TYPES = [
     ('255', 'Non précisé'),
 ]
 VERIFY_METHODS = [
-    ('1', 'Empreinte'), ('15', 'Visage'), ('2', 'Type 2'), ('3', 'Mot de passe'),
+    ('0', 'Mot de passe'), ('1', 'Empreinte'), ('15', 'Visage'), ('2', 'Carte'), ('3', 'Mot de passe'),
     ('4', 'Carte'), ('255', 'Non précisé'),
 ]
 PUNCH_ROLES = [
     ('in', 'Arrivée'), ('out', 'Départ'), ('intermediate', 'Intermédiaire'),
-    ('duplicate', 'Doublon ignoré'), ('outside', 'Hors période'),
+    ('duplicate', 'Doublon ignoré'), ('outside', 'Hors période'), ('unauthorized', 'Méthode non autorisée'),
 ]
 
 
@@ -65,6 +65,8 @@ class ZkMachineAttendance(models.Model):
                                   help='Sens du pointage envoyé par la pointeuse')
     attendance_type = fields.Selection(VERIFY_METHODS, string='Méthode de pointage',
                                        help="Méthode de vérification utilisée")
+    method_allowed = fields.Boolean(string='Méthode autorisée', default=True, readonly=True,
+                                    help='Décidé selon les méthodes autorisées pour cet utilisateur.')
     punching_time = fields.Datetime(string='Date et heure de pointage', required=True,
                                     index=True,
                                     help="Date et heure enregistrées sur la pointeuse")

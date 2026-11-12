@@ -607,6 +607,11 @@ class BiometricDeviceDetails(models.Model):
             for device_user in self.device_user_ids.sudo()
             if device_user.active and device_user.employee_id
         }
+        device_users = {
+            device_user.device_user_id: device_user
+            for device_user in self.device_user_ids.sudo()
+            if device_user.active
+        }
         parsed = []
         for record in records:
             timestamp = record.get('timestamp')
@@ -655,11 +660,14 @@ class BiometricDeviceDetails(models.Model):
             existing.add(key)
             punch_type = str(record.get('punch'))
             method = str(record.get('status'))
+            device_user = device_users.get(user_id)
+            method_allowed = not device_user or device_user.allows_verification_method(method)
             vals_list.append({
                 'employee_id': employee.id,
                 'device_id': self.id,
                 'device_id_num': user_id,
                 'attendance_type': method if method in valid_methods else '255',
+                'method_allowed': method_allowed,
                 'punch_type': punch_type if punch_type in valid_types else '255',
                 'punching_time': punch_utc,
                 'address_id': self.address_id.id,

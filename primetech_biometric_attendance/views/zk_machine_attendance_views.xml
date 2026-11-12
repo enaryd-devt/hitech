@@ -4,7 +4,7 @@
         <field name="name">zk.machine.attendance.list</field>
         <field name="model">zk.machine.attendance</field>
         <field name="arch" type="xml">
-            <list create="false" decoration-muted="punch_role == 'duplicate'" decoration-warning="punch_role == 'outside'" decoration-info="source == 'manual'">
+            <list create="false" decoration-muted="punch_role == 'duplicate'" decoration-warning="punch_role == 'outside' or punch_role == 'unauthorized'" decoration-info="source == 'manual'">
                 <field name="punching_time"/>
                 <field name="employee_id"/>
                 <field name="department_id" optional="show"/>
@@ -13,6 +13,7 @@
                 <field name="punch_role" widget="badge" decoration-success="punch_role == 'in'" decoration-info="punch_role == 'out'" decoration-warning="punch_role == 'outside'"/>
                 <field name="punch_type" optional="hide"/>
                 <field name="attendance_type" optional="show"/>
+                <field name="method_allowed" widget="boolean_toggle" optional="show"/>
                 <field name="source" optional="show"/>
                 <field name="note" optional="hide"/>
                 <field name="address_id" optional="hide"/>
@@ -38,6 +39,7 @@
                             <field name="device_id_num" readonly="1"/>
                             <field name="punch_type" readonly="1"/>
                             <field name="attendance_type" readonly="1"/>
+                            <field name="method_allowed" readonly="1"/>
                             <field name="day_id" readonly="1"/>
                             <field name="punch_role" readonly="1"/>
                         </group>
