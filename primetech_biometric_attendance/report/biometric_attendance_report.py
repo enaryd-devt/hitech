@@ -54,3 +54,36 @@ class BiometricAttendanceReport(models.AbstractModel):
             'day_label': lambda day: '%s %s' % (DAY_NAMES[day.weekday()], day.strftime('%d/%m')),
             'status_labels': dict(Day._fields['status'].selection),
         }
+
+
+class BiometricPunchesReport(models.AbstractModel):
+    _name = 'report.primetech_biometric_attendance.punches_report'
+    _description = 'Rapport des pointages'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        wizards = self.env['biometric.attendance.report.wizard'].browse(docids)
+        return {'doc_ids': docids, 'doc_model': wizards._name, 'docs': wizards,
+                'reports': [{'wizard': wizard, 'data': wizard._punches_data()} for wizard in wizards]}
+
+
+class BiometricUsersReport(models.AbstractModel):
+    _name = 'report.primetech_biometric_attendance.users_report'
+    _description = 'Rapport des utilisateurs des pointeuses'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        wizards = self.env['biometric.attendance.report.wizard'].browse(docids)
+        return {'doc_ids': docids, 'doc_model': wizards._name, 'docs': wizards,
+                'reports': [{'wizard': wizard, 'data': wizard._users_data()} for wizard in wizards]}
+
+
+class BiometricDevicesReport(models.AbstractModel):
+    _name = 'report.primetech_biometric_attendance.devices_report'
+    _description = 'Rapport d’activité des pointeuses'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        wizards = self.env['biometric.attendance.report.wizard'].browse(docids)
+        return {'doc_ids': docids, 'doc_model': wizards._name, 'docs': wizards,
+                'reports': [{'wizard': wizard, 'data': wizard._devices_data()} for wizard in wizards]}

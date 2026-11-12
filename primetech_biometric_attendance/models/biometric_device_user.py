@@ -27,7 +27,9 @@ class BiometricDeviceUser(models.Model):
     device_uid = fields.Integer(
         string='UID du terminal', readonly=True, copy=False,
         help="Attribué automatiquement par la pointeuse après la synchronisation.")
-    device_user_name = fields.Char(string='Nom sur la pointeuse', readonly=True)
+    device_user_name = fields.Char(string='Nom sur la pointeuse', size=24,
+                                   help="Nom affiché par la pointeuse (24 caractères au maximum). "
+                                        "Modifiez-le puis cliquez sur « Mettre à jour la pointeuse ».")
     privilege = fields.Selection([
         ('0', 'Utilisateur'), ('2', 'Enrôleur'), ('6', 'Gestionnaire'), ('14', 'Administrateur'),
     ], string='Rôle sur l’appareil', default='0', required=True)
@@ -46,20 +48,50 @@ class BiometricDeviceUser(models.Model):
             record.display_name = record.employee_id.name or record.device_user_name or _(
                 'Identifiant %s', record.device_user_id or '?')
 
+    DEVICE_FIELDS = ('device_user_name', 'privilege', 'card', 'password', 'device_user_id')
+
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
         if self.employee_id and not self.device_user_id:
             self.device_user_id = self.employee_id.device_id_num
+        if self.employee_id and not self.device_user_name:
+            self.device_user_name = (self.employee_id.name or '')[:24]
+
+    @api.constrains('device_user_id', 'device_user_name', 'card', 'password')
+    def _check_device_values(self):
+        for record in self:
+            if not (record.device_user_id or '').isdigit() or len(record.device_user_id) > 9:
+                raise ValidationError(_("L'identifiant biométrique doit être un nombre de 1 à 9 chiffres (%s).",
+                                        record.device_user_id))
+            if record.card and not record.card.isdigit():
+                raise ValidationError(_('Le numéro de carte doit être numérique.'))
+            password = record.sudo().password
+            if password and (not password.isdigit() or len(password) > 8):
+                raise ValidationError(_('Le mot de passe de la pointeuse contient au plus 8 chiffres.'))
+
+    def _device_name(self):
+        """Name written on the device: the edited one, else the employee's."""
+        self.ensure_one()
+        return ((self.device_user_name or self.employee_id.name or '').strip())[:24]
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        if not self.env.context.get('biometric_from_device'):
+            for record in records.filtered(lambda user: not user.device_user_name and user.employee_id):
+                record.device_user_name = (record.employee_id.name or '')[:24]
+        return records
 
     def write(self, vals):
+        from_device = self.env.context.get('biometric_from_device')
         result = super().write(vals)
-        if vals.get('employee_id') and not self.env.context.get('biometric_from_device'):
-            # Offer to put the Odoo name on the device when it differs.
-            for record in self.filtered(lambda user: user.sync_state == 'synced'
-                                        and (user.device_user_name or '') != (user.employee_id.name or '')[:24]):
-                record.write({'sync_state': 'pending', 'sync_message': _(
-                    'Associé à %s : cliquez sur « Envoyer » pour mettre à jour le nom sur la pointeuse.',
-                    record.employee_id.name)})
+        if not from_device and set(vals) & set(self.DEVICE_FIELDS):
+            # Edited in Odoo: protected from the next device reading until sent.
+            super().write({'sync_state': 'pending', 'sync_message': _(
+                'Modifié dans Odoo : cliquez sur « Mettre à jour la pointeuse » pour l’appliquer sur l’appareil.')})
+        if vals.get('employee_id') and not from_device:
+            for record in self.filtered(lambda user: not user.device_user_name):
+                record.device_user_name = (record.employee_id.name or '')[:24]
         if vals.get('employee_id'):
             for record in self.filtered(lambda record: not record.employee_id.device_id_num):
                 record.employee_id.device_id_num = record.device_user_id
@@ -104,9 +136,10 @@ class BiometricDeviceUser(models.Model):
         return relay_devices[:1]._notify(message) if relay_devices else True
 
     def action_push_to_device(self):
-        if not self.filtered('employee_id'):
-            raise UserError(_("Associez d'abord un employé aux utilisateurs sélectionnés."))
-        for record in self.filtered('employee_id'):
+        for record in self:
+            if not record._device_name():
+                raise UserError(_("Indiquez le nom sur la pointeuse ou un employé pour l'identifiant %s.",
+                                  record.device_user_id))
             record.device_id._push_device_user(record)
         return self._relay_notification(_(
             "Envoi transmis à la passerelle : l'utilisateur sera créé sur la pointeuse à sa "

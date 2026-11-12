@@ -2,7 +2,7 @@
 import json
 from datetime import datetime
 
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import HttpCase, tagged
 
 
@@ -199,6 +199,50 @@ class TestRelay(HttpCase):
         missing = users.filtered(lambda user: user.device_user_id == '7')
         self.assertEqual(missing.sync_state, 'pending')
         self.assertIn('Absent de la pointeuse', missing.sync_message)
+
+    def test_edit_user_from_odoo_and_sync_request(self):
+        # Device users come from the gateway.
+        self.call('push', self.push_payload([]))
+        device_user = self.device.device_user_ids.filtered(lambda user: user.device_user_id == '7')
+        device_user.with_context(biometric_from_device=True).write({'sync_state': 'synced', 'device_uid': 3})
+        status, hello = self.call('hello', {})
+        self.assertFalse(hello['pending'])
+
+        # Edited in Odoo like in the gateway console.
+        device_user.write({'device_user_name': 'Awa K.', 'card': '555', 'privilege': '14'})
+        self.assertEqual(device_user.sync_state, 'pending')
+        # A device reading before the update does not overwrite the Odoo values.
+        self.call('push', self.push_payload([]))
+        self.assertEqual(device_user.device_user_name, 'Awa K.')
+
+        device_user.action_push_to_device()
+        status, hello = self.call('hello', {})
+        self.assertTrue(hello['pending'], 'The gateway is told to synchronise at once')
+        status, body = self.call('push', self.push_payload([]))
+        command = body['commands'][0]
+        self.assertEqual((command['user_name'], command['card'], command['privilege']), ('Awa K.', 555, 14))
+        self.call('push', self.push_payload([], report_only=True, command_results=[{
+            'command': 'push_user', 'ref': device_user.id, 'ok': True, 'uid': 3}]))
+        self.assertEqual(device_user.sync_state, 'synced')
+        self.assertEqual(device_user.device_user_name, 'Awa K.')
+
+        # A user created in Odoo without employee can be sent to the device.
+        new_user = self.env['biometric.device.user'].create({
+            'device_id': self.device.id, 'device_user_id': '120', 'device_user_name': 'Stagiaire'})
+        new_user.action_push_to_device()
+        status, body = self.call('push', self.push_payload([]))
+        self.assertEqual(body['commands'][0]['user_name'], 'Stagiaire')
+        with self.assertRaises(ValidationError):
+            new_user.card = 'ABC'
+
+        # "Synchronise and check" asks the gateway for an immediate reading.
+        action = self.device.action_sync_and_check()
+        self.assertEqual(action['res_model'], 'biometric.device.user')
+        status, hello = self.call('hello', {})
+        self.assertTrue(hello['pending'])
+        self.call('push', self.push_payload([]))
+        status, hello = self.call('hello', {})
+        self.assertFalse(hello['pending'])
 
     def test_pairing_code(self):
         device = self.env['biometric.device.details'].create({

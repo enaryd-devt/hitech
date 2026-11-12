@@ -27,7 +27,7 @@
     <menuitem id="menu_biometric_reporting" name="Rapports" parent="menu_biometric_root" sequence="20"/>
     <menuitem id="menu_biometric_analysis" name="Analyse des présences" parent="menu_biometric_reporting"
               action="biometric_attendance_day_analysis_action" sequence="1"/>
-    <menuitem id="menu_biometric_report" name="Rapport de présence (PDF)" parent="menu_biometric_reporting"
+    <menuitem id="menu_biometric_report" name="Rapports (PDF / Excel)" parent="menu_biometric_reporting"
               action="biometric_attendance_report_wizard_action" sequence="2"/>
     <menuitem id="menu_biometric_recompute" name="Recalculer les présences" parent="menu_biometric_reporting"
               action="biometric_attendance_recompute_wizard_action" sequence="10"/>

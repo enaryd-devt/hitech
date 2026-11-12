@@ -57,6 +57,7 @@
         'wizard/biometric_attendance_recompute_wizard_views.xml',
         'wizard/biometric_attendance_report_wizard_views.xml',
         'report/biometric_attendance_report.xml',
+        'report/biometric_reports_pro.xml',
         'views/biometric_device_attendance_menus.xml',
         'views/hr_attendance_menus.xml',
     ],

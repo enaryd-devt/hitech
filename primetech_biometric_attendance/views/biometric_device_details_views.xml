@@ -57,6 +57,8 @@
                 <header>
                     <button name="action_synchronize_now" string="Synchroniser maintenant" type="object" class="oe_highlight" icon="fa-refresh" invisible="connection_mode == 'relay'"/>
                     <button name="action_download_relay" string="Télécharger la passerelle" type="object" class="oe_highlight" icon="fa-download" groups="hr_attendance.group_hr_attendance_manager" invisible="connection_mode != 'relay'"/>
+                    <button name="action_sync_and_check" string="Synchroniser et vérifier" type="object" icon="fa-check-square-o" groups="hr_attendance.group_hr_attendance_manager" class="oe_highlight" invisible="connection_mode != 'relay'"/>
+                    <button name="action_sync_and_check" string="Synchroniser et vérifier les utilisateurs" type="object" icon="fa-check-square-o" groups="hr_attendance.group_hr_attendance_manager" invisible="connection_mode == 'relay'"/>
                     <button name="action_test_connection" string="Tester la connexion" type="object" icon="fa-plug" invisible="connection_mode == 'relay'"/>
                     <button name="action_refresh_info" string="Lire les informations" type="object" icon="fa-info-circle" groups="hr_attendance.group_hr_attendance_manager" invisible="connection_mode == 'relay'"/>
                     <button name="action_set_timezone" string="Régler l’heure" type="object" icon="fa-clock-o" groups="hr_attendance.group_hr_attendance_manager" confirm="Régler l’horloge de la pointeuse sur l’heure actuelle de son fuseau horaire ?"/>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_report_biometric_punches" model="ir.actions.report">
+        <field name="name">Pointages</field>
+        <field name="model">biometric.attendance.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_biometric_attendance.punches_report</field>
+        <field name="report_file">primetech_biometric_attendance.punches_report</field>
+        <field name="print_report_name">'Pointages %s au %s' % (object.date_from.strftime('%d-%m-%Y'), object.date_to.strftime('%d-%m-%Y'))</field>
+        <field name="paperformat_id" ref="paperformat_biometric_attendance"/>
+    </record>
+    <record id="action_report_biometric_users" model="ir.actions.report">
+        <field name="name">Utilisateurs des pointeuses</field>
+        <field name="model">biometric.attendance.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_biometric_attendance.users_report</field>
+        <field name="report_file">primetech_biometric_attendance.users_report</field>
+        <field name="print_report_name">'Utilisateurs des pointeuses'</field>
+        <field name="paperformat_id" ref="paperformat_biometric_attendance"/>
+    </record>
+    <record id="action_report_biometric_devices" model="ir.actions.report">
+        <field name="name">Activité des pointeuses</field>
+        <field name="model">biometric.attendance.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">primetech_biometric_attendance.devices_report</field>
+        <field name="report_file">primetech_biometric_attendance.devices_report</field>
+        <field name="print_report_name">'Activité des pointeuses %s au %s' % (object.date_from.strftime('%d-%m-%Y'), object.date_to.strftime('%d-%m-%Y'))</field>
+        <field name="paperformat_id" ref="paperformat_biometric_attendance"/>
+    </record>
+
+    <!-- Shared look: banner, key figures, zebra tables -->
+    <template id="pro_report_style">
+        <style>
+            .pt-rep { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 10.5px; color: #1f2937; }
+            .pt-rep .banner { background: #5b3fd1; color: #fff; padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; }
+            .pt-rep .banner h2 { margin: 0; font-size: 19px; color: #fff; }
+            .pt-rep .banner div { opacity: .9; font-size: 11px; margin-top: 3px; }
+            .pt-rep table.kpis { width: 100%; border-collapse: separate; border-spacing: 8px 0; margin: 0 -8px 12px; }
+            .pt-rep table.kpis td { background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 6px; padding: 8px 10px; text-align: center; }
+            .pt-rep table.kpis b { display: block; font-size: 18px; color: #5b3fd1; }
+            .pt-rep table.kpis span { color: #6b7280; font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; }
+            .pt-rep table.grid { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+            .pt-rep table.grid th { background: #ede9fe; color: #4c1d95; text-align: left; padding: 6px 7px; font-size: 9.5px; text-transform: uppercase; letter-spacing: .03em; border-bottom: 2px solid #c4b5fd; }
+            .pt-rep table.grid td { padding: 5px 7px; border-bottom: 1px solid #eef0f3; }
+            .pt-rep table.grid tr.odd td { background: #fafaff; }
+            .pt-rep table.grid tr.day td { background: #5b3fd1; color: #fff; font-weight: bold; padding: 5px 7px; }
+            .pt-rep .tag { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 9.5px; font-weight: bold; background: #f3f4f6; }
+            .pt-rep .tag.ok { background: #dcfce7; color: #166534; } .pt-rep .tag.warn { background: #fef3c7; color: #92400e; }
+            .pt-rep .tag.err { background: #fee2e2; color: #991b1b; }
+            .pt-rep h4 { color: #5b3fd1; margin: 14px 0 6px; font-size: 13px; }
+            .pt-rep .muted { color: #6b7280; }
+            .pt-rep .bar { background: #ede9fe; height: 9px; border-radius: 5px; }
+            .pt-rep .bar i { display: block; background: #7c5cf0; height: 9px; border-radius: 5px; }
+            .pt-rep .device { page-break-inside: avoid; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
+        </style>
+    </template>
+
+    <template id="pro_report_banner">
+        <div class="banner">
+            <h2 t-esc="title"/>
+            <div>
+                <t t-esc="wizard.env.company.name"/> · Période du <t t-esc="wizard.period_label()"/>
+                <t t-if="wizard.filters_label()"> · <t t-esc="wizard.filters_label()"/></t>
+            </div>
+        </div>
+    </template>
+
+    <!-- Punches -->
+    <template id="punches_report">
+        <t t-call="web.html_container">
+            <t t-foreach="reports" t-as="report">
+                <t t-set="wizard" t-value="report['wizard']"/>
+                <t t-set="data" t-value="report['data']"/>
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="wizard"/>
+                    <div class="page pt-rep">
+                        <t t-call="primetech_biometric_attendance.pro_report_style"/>
+                        <t t-call="primetech_biometric_attendance.pro_report_banner"><t t-set="title" t-value="'Pointages'"/></t>
+                        <table class="kpis"><tr>
+                            <td><b t-esc="data['stats']['total']"/><span>pointages</span></td>
+                            <td><b t-esc="data['stats']['employees']"/><span>employés</span></td>
+                            <td><b t-esc="data['stats']['days']"/><span>jours</span></td>
+                            <td><b t-esc="data['stats']['manual']"/><span>saisies manuelles</span></td>
+                        </tr></table>
+                        <table class="grid">
+                            <thead><tr><th>Heure</th><th>Employé</th><th>Département</th><th>Identifiant</th><th>Pointeuse</th><th>Méthode</th><th>Rôle</th><th>Origine</th></tr></thead>
+                            <tbody>
+                                <t t-foreach="data['per_day'].items()" t-as="item">
+                                    <tr class="day"><td colspan="8"><t t-esc="wizard.day_label(item[0])"/> — <t t-esc="len(item[1])"/> pointage(s)</td></tr>
+                                    <tr t-foreach="item[1]" t-as="row" t-att-class="'odd' if row_index % 2 else ''">
+                                        <td><b t-esc="row['time']"/></td>
+                                        <td t-esc="row['employee']"/>
+                                        <td class="muted" t-esc="row['department']"/>
+                                        <td t-esc="row['user_id']"/>
+                                        <td t-esc="row['device']"/>
+                                        <td t-esc="row['method']"/>
+                                        <td><span class="tag" t-esc="row['role']"/></td>
+                                        <td><t t-esc="row['source']"/><span t-if="row['note']" class="muted"> — <t t-esc="row['note']"/></span></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Device users -->
+    <template id="users_report">
+        <t t-call="web.html_container">
+            <t t-foreach="reports" t-as="report">
+                <t t-set="wizard" t-value="report['wizard']"/>
+                <t t-set="data" t-value="report['data']"/>
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="wizard"/>
+                    <div class="page pt-rep">
+                        <t t-call="primetech_biometric_attendance.pro_report_style"/>
+                        <t t-call="primetech_biometric_attendance.pro_report_banner"><t t-set="title" t-value="'Utilisateurs des pointeuses'"/></t>
+                        <table class="kpis"><tr>
+                            <td><b t-esc="data['stats']['total']"/><span>utilisateurs</span></td>
+                            <td><b t-esc="data['stats']['mapped']"/><span>associés à un employé</span></td>
+                            <td><b t-esc="data['stats']['unmapped']"/><span>sans employé</span></td>
+                            <td><b t-esc="data['stats']['errors']"/><span>en erreur</span></td>
+                        </tr></table>
+                        <table class="grid">
+                            <thead><tr><th>Pointeuse</th><th>Identifiant</th><th>Nom sur la pointeuse</th><th>Employé Odoo</th><th>Département</th><th>Rôle</th><th>Carte</th><th>État</th><th>Dernière synchro</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="data['rows']" t-as="row" t-att-class="'odd' if row_index % 2 else ''">
+                                    <td t-esc="row['device']"/>
+                                    <td><b t-esc="row['user_id']"/></td>
+                                    <td t-esc="row['device_name']"/>
+                                    <td><t t-if="row['employee']" t-esc="row['employee']"/><span t-else="" class="tag err">Non associé</span></td>
+                                    <td class="muted" t-esc="row['department']"/>
+                                    <td t-esc="row['privilege']"/>
+                                    <td t-esc="row['card']"/>
+                                    <td><span t-att-class="'tag ' + {'synced': 'ok', 'pending': 'warn', 'error': 'err'}.get(row['state_key'], '')" t-esc="row['state']"/></td>
+                                    <td class="muted" t-esc="row['last_sync']"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Device activity -->
+    <template id="devices_report">
+        <t t-call="web.html_container">
+            <t t-foreach="reports" t-as="report">
+                <t t-set="wizard" t-value="report['wizard']"/>
+                <t t-set="data" t-value="report['data']"/>
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="wizard"/>
+                    <div class="page pt-rep">
+                        <t t-call="primetech_biometric_attendance.pro_report_style"/>
+                        <t t-call="primetech_biometric_attendance.pro_report_banner"><t t-set="title" t-value="'Activité des pointeuses'"/></t>
+                        <div t-foreach="data['devices']" t-as="item" class="device">
+                            <h4 style="margin-top:0"><t t-esc="item['device'].name"/>
+                                <span class="muted" style="font-size:10px"> · <t t-esc="item['device'].info_device_name or 'ZKTeco'"/> n° <t t-esc="item['device'].info_serial or '—'"/> · <t t-esc="item['device'].device_ip"/>:<t t-esc="item['device'].port_number"/></span></h4>
+                            <table class="kpis"><tr>
+                                <td><b t-esc="item['punches']"/><span>pointages sur la période</span></td>
+                                <td><b t-esc="item['employees']"/><span>employés</span></td>
+                                <td><b t-esc="item['memory']"/><span>mémoire de l’appareil</span></td>
+                                <td><b t-esc="item['logs_errors']"/><span>erreurs journalisées</span></td>
+                            </tr></table>
+                            <table class="grid" style="width:100%">
+                                <tr><td style="width:25%" class="muted">Mode de connexion</td><td t-esc="item['mode']"/><td style="width:25%" class="muted">État</td><td t-esc="item['sync_state']"/></tr>
+                                <tr class="odd"><td class="muted">Dernière synchronisation</td><td t-esc="item['last_sync']"/><td class="muted">Firmware</td><td t-esc="item['device'].info_firmware or '—'"/></tr>
+                            </table>
+                            <table class="grid">
+                                <thead><tr><th style="width:18%">Jour</th><th style="width:10%">Pointages</th><th>Volume</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="item['days']" t-as="day" t-att-class="'odd' if day_index % 2 else ''">
+                                        <td t-esc="wizard.day_label(day['date'])"/>
+                                        <td><b t-esc="day['count']"/></td>
+                                        <td><div class="bar"><i t-att-style="'width: ' + str(int(100 * day['count'] / item['max_day'])) + '%'"/></div></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <t t-if="item['last_errors']">
+                                <h4>Dernières erreurs</h4>
+                                <table class="grid">
+                                    <thead><tr><th style="width:16%">Date</th><th style="width:20%">Opération</th><th>Message</th></tr></thead>
+                                    <tbody><tr t-foreach="item['last_errors']" t-as="error"><td t-esc="error['date']"/><td t-esc="error['operation']"/><td t-esc="error['message']"/></tr></tbody>
+                                </table>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

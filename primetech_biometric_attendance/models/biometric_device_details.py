@@ -94,6 +94,7 @@ class BiometricDeviceDetails(models.Model):
     relay_user_queue_count = fields.Integer(string='Utilisateurs en attente',
                                             compute='_compute_relay_user_queue_count')
     relay_agent = fields.Char(string='Dernière passerelle', readonly=True, copy=False)
+    relay_refresh_requested = fields.Boolean(string='Synchronisation demandée', copy=False, readonly=True)
     relay_pairing_code = fields.Char(string="Code d'association", readonly=True, copy=False,
                                      groups='hr_attendance.group_hr_attendance_manager')
     relay_pairing_expiry = fields.Datetime(string='Code valable jusqu’au', readonly=True, copy=False,
@@ -400,6 +401,8 @@ class BiometricDeviceDetails(models.Model):
                 'card': str(card) if card else False,
             }
             mapping = existing.get(device_user_id)
+            if mapping and mapping.sync_state == 'pending' and mapping.device_uid:
+                continue  # edited in Odoo, waiting to be sent: keep the Odoo values
             if mapping and quiet:
                 values = {key: value for key, value in values.items()
                           if (mapping[key] or False) != (value or False)}
@@ -463,7 +466,7 @@ class BiometricDeviceDetails(models.Model):
         """Queue a user creation/update or removal for the gateway of this device."""
         self.ensure_one()
         device = self.sudo()
-        device_user = device_user.sudo()
+        device_user = device_user.sudo().with_context(biometric_from_device=True)
         queue = [item for item in json.loads(device.relay_user_queue or '[]')
                  if item.get('ref') != device_user.id]
         item = {
@@ -474,7 +477,7 @@ class BiometricDeviceDetails(models.Model):
         }
         if command == 'push_user':
             item.update({
-                'user_name': (device_user.employee_id.name or '')[:24],
+                'user_name': device_user._device_name(),
                 'privilege': int(device_user.privilege or 0),
                 'password': device_user.password or '',
                 'card': int(device_user.card or 0) if str(device_user.card or '0').isdigit() else 0,
@@ -490,12 +493,12 @@ class BiometricDeviceDetails(models.Model):
 
     def _push_device_user(self, device_user):
         self.ensure_one()
-        if not device_user.employee_id:
-            raise UserError(_("Associez d'abord un employé à l'identifiant %s.",
+        if not device_user._device_name():
+            raise UserError(_("Indiquez le nom sur la pointeuse ou un employé pour l'identifiant %s.",
                               device_user.device_user_id))
         if self.connection_mode == 'relay':
             self._queue_relay_user(device_user, 'push_user')
-            if device_user.employee_id.device_id_num != device_user.device_user_id:
+            if device_user.employee_id and device_user.employee_id.device_id_num != device_user.device_user_id:
                 device_user.employee_id.device_id_num = device_user.device_user_id
             return
         with self._device_session() as conn:
@@ -508,7 +511,7 @@ class BiometricDeviceDetails(models.Model):
                     terminal_user = self._find_terminal_user(conn, device_user.device_user_id)
                     try:
                         conn.set_user(uid=terminal_user.uid if terminal_user else None,
-                                      name=(device_user.employee_id.name or '')[:24],
+                                      name=device_user._device_name(),
                                       privilege=int(device_user.privilege),
                                       password=device_user.sudo().password or '',
                                       group_id='', user_id=device_user.device_user_id,
@@ -528,12 +531,12 @@ class BiometricDeviceDetails(models.Model):
             'sync_state': 'synced',
             'sync_message': _('Envoyé vers la pointeuse.'),
             'last_synced_at': fields.Datetime.now(),
-            'device_user_name': (device_user.employee_id.name or '')[:24],
+            'device_user_name': device_user._device_name(),
         }
         if assigned_user:
             values['device_uid'] = assigned_user.uid
-        device_user.write(values)
-        if device_user.employee_id.device_id_num != device_user.device_user_id:
+        device_user.with_context(biometric_from_device=True).write(values)
+        if device_user.employee_id and device_user.employee_id.device_id_num != device_user.device_user_id:
             device_user.employee_id.device_id_num = device_user.device_user_id
 
     def _remove_device_user(self, device_user):
@@ -834,10 +837,31 @@ class BiometricDeviceDetails(models.Model):
         # Margin: punches of identifiers mapped late and clock corrections.
         return (local - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S')
 
+    def action_sync_and_check(self):
+        """Read the device (information and users) now, then show the users and their employee."""
+        relay = self.filtered(lambda device: device.connection_mode == 'relay')
+        relay.sudo().write({'relay_refresh_requested': True})
+        direct = self - relay
+        if direct:
+            direct.action_synchronize_now()
+            direct.action_refresh_info()
+            direct.action_import_users()
+        action = self.action_view_device_users()
+        action['context'] = dict(action['context'], search_default_unmapped=0)
+        if relay:
+            self.env['bus.bus']._sendone(self.env.user.partner_id, 'simple_notification', {
+                'type': 'info', 'sticky': False,
+                'message': _('Synchronisation demandée : la passerelle relit la pointeuse dans les secondes '
+                             'qui viennent. Actualisez la liste pour voir le résultat.')})
+        return action
+
     def _relay_hello(self, payload):
         self.ensure_one()
         return {
             'ok': True,
+            # Something waits for the gateway: it synchronises at once instead of at the next interval.
+            'pending': bool(self.relay_refresh_requested or self.relay_pending_commands
+                            or self.sudo().relay_user_queue),
             'device': self.name,
             'since': self._relay_since(),
             'interval': max(30, self.sync_interval * 60),
@@ -901,7 +925,8 @@ class BiometricDeviceDetails(models.Model):
             name for name in (self.relay_pending_commands or '').split(',') if name in self.RELAY_COMMANDS]
         user_commands = [] if report_only else json.loads(self.relay_user_queue or '[]')
         if not report_only:
-            self.write({'relay_pending_commands': False, 'relay_user_queue': False})
+            self.write({'relay_pending_commands': False, 'relay_user_queue': False,
+                        'relay_refresh_requested': False})
 
         for result in payload.get('command_results') or []:
             if result.get('command') in ('push_user', 'remove_user'):
@@ -949,8 +974,8 @@ class BiometricDeviceDetails(models.Model):
     def _apply_relay_user_result(self, result):
         """Record on the device user the outcome of a push/remove run by the gateway."""
         self.ensure_one()
-        device_user = self.env['biometric.device.user'].sudo().with_context(active_test=False).browse(
-            int(result.get('ref') or 0)).exists()
+        device_user = self.env['biometric.device.user'].sudo().with_context(
+            active_test=False, biometric_from_device=True).browse(int(result.get('ref') or 0)).exists()
         if not device_user or device_user.device_id != self:
             return
         now = fields.Datetime.now()
@@ -978,7 +1003,7 @@ class BiometricDeviceDetails(models.Model):
         if result.get('command') == 'push_user':
             values = {'sync_state': 'synced', 'last_synced_at': now,
                       'sync_message': _('Envoyé vers la pointeuse par la passerelle.'),
-                      'device_user_name': (device_user.employee_id.name or '')[:24]}
+                      'device_user_name': device_user._device_name()}
             if result.get('uid'):
                 values['device_uid'] = int(result['uid'])
             device_user.write(values)

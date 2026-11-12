@@ -31,6 +31,7 @@ import socketserver
 import ssl
 import sys
 import threading
+import traceback
 import time
 import urllib.error
 import urllib.parse
@@ -43,9 +44,10 @@ from logging.handlers import RotatingFileHandler
 
 from zk import ZK
 
-VERSION = '2.3.0'
+VERSION = '2.5.0'
 UI_PORT = 47321
 BATCH_SIZE = 2000
+POLL_SECONDS = 10  # how often Odoo is asked whether a request is waiting
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 CONSOLE_URL = 'http://localhost:%s' % UI_PORT
 
@@ -71,8 +73,14 @@ class MemoryLogHandler(logging.Handler):
         self.records = collections.deque(maxlen=capacity)
 
     def emit(self, record):
-        self.records.append({'time': datetime.fromtimestamp(record.created).strftime('%d/%m %H:%M:%S'),
-                             'level': record.levelname, 'message': record.getMessage()})
+        time_label = datetime.fromtimestamp(record.created).strftime('%d/%m %H:%M:%S')
+        message = record.getMessage()
+        last = self.records[-1] if self.records else None
+        if last and last['message'] == message and last['level'] == record.levelname:
+            last['repeat'] = last.get('repeat', 1) + 1
+            last['last_time'] = time_label
+            return
+        self.records.append({'time': time_label, 'level': record.levelname, 'message': message})
 
 
 MEMORY_LOG = MemoryLogHandler()
@@ -519,15 +527,127 @@ def scan_devices(port=4370):
 # ---------------------------------------------------------------------------
 # Synchronisation engine
 # ---------------------------------------------------------------------------
+class DeviceJournal:
+    """Persistent, exhaustive journal of one device (JSON lines, rotating files)."""
+
+    MAX_BYTES = 2 * 1024 * 1024
+    BACKUPS = 5
+    LEVELS = ('DEBUG', 'INFO', 'WARNING', 'ERROR')
+
+    def __init__(self, device_id, name):
+        self.directory = os.path.join(base_dir(), 'logs')
+        os.makedirs(self.directory, exist_ok=True)
+        self.path = os.path.join(self.directory, '%s.jsonl' % device_id)
+        self.name = name
+        self.lock = threading.Lock()
+        self.last = None  # (key, entry, offset of its line) to merge identical consecutive events
+
+    def write(self, level, category, message, **details):
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        key = (level, category, message)
+        with self.lock:
+            if self.last and self.last[0] == key and os.path.exists(self.path) \
+                    and os.path.getsize(self.path) >= self.last[2]:
+                # Same event again: update the existing line (counter + last occurrence).
+                entry, offset = self.last[1], self.last[2]
+                entry['repeat'] = entry.get('repeat', 1) + 1
+                entry['last_time'] = now
+                if details:
+                    entry['details'] = details
+                with open(self.path, 'r+b') as handle:
+                    handle.seek(offset)
+                    handle.truncate()
+                    handle.write((json.dumps(entry, ensure_ascii=False, default=str) + '\n').encode('utf-8'))
+            else:
+                entry = {'time': now, 'level': level, 'category': category, 'message': message}
+                if details:
+                    entry['details'] = details
+                if os.path.exists(self.path) and os.path.getsize(self.path) > self.MAX_BYTES:
+                    self._rotate()
+                offset = os.path.getsize(self.path) if os.path.exists(self.path) else 0
+                with open(self.path, 'ab') as handle:
+                    handle.write((json.dumps(entry, ensure_ascii=False, default=str) + '\n').encode('utf-8'))
+                self.last = (key, entry, offset)
+        # The main page log merges consecutive repeats on its side.
+        if level != 'DEBUG':
+            _logger.log(getattr(logging, level), '[%s] %s', self.name, message)
+
+    def _rotate(self):
+        for index in range(self.BACKUPS - 1, 0, -1):
+            source = '%s.%s' % (self.path, index)
+            if os.path.exists(source):
+                os.replace(source, '%s.%s' % (self.path, index + 1))
+        os.replace(self.path, self.path + '.1')
+
+    def debug(self, category, message, **details):
+        self.write('DEBUG', category, message, **details)
+
+    def info(self, category, message, **details):
+        self.write('INFO', category, message, **details)
+
+    def warning(self, category, message, **details):
+        self.write('WARNING', category, message, **details)
+
+    def error(self, category, message, **details):
+        self.write('ERROR', category, message, **details)
+
+    def read(self, level='', category='', day='', query='', offset=0, limit=200):
+        """Entries matching the filters, most recent first, plus statistics."""
+        files = [self.path] + ['%s.%s' % (self.path, index) for index in range(1, self.BACKUPS + 1)]
+        minimum = self.LEVELS.index(level) if level in self.LEVELS else 0
+        query = (query or '').lower()
+        entries, stats = [], {'total': 0, 'errors_24h': 0, 'warnings_24h': 0, 'last_error': None,
+                              'oldest': None, 'categories': {}}
+        since = (datetime.now().timestamp() - 86400)
+        with self.lock:
+            for path in files:
+                if not os.path.exists(path):
+                    continue
+                with open(path, encoding='utf-8', errors='replace') as handle:
+                    lines = handle.readlines()
+                for line in reversed(lines):
+                    try:
+                        entry = json.loads(line)
+                    except ValueError:
+                        continue
+                    stats['total'] += 1
+                    stats['oldest'] = entry['time']
+                    stats['categories'][entry['category']] = stats['categories'].get(entry['category'], 0) + 1
+                    try:
+                        recent = datetime.strptime(entry['time'][:19], TIME_FORMAT).timestamp() >= since
+                    except ValueError:
+                        recent = False
+                    if entry['level'] == 'ERROR':
+                        stats['last_error'] = stats['last_error'] or entry
+                        stats['errors_24h'] += entry.get('repeat', 1) if recent else 0
+                    elif entry['level'] == 'WARNING':
+                        stats['warnings_24h'] += entry.get('repeat', 1) if recent else 0
+                    if self.LEVELS.index(entry.get('level', 'INFO')) < minimum:
+                        continue
+                    if category and entry['category'] != category:
+                        continue
+                    if day and not entry['time'].startswith(day):
+                        continue
+                    if query and query not in json.dumps(entry, ensure_ascii=False).lower():
+                        continue
+                    entries.append(entry)
+        return {'entries': entries[offset:offset + limit], 'matching': len(entries), 'stats': stats}
+
+
 class DeviceWorker:
     """Synchronisation state of one configured device."""
 
     def __init__(self, config_values):
         self.lock = threading.Lock()  # one session at a time: synchronisation or console
         self.config = config_values
+        self.journal = DeviceJournal(config_values['id'], config_values.get('name'))
+        self.journal.info('service', 'Passerelle %s démarrée sur %s : pointeuse %s:%s, serveur %s (base %s).' % (
+            VERSION, socket.gethostname(), config_values.get('ip'), config_values.get('port'),
+            config_values.get('server_url'), config_values.get('database')))
         self.client = None
         self.interval = 60
         self.next_run = 0.0
+        self.last_poll = 0.0
         self.command_results = []
         self.status = {
             'state': 'pending', 'message': 'En attente de la première synchronisation.',
@@ -537,6 +657,12 @@ class DeviceWorker:
         }
 
     def update_config(self, values):
+        changes = {key: [self.config.get(key), values.get(key)] for key in
+                   ('name', 'ip', 'port', 'comm_key', 'timeout', 'enabled', 'server_url', 'database')
+                   if self.config.get(key) != values.get(key)}
+        if changes:
+            self.journal.name = values.get('name')
+            self.journal.info('config', 'Paramètres modifiés : %s.' % ', '.join(changes), changes=changes)
         changed = any(self.config.get(key) != values.get(key)
                       for key in ('server_url', 'database', 'token'))
         self.config = values
@@ -555,22 +681,36 @@ class DeviceWorker:
                       self.config.get('comm_key', 0), self.config.get('timeout', 10))
 
     def cycle(self):
+        journal = self.journal
+        started = time.monotonic()
         today = datetime.now().date().isoformat()
         if self.status['today'] != today:
             self.status.update(today=today, sent_today=0, created_today=0)
         self.status['last_sync'] = now_str()
+        steps = self.steps = []  # detailed steps, attached to the single journal line of this cycle
+
+        step = time.monotonic()
         hello = self.odoo().call('hello', {'agent': agent_info()})
         if not hello.get('ok'):
             raise OdooError(hello.get('error') or 'Réponse invalide.')
         self.status['odoo_device'] = hello.get('device')
         self.interval = hello.get('interval') or self.interval
+        steps.append('Odoo joint en %.1f s : pointeuse « %s », pointages demandés depuis %s, intervalle %s s.' % (
+            time.monotonic() - step, hello.get('device'), hello.get('since') or 'le début de la mémoire',
+            self.interval))
+
+        step = time.monotonic()
         users, records, info = self.device().read(hello.get('since'))
         self.status['info'] = info
         self.status['records_in_memory'] = info.get('records')
+        steps.append('Pointeuse lue en %.1f s : %s utilisateur(s), %s/%s pointage(s) en mémoire, %s à envoyer, '
+                     'heure de la pointeuse %s.' % (time.monotonic() - step, len(users), info.get('records'),
+                                                    info.get('records_cap'), len(records), info.get('device_time')))
+
         batches = [records[index:index + BATCH_SIZE]
                    for index in range(0, len(records), BATCH_SIZE)] or [[]]
         created, response = 0, {}
-        for batch in batches:
+        for number, batch in enumerate(batches, 1):
             response = self.odoo().call('push', {
                 'agent': agent_info(), 'users': users, 'info': info, 'records': batch,
                 'command_results': self.command_results,
@@ -579,18 +719,27 @@ class DeviceWorker:
                 raise OdooError(response.get('error') or 'Réponse invalide.')
             self.command_results = []
             created += response.get('created') or 0
+            steps.append('Lot %s/%s envoyé à Odoo en %s ms : %s pointage(s), %s nouveau(x), %s commande(s) reçue(s).' % (
+                number, len(batches), response.get('_latency_ms'), len(batch), response.get('created') or 0,
+                len(response.get('commands') or [])))
         self.interval = response.get('interval') or self.interval
         self.status.update(latency_ms=response.get('_latency_ms'), unknown=response.get('unknown') or [],
                            mapping=response.get('mapping') or {})
         self.status['sent_today'] += len(records)
         self.status['created_today'] += created
-        name = self.config.get('name')
-        _logger.info('[%s] %s pointage(s) lu(s), %s nouveau(x) dans Odoo%s.', name, len(records), created,
-                     (', identifiants sans employé : %s' % ', '.join(response['unknown']))
-                     if response.get('unknown') else '')
+        steps.append('Durée totale : %.1f s.' % (time.monotonic() - started))
+        if response.get('unknown'):
+            journal.warning('sync', 'Synchronisation : %s nouveau(x) pointage(s) ; identifiants sans employé dans '
+                            'Odoo : %s.' % (created, ', '.join(response['unknown'])), steps=steps)
+        elif created:
+            journal.info('sync', 'Synchronisation : %s nouveau(x) pointage(s) envoyé(s) à Odoo.' % created, steps=steps)
+        else:
+            journal.debug('sync', 'Synchronisation réussie, aucun nouveau pointage.', steps=steps)
+
         # Commands run after a successful push, so clearing the memory never loses a punch.
         for command in response.get('commands') or []:
             result = {'command': command.get('name'), 'ref': command.get('ref')}
+            shown = {key: value for key, value in command.items() if key != 'password'}
             try:
                 outcome = self.device().run_command(command)
                 if isinstance(outcome, dict):
@@ -599,14 +748,18 @@ class DeviceWorker:
                     result['message'] = outcome
                 result['ok'] = True
                 self.command_results.append(result)
-                _logger.info('[%s] Commande %s : %s', name, command.get('name'), result['message'])
+                journal.info('command', 'Commande %s : %s' % (command.get('name'), result['message']), command=shown)
             except Exception as error:
                 result.update(ok=False, message=str(error))
                 if isinstance(error, DeviceBusy):
                     # Odoo puts the command back in the queue for the next synchronisation.
                     result.update(retry=True, retry_command=command)
+                    journal.warning('command', 'Commande %s : pointeuse occupée, nouvel essai à la prochaine '
+                                    'synchronisation.' % command.get('name'), command=shown, error=str(error))
+                else:
+                    journal.error('command', 'Commande %s en échec : %s' % (command.get('name'), error),
+                                  command=shown, trace=traceback.format_exc())
                 self.command_results.append(result)
-                _logger.error('[%s] Commande %s en échec : %s', name, command.get('name'), error)
         if self.command_results:
             report = self.odoo().call('push', {'agent': agent_info(), 'records': [], 'report_only': True,
                                                'command_results': self.command_results})
@@ -617,6 +770,21 @@ class DeviceWorker:
             message += ' Identifiants sans employé dans Odoo : %s.' % ', '.join(self.status['unknown'])
         self.status.update(state='warning' if self.status['unknown'] else 'ok', message=message,
                            last_success=now_str())
+
+    def poll_pending(self):
+        """Ask Odoo (cheap call) whether a request waits: user update, synchronisation..."""
+        now = time.monotonic()
+        if (not self.config.get('enabled', True) or self.status.get('state') == 'error'
+                or self.next_run - now <= POLL_SECONDS or now - self.last_poll < POLL_SECONDS):
+            return
+        self.last_poll = now
+        try:
+            hello = self.odoo().call('hello', {'agent': agent_info()})
+        except Exception:
+            return  # the regular synchronisation reports connection problems
+        if hello.get('pending'):
+            self.journal.debug('odoo', 'Demande en attente dans Odoo : synchronisation immédiate.')
+            self.next_run = 0.0
 
     def run_if_due(self, force=False):
         if not self.config.get('enabled', True):
@@ -630,7 +798,9 @@ class DeviceWorker:
             self.next_run = time.monotonic() + self.interval
         except Exception as error:
             self.status.update(state='error', message=str(error))
-            _logger.error('[%s] Synchronisation impossible : %s', self.config.get('name'), error)
+            category = 'odoo' if isinstance(error, OdooError) else 'device'
+            self.journal.error(category, 'Synchronisation impossible : %s' % error,
+                               steps=getattr(self, 'steps', []), trace=traceback.format_exc())
             self.next_run = time.monotonic() + min(max(30, self.interval), 120)
 
     def public_status(self):
@@ -683,6 +853,7 @@ class Engine:
                 workers = list(self.workers.items())
                 forced, self.forced = self.forced, set()
             for device_id, worker in workers:
+                worker.poll_pending()
                 worker.run_if_due(force=device_id in forced)
             self.wake.wait(timeout=5)
             self.wake.clear()
@@ -820,7 +991,13 @@ def make_handler(config, engine):
             worker = engine.workers.get(payload.get('id'))
             if not worker:
                 raise KeyError('pointeuse inconnue')
-            name = worker.config.get('name')
+            if route == '/api/device/logs':
+                # Reading the journal does not touch the device: no lock needed.
+                return dict(worker.journal.read(
+                    level=payload.get('level') or '', category=payload.get('category') or '',
+                    day=payload.get('day') or '', query=payload.get('q') or '',
+                    offset=int(payload.get('offset') or 0), limit=min(int(payload.get('limit') or 200), 1000)),
+                    ok=True)
             if not worker.lock.acquire(timeout=90):
                 raise DeviceBusy('la pointeuse est en cours de synchronisation, réessayez dans un instant')
             try:
@@ -856,12 +1033,14 @@ def make_handler(config, engine):
                         'name': 'push_user', 'user_id': user_id, 'user_name': user_name,
                         'privilege': 14 if str(payload.get('privilege')) == '14' else 0,
                         'password': password, 'card': int(card)})
-                    _logger.info('[%s] Console : %s', name, result['message'])
+                    worker.journal.info('console', 'Console : %s' % result['message'],
+                                        user={'user_id': user_id, 'name': user_name, 'card': card,
+                                              'privilege': payload.get('privilege')})
                     engine.sync_now(payload['id'])
                     return dict(result, ok=True)
                 if route == '/api/device/user/delete':
                     result = device.user_command({'name': 'remove_user', 'user_id': str(payload['user_id'])})
-                    _logger.info('[%s] Console : %s', name, result['message'])
+                    worker.journal.info('console', 'Console : %s' % result['message'])
                     engine.sync_now(payload['id'])
                     return dict(result, ok=True)
                 if route == '/api/device/action':
@@ -879,7 +1058,7 @@ def make_handler(config, engine):
                         return {'ok': True, 'info': device.probe(), 'pc_time': now_str()}
                     else:
                         raise ValueError('action inconnue')
-                    _logger.info('[%s] Console : %s', name, message)
+                    worker.journal.info('console', 'Console : %s' % message, action=action)
                     return {'ok': True, 'message': message}
                 raise KeyError('route inconnue %s' % route)
             finally:
@@ -1016,6 +1195,14 @@ table.data tr:hover td{background:#faf8ff}
 .actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:16px}
 .action{border:1px solid var(--line);border-radius:12px;padding:12px 14px}.action p{margin:4px 0 10px;font-size:13px;color:var(--muted)}
 .loading{padding:40px;text-align:center;color:var(--muted)}
+.lvl{display:inline-block;min-width:92px;text-align:center;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.03em}
+.lvl.DEBUG{background:#f3f4f6;color:#6b7280}.lvl.INFO{background:#e0f2fe;color:#075985}
+.lvl.WARNING{background:#fef3c7;color:#92400e}.lvl.ERROR{background:#fee2e2;color:#991b1b}
+table.journal td{vertical-align:top;font-size:13.5px}table.journal td.t{white-space:nowrap;font:12.5px Consolas,monospace;color:#374151}
+table.journal tr.ERROR td{background:#fff7f7}table.journal tr.clickable{cursor:pointer}
+.detail{background:#0f172a;color:#e2e8f0;font:12px/1.55 Consolas,monospace;white-space:pre-wrap;word-break:break-word;border-radius:10px;padding:10px 12px;margin-top:8px;max-height:260px;overflow:auto}
+.live{display:inline-flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:500;color:var(--muted)}.live input,.bar .live input{width:auto;flex:none;min-width:0;padding:0;margin:0}
+.lasterr{border:1px solid #fecaca;background:#fef2f2;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13.5px;color:#991b1b}
 .logs{background:#0f172a;color:#cbd5e1;border-radius:var(--radius);padding:14px;font:12.5px/1.6 Consolas,monospace;max-height:260px;overflow:auto;margin-top:22px}
 .logs .ERROR{color:#fca5a5}.logs .WARNING{color:#fcd34d}
 .modal-back{position:fixed;inset:0;background:rgba(17,24,39,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
@@ -1088,6 +1275,7 @@ function deviceCard(item, index) {
     <div class="actions">
       <button class="primary" onclick="syncNow('${c.id}')">⟳ Synchroniser</button>
       <button onclick="openManage('${c.id}')">👥 Gérer</button>
+      <button onclick="openManage('${c.id}', 'logs')">📜 Journal</button>
       <button onclick="editDevice('${c.id}')">⚙ Paramètres</button>
       <button onclick="toggleDevice('${c.id}', ${c.enabled === false})">${c.enabled === false ? '▶ Reprendre' : '⏸ Suspendre'}</button>
       <button class="danger" onclick="removeDevice('${c.id}')">✕ Retirer</button>
@@ -1115,7 +1303,7 @@ function render() {
     : `<div class="card empty"><div class="big">🔗</div><h3 style="justify-content:center">Aucune pointeuse associée</h3>
        <p>Associez cette passerelle à votre serveur Odoo pour envoyer les pointages automatiquement.</p>
        <button class="primary" onclick="openWizard()">＋ Ajouter une pointeuse</button></div>`;
-  const logs = state.logs.slice().reverse().map((l) => `<div class="${esc(l.level)}">${esc(l.time)}  ${esc(l.message)}</div>`).join('');
+  const logs = state.logs.slice().reverse().map((l) => `<div class="${esc(l.level)}">${esc(l.last_time || l.time)}  ${esc(l.message)}${l.repeat ? `  <b>×${l.repeat}</b> <span style="opacity:.6">(depuis ${esc(l.time)})</span>` : ''}</div>`).join('');
   $('#app').innerHTML = `
     <div class="toolbar"><h2>Pointeuses</h2>
       <button onclick="syncNow()">⟳ Tout synchroniser</button>
@@ -1287,21 +1475,23 @@ function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.g
 
 function openManage(id, tab = 'users') {
   const item = state.devices.find((d) => d.config.id === id);
-  manage = {id, name: item.config.name, tab, users: null, punches: null, info: null, q: '', day: '', edit: null, limit: 300};
+  manage = {id, name: item.config.name, tab, users: null, punches: null, info: null, q: '', day: '', edit: null, limit: 300,
+            log: {level: 'INFO', category: '', day: '', q: '', limit: 200, live: true, open: null, data: null}};
   $('#modal-body').classList.add('wide');
   renderManage();
   loadTab();
 }
 function closeManage() { manage = null; $('#modal-body').classList.remove('wide'); closeModal(); }
+setInterval(() => { if (manage && manage.tab === 'logs' && manage.log.live && !manage.log.open) loadLogs(true); }, 5000);
 
 function renderManage() {
-  const tabs = [['users', '👥 Utilisateurs'], ['punches', '🕒 Pointages'], ['device', '🛠 Appareil']];
+  const tabs = [['users', '👥 Utilisateurs'], ['punches', '🕒 Pointages'], ['device', '🛠 Appareil'], ['logs', '📜 Journal']];
   openModal(`<div class="mhead"><div class="title"><h2>${esc(manage.name)}</h2><button onclick="closeManage()">✕ Fermer</button></div>
     <div class="tabs">${tabs.map(([key, label]) => `<button class="${manage.tab === key ? 'on' : ''}" onclick="switchTab('${key}')">${label}</button>`).join('')}</div></div>
     <div class="mbody" id="mbody"></div>`);
   renderTab();
 }
-function switchTab(tab) { manage.tab = tab; manage.edit = null; renderManage(); loadTab(); }
+function switchTab(tab) { manage.tab = tab; manage.edit = null; manage.q = ''; renderManage(); loadTab(); }
 
 async function loadTab(force) {
   const tab = manage.tab;
@@ -1316,6 +1506,9 @@ async function loadTab(force) {
       const result = await api('/api/device/punches', {id: manage.id});
       Object.assign(manage, {punches: result.punches, total: result.total});
       if (!manage.day && manage.punches.length) manage.day = manage.punches[0].time.slice(0, 10);
+    } else if (tab === 'logs') {
+      await loadLogs();
+      return;
     } else if (tab === 'device' && (force || !manage.info || !manage.pcTime)) {
       manage.info = null; renderTab();
       const result = await api('/api/device/action', {id: manage.id, action: 'info'});
@@ -1331,6 +1524,7 @@ function renderTab() {
   if (manage.tab === 'users') body.innerHTML = usersTab();
   if (manage.tab === 'punches') body.innerHTML = punchesTab();
   if (manage.tab === 'device') body.innerHTML = deviceTab();
+  if (manage.tab === 'logs') body.innerHTML = logsTab();
 }
 const spinner = (text) => `<div class="loading"><span class="spin"></span> ${text}</div>`;
 
@@ -1476,6 +1670,73 @@ async function deviceAction(action, button, question) {
   catch (error) { note('#dev-action-note', 'err', esc(error.message)); busy(button, false); }
 }
 
+
+// ---- journal
+const LEVELS = {DEBUG: 'Détail', INFO: 'Info', WARNING: 'Avertissement', ERROR: 'Erreur'};
+const CATEGORIES = {sync: 'Synchronisation', odoo: 'Odoo', device: 'Pointeuse', command: 'Commande', console: 'Console', config: 'Configuration', service: 'Service'};
+
+async function loadLogs(silent) {
+  const log = manage.log;
+  try {
+    const data = await api('/api/device/logs', {id: manage.id, level: log.level, category: log.category, day: log.day, q: log.q, limit: log.limit});
+    log.data = data;
+  } catch (error) { manage.error = error.message; }
+  if (!manage || manage.tab !== 'logs') return;
+  if (silent && $('#log-table')) { $('#log-table').innerHTML = logRows(); $('#log-stats').innerHTML = logStats(); }
+  else renderTab();
+}
+function logStats() {
+  const d = manage.log.data, st = d.stats;
+  return `<div class="stat"><b>${st.total}</b><span>événements conservés${st.oldest ? ' depuis le ' + esc(st.oldest.slice(0, 10).split('-').reverse().join('/')) : ''}</span></div>
+    <div class="stat"><b style="${st.errors_24h ? 'color:var(--err)' : ''}">${st.errors_24h}</b><span>erreur(s) sur 24 h</span></div>
+    <div class="stat"><b style="${st.warnings_24h ? 'color:var(--warn)' : ''}">${st.warnings_24h}</b><span>avertissement(s) sur 24 h</span></div>
+    <div class="stat"><b>${d.matching}</b><span>correspondant aux filtres</span></div>`;
+}
+function logsTab() {
+  const log = manage.log;
+  if (!log.data) return spinner('Lecture du journal…');
+  const last = log.data.stats.last_error;
+  const opt = (map, value) => Object.entries(map).map(([key, label]) => `<option value="${key}" ${key === value ? 'selected' : ''}>${label}</option>`).join('');
+  return `<div class="stats" id="log-stats">${logStats()}</div>
+    ${last ? `<div class="lasterr"><b>Dernière erreur</b> — ${esc(last.time.slice(0, 19))} : ${esc(last.message)}</div>` : ''}
+    <div class="bar">
+      <select onchange="manage.log.level=this.value;loadLogs()"><option value="DEBUG" ${log.level === 'DEBUG' ? 'selected' : ''}>Tous les niveaux (détail compris)</option>${opt({INFO: 'Info et plus', WARNING: 'Avertissements et erreurs', ERROR: 'Erreurs uniquement'}, log.level)}</select>
+      <select onchange="manage.log.category=this.value;loadLogs()"><option value="">Toutes les catégories</option>${opt(CATEGORIES, log.category)}</select>
+      <input type="date" value="${esc(log.day)}" onchange="manage.log.day=this.value;loadLogs()" style="max-width:170px">
+      <input placeholder="🔍 Rechercher dans le journal…" value="${esc(log.q)}" onkeydown="if(event.key==='Enter'){manage.log.q=this.value;loadLogs()}" onblur="if(this.value!==manage.log.q){manage.log.q=this.value;loadLogs()}">
+    </div>
+    <div class="bar" style="justify-content:space-between">
+      <label class="live"><input type="checkbox" ${log.live ? 'checked' : ''} onchange="manage.log.live=this.checked"> Actualisation en direct (5 s)</label>
+      <span><button onclick="loadLogs()">⟳ Actualiser</button> <button onclick="exportLogs()">⬇ Exporter</button></span>
+    </div>
+    <div class="tablewrap"><table class="data journal"><thead><tr><th>Date et heure</th><th>Niveau</th><th>Catégorie</th><th>Événement</th></tr></thead>
+    <tbody id="log-table">${logRows()}</tbody></table></div>`;
+}
+function logRows() {
+  const d = manage.log.data;
+  if (!d.entries.length) return `<tr><td colspan="4" class="loading">Aucun événement pour ces filtres.</td></tr>`;
+  let html = d.entries.map((e, index) => {
+    const open = manage.log.open === index;
+    const details = e.details ? `<div class="detail">${esc(JSON.stringify(e.details, null, 2).replace(/\\n/g, '\n'))}</div>` : '';
+    return `<tr class="${esc(e.level)} ${e.details ? 'clickable' : ''}" ${e.details ? `onclick="manage.log.open=${open ? 'null' : index};$('#log-table').innerHTML=logRows()"` : ''}>
+      <td class="t">${esc(e.time.replace(/^(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1'))}</td>
+      <td><span class="lvl ${esc(e.level)}">${LEVELS[e.level] || esc(e.level)}</span></td>
+      <td>${CATEGORIES[e.category] || esc(e.category)}</td>
+      <td>${esc(e.message)}${e.repeat ? ` <span class="tag" title="Événement identique répété">×${e.repeat}</span> <small style="color:var(--muted)">dernière fois ${esc(e.last_time.slice(11, 19))}${e.last_time.slice(0, 10) !== e.time.slice(0, 10) ? ' le ' + esc(e.last_time.slice(0, 10).split('-').reverse().join('/')) : ''}</small>` : ''}${e.details && !open ? ' <small style="color:var(--muted)">▸ détails</small>' : ''}${open ? details : ''}</td></tr>`;
+  }).join('');
+  if (d.matching > d.entries.length) html += `<tr><td colspan="4" style="text-align:center"><button onclick="manage.log.limit+=500;loadLogs()">Afficher plus (${d.matching - d.entries.length} plus anciens)</button></td></tr>`;
+  return html;
+}
+async function exportLogs() {
+  const log = manage.log;
+  const data = await api('/api/device/logs', {id: manage.id, level: log.level, category: log.category, day: log.day, q: log.q, limit: 1000});
+  const lines = data.entries.slice().reverse().map((e) => `${e.time}  ${e.level.padEnd(7)}  ${(CATEGORIES[e.category] || e.category).padEnd(16)}  ${e.message}${e.repeat ? `  (x${e.repeat}, dernière fois ${e.last_time})` : ''}${e.details ? '  ' + JSON.stringify(e.details) : ''}`);
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], {type: 'text/plain;charset=utf-8'}));
+  link.download = `journal_${manage.name.replace(/\W+/g, '_')}_${new Date().toISOString().slice(0, 10)}.txt`;
+  link.click();
+}
+
 function toast(message) {
   const box = document.createElement('div');
   box.className = 'note ok'; box.textContent = message;
@@ -1496,7 +1757,7 @@ $('#modal').addEventListener('click', (event) => { if (event.target.id === 'moda
 refresh().then(() => {
   // console.html#ajouter opens the "add a device" wizard directly (link from the installer).
   if (location.hash === '#ajouter' && state && state.unlocked) openWizard();
-  const tabs = {'#gerer-utilisateurs': 'users', '#gerer-pointages': 'punches', '#gerer-appareil': 'device'};
+  const tabs = {'#gerer-utilisateurs': 'users', '#gerer-pointages': 'punches', '#gerer-appareil': 'device', '#gerer-journal': 'logs'};
   if (tabs[location.hash] && state && state.unlocked && state.devices.length) openManage(state.devices[0].config.id, tabs[location.hash]);
 });
 setInterval(refresh, 3000);

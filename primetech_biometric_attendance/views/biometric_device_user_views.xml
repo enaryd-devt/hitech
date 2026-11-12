@@ -9,21 +9,21 @@
                     <button name="action_auto_match" type="object" string="Associer automatiquement" icon="fa-magic"/>
                     <button name="action_create_employee" type="object" string="Créer les employés manquants" icon="fa-user-plus"
                             confirm="Créer un employé pour chaque utilisateur sélectionné qui n'en a pas (nom repris de la pointeuse) ?"/>
-                    <button name="action_push_to_device" type="object" string="Envoyer vers la pointeuse" icon="fa-upload"/>
+                    <button name="action_push_to_device" type="object" string="Mettre à jour la pointeuse" icon="fa-upload"/>
                 </header>
                 <field name="device_id"/>
                 <field name="device_user_id"/>
-                <field name="device_user_name"/>
+                <field name="device_user_name" placeholder="Nom de l'employé"/>
                 <field name="employee_id"/>
                 <field name="department_id" optional="show"/>
                 <field name="device_uid" readonly="1" optional="hide"/>
                 <field name="privilege"/>
-                <field name="card" optional="hide"/>
+                <field name="card" optional="show"/>
                 <field name="sync_state" widget="badge" decoration-success="sync_state == 'synced'" decoration-danger="sync_state == 'error'"/>
                 <field name="sync_message" optional="show"/>
                 <field name="last_synced_at" optional="hide"/>
                 <button name="action_create_employee" string="Créer l'employé" type="object" icon="fa-user-plus" invisible="employee_id"/>
-                <button name="action_push_to_device" string="Envoyer" type="object" icon="fa-upload" invisible="not employee_id"/>
+                <button name="action_push_to_device" string="Mettre à jour la pointeuse" type="object" icon="fa-upload"/>
             </list>
         </field>
     </record>
@@ -33,7 +33,7 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_push_to_device" string="Envoyer vers la pointeuse" type="object" class="oe_highlight" icon="fa-upload" invisible="not employee_id"/>
+                    <button name="action_push_to_device" string="Mettre à jour la pointeuse" type="object" class="oe_highlight" icon="fa-upload"/>
                     <button name="action_remove_from_device" string="Retirer de la pointeuse" type="object" icon="fa-trash" confirm="Voulez-vous vraiment retirer cet utilisateur de la pointeuse ?"/>
                     <field name="sync_state" widget="statusbar"/>
                 </header>
@@ -47,7 +47,7 @@
                         </group>
                         <group string="Identité sur la pointeuse">
                             <field name="device_user_id"/>
-                            <field name="device_user_name"/>
+                            <field name="device_user_name" placeholder="Nom de l'employé"/>
                             <field name="device_uid" readonly="1"/>
                             <field name="privilege"/>
                             <field name="card"/>

@@ -41,6 +41,17 @@
   résultat renvoyé dans Odoo). La ZK3969 refuse parfois les écritures pendant
   quelques secondes (« Can't set user ») : la passerelle se reconnecte puis, si
   besoin, Odoo remet la demande en file (10 essais au maximum).
+- Passerelle 2.2 à 2.5 : fenêtre « Gérer » (utilisateurs, pointages, appareil,
+  journal), journal exhaustif par pointeuse (fichiers tournants, doublons
+  fusionnés « ×N »), vérification toutes les 10 s des demandes en attente dans
+  Odoo.
+- Odoo : modification des utilisateurs de pointeuse (nom, rôle, carte, mot de
+  passe) et « Mettre à jour la pointeuse » ; création d'utilisateurs sans
+  employé ; « Associer automatiquement » / « Créer les employés manquants » ;
+  bouton « Synchroniser et vérifier » ; utilisateurs absents de l'appareil
+  signalés.
+- Rapports (PDF / Excel) sur une période : présence, pointages, utilisateurs
+  des pointeuses, activité des pointeuses.
 - Paramètres (Présences > Configuration) : interprétation des pointages
   (premier/dernier, paires, sens envoyé par l'appareil), anti-doublon,
   génération des présences Odoo, conservation du journal.

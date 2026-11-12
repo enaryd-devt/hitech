@@ -4,28 +4,39 @@
         <field name="name">biometric.attendance.report.wizard.form</field>
         <field name="model">biometric.attendance.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="Rapport de présence">
+            <form string="Rapports des pointages">
+                <div class="text-muted mb-2">Choisissez le rapport et la période, puis imprimez-le en PDF ou exportez-le en Excel.</div>
                 <group>
-                    <group>
-                        <field name="date_from"/>
-                        <field name="date_to"/>
-                        <field name="show_details"/>
+                    <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                </group>
+                <group>
+                    <group string="Période">
+                        <label for="date_from" string="Du"/>
+                        <div class="o_row">
+                            <field name="date_from" class="oe_inline"/> au <field name="date_to" class="oe_inline"/>
+                        </div>
+                        <field name="show_details" invisible="report_type != 'attendance'"/>
+                        <field name="include_duplicates" invisible="report_type != 'punches'"/>
                     </group>
-                    <group>
-                        <field name="department_id"/>
-                        <field name="employee_ids" widget="many2many_tags"/>
+                    <group string="Filtres">
+                        <field name="department_id" invisible="report_type == 'devices'"/>
+                        <field name="employee_ids" widget="many2many_tags" invisible="report_type == 'devices'"/>
+                        <field name="device_ids" widget="many2many_tags" invisible="report_type == 'attendance'"
+                               placeholder="Toutes les pointeuses"/>
                     </group>
                 </group>
+                <div class="text-muted small" invisible="report_type != 'users'">Le rapport des utilisateurs présente leur état actuel (la période n’est pas utilisée).</div>
                 <footer>
-                    <button name="action_print" string="Imprimer (PDF)" type="object" class="btn-primary" icon="fa-print"/>
-                    <button name="action_open_analysis" string="Analyser à l’écran" type="object" class="btn-secondary" icon="fa-table"/>
+                    <button name="action_print" string="Imprimer (PDF)" type="object" class="btn-primary" icon="fa-file-pdf-o"/>
+                    <button name="action_export_xlsx" string="Exporter (Excel)" type="object" class="btn-primary" icon="fa-file-excel-o"/>
+                    <button name="action_open_analysis" string="Analyser à l’écran" type="object" class="btn-secondary" icon="fa-table" invisible="report_type != 'attendance'"/>
                     <button string="Annuler" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
         </field>
     </record>
     <record id="biometric_attendance_report_wizard_action" model="ir.actions.act_window">
-        <field name="name">Rapport de présence</field>
+        <field name="name">Rapports des pointages</field>
         <field name="res_model">biometric.attendance.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
