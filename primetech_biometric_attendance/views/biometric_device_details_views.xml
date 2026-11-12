@@ -61,7 +61,7 @@
                     <button name="action_refresh_info" string="Lire les informations" type="object" icon="fa-info-circle" groups="hr_attendance.group_hr_attendance_manager" invisible="connection_mode == 'relay'"/>
                     <button name="action_set_timezone" string="Régler l’heure" type="object" icon="fa-clock-o" groups="hr_attendance.group_hr_attendance_manager" confirm="Régler l’horloge de la pointeuse sur l’heure actuelle de son fuseau horaire ?"/>
                     <button name="action_import_users" string="Importer les utilisateurs" type="object" icon="fa-download" groups="hr_attendance.group_hr_attendance_manager" invisible="connection_mode == 'relay'"/>
-                    <button name="action_synchronize_users" string="Envoyer les utilisateurs" type="object" icon="fa-upload" groups="hr_attendance.group_hr_attendance_manager" confirm="Envoyer tous les utilisateurs associés vers la pointeuse ?" invisible="connection_mode == 'relay'"/>
+                    <button name="action_synchronize_users" string="Envoyer les utilisateurs" type="object" icon="fa-upload" groups="hr_attendance.group_hr_attendance_manager" confirm="Envoyer tous les utilisateurs associés vers la pointeuse ?"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -194,6 +194,7 @@
                                 <group string="Activité">
                                     <field name="relay_agent"/>
                                     <field name="relay_pending_commands" invisible="not relay_pending_commands"/>
+                                    <field name="relay_user_queue_count" invisible="not relay_user_queue_count"/>
                                     <field name="relay_resend_all"/>
                                 </group>
                             </group>

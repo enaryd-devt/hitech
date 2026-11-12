@@ -60,15 +60,22 @@ class BiometricDeviceUser(models.Model):
             self.device_id.filtered('active').sudo().write({'last_sync_at': False, 'relay_resend_all': True})
         return result
 
+    def _relay_notification(self, message):
+        relay_devices = self.device_id.filtered(lambda device: device.connection_mode == 'relay')
+        return relay_devices[:1]._notify(message) if relay_devices else True
+
     def action_push_to_device(self):
         for record in self:
             record.device_id._push_device_user(record)
-        return True
+        return self._relay_notification(_(
+            "Envoi transmis à la passerelle : l'utilisateur sera créé sur la pointeuse à sa "
+            "prochaine synchronisation (moins d'une minute si un PC du site est allumé)."))
 
     def action_remove_from_device(self):
         for record in self:
             record.device_id._remove_device_user(record)
-        return True
+        return self._relay_notification(_(
+            "Retrait transmis à la passerelle : il sera effectué à sa prochaine synchronisation."))
 
     @api.constrains('device_user_id')
     def _check_device_user_id(self):

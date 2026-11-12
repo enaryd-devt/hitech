@@ -43,7 +43,7 @@ from logging.handlers import RotatingFileHandler
 
 from zk import ZK
 
-VERSION = '2.0.0'
+VERSION = '2.1.0'
 UI_PORT = 47321
 BATCH_SIZE = 2000
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -300,6 +300,10 @@ class OdooClient:
 # ---------------------------------------------------------------------------
 # ZKTeco device
 # ---------------------------------------------------------------------------
+class DeviceBusy(Exception):
+    """The device refused a write: the command can be retried later."""
+
+
 class Device:
     def __init__(self, ip, port=4370, comm_key=0, timeout=10):
         self.ip, self.port, self.comm_key, self.timeout = ip, int(port), int(comm_key or 0), int(timeout)
@@ -368,8 +372,48 @@ class Device:
             info['device_time'] = device_time.strftime(TIME_FORMAT)
         return info
 
+    def user_command(self, command):
+        """Create/update or remove one user.
+
+        This firmware sometimes refuses writes for a few seconds ("Can't set
+        user"), typically on a session opened right after another one: open a
+        fresh session and try again.  If the device stays busy the error is
+        flagged ``retry`` so that Odoo queues the command again.
+        """
+        name, user_id = command.get('name'), str(command['user_id'])
+        last_error = None
+        for attempt in range(3):
+            if attempt:
+                time.sleep(3 * attempt)
+            conn = self.connect()
+            try:
+                # get_users() also prepares the next free UID used by set_user().
+                existing = next((user for user in conn.get_users() if str(user.user_id) == user_id), None)
+                if name == 'remove_user':
+                    if existing:
+                        conn.delete_user(uid=existing.uid, user_id=user_id)
+                    return {'message': 'Utilisateur %s retiré de la pointeuse.' % user_id}
+                conn.set_user(uid=existing.uid if existing else None, name=command.get('user_name') or '',
+                              privilege=int(command.get('privilege') or 0),
+                              password=command.get('password') or '', group_id='', user_id=user_id,
+                              card=int(command.get('card') or 0))
+                assigned = next((user for user in conn.get_users() if str(user.user_id) == user_id), None)
+                return {'message': 'Utilisateur %s « %s » %s sur la pointeuse.' % (
+                            user_id, command.get('user_name'), 'mis à jour' if existing else 'créé'),
+                        'uid': assigned.uid if assigned else None}
+            except Exception as error:
+                last_error = error
+            finally:
+                try:
+                    conn.disconnect()
+                except Exception:
+                    pass
+        raise DeviceBusy(str(last_error))
+
     def run_command(self, command):
         name = command.get('name')
+        if name in ('push_user', 'remove_user'):
+            return self.user_command(command)
         conn = self.connect()
         try:
             if name == 'set_time':
@@ -514,16 +558,25 @@ class DeviceWorker:
                      if response.get('unknown') else '')
         # Commands run after a successful push, so clearing the memory never loses a punch.
         for command in response.get('commands') or []:
+            result = {'command': command.get('name'), 'ref': command.get('ref')}
             try:
-                message = self.device().run_command(command)
-                self.command_results.append({'command': command.get('name'), 'ok': True, 'message': message})
-                _logger.info('[%s] Commande %s : %s', name, command.get('name'), message)
+                outcome = self.device().run_command(command)
+                if isinstance(outcome, dict):
+                    result.update(outcome)
+                else:
+                    result['message'] = outcome
+                result['ok'] = True
+                self.command_results.append(result)
+                _logger.info('[%s] Commande %s : %s', name, command.get('name'), result['message'])
             except Exception as error:
-                self.command_results.append({'command': command.get('name'), 'ok': False,
-                                             'message': str(error)})
+                result.update(ok=False, message=str(error))
+                if isinstance(error, DeviceBusy):
+                    # Odoo puts the command back in the queue for the next synchronisation.
+                    result.update(retry=True, retry_command=command)
+                self.command_results.append(result)
                 _logger.error('[%s] Commande %s en échec : %s', name, command.get('name'), error)
         if self.command_results:
-            report = self.odoo().call('push', {'agent': agent_info(), 'records': [],
+            report = self.odoo().call('push', {'agent': agent_info(), 'records': [], 'report_only': True,
                                                'command_results': self.command_results})
             if report.get('ok'):
                 self.command_results = []

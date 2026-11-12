@@ -19,6 +19,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 ################################################################################
+import json
 import logging
 import re
 import secrets
@@ -86,6 +87,12 @@ class BiometricDeviceDetails(models.Model):
                                       help="Demande à la passerelle de renvoyer tous les pointages "
                                            "de la pointeuse à la prochaine synchronisation.")
     relay_pending_commands = fields.Char(string='Commandes en attente', copy=False, readonly=True)
+    relay_user_queue = fields.Text(string='Utilisateurs à envoyer par la passerelle', copy=False,
+                                   readonly=True, groups='hr_attendance.group_hr_attendance_manager',
+                                   help="File (JSON) des envois et retraits d'utilisateurs exécutés "
+                                        "par la passerelle à sa prochaine synchronisation.")
+    relay_user_queue_count = fields.Integer(string='Utilisateurs en attente',
+                                            compute='_compute_relay_user_queue_count')
     relay_agent = fields.Char(string='Dernière passerelle', readonly=True, copy=False)
     relay_pairing_code = fields.Char(string="Code d'association", readonly=True, copy=False,
                                      groups='hr_attendance.group_hr_attendance_manager')
@@ -151,6 +158,10 @@ class BiometricDeviceDetails(models.Model):
         for device in self:
             device.is_online = bool(device.last_contact_at and (now - device.last_contact_at) <= timedelta(
                 minutes=max(device.sync_interval, 1) * 3 + 2))
+
+    def _compute_relay_user_queue_count(self):
+        for device in self:
+            device.relay_user_queue_count = len(json.loads(device.sudo().relay_user_queue or '[]'))
 
     def _compute_counts(self):
         punches = dict(self.env['zk.machine.attendance']._read_group(
@@ -438,23 +449,65 @@ class BiometricDeviceDetails(models.Model):
         return next((terminal_user for terminal_user in conn.get_users()
                      if str(terminal_user.user_id) == str(device_user_id)), None)
 
+    def _queue_relay_user(self, device_user, command):
+        """Queue a user creation/update or removal for the gateway of this device."""
+        self.ensure_one()
+        device = self.sudo()
+        device_user = device_user.sudo()
+        queue = [item for item in json.loads(device.relay_user_queue or '[]')
+                 if item.get('ref') != device_user.id]
+        item = {
+            'name': command,
+            'ref': device_user.id,
+            'user_id': device_user.device_user_id,
+            'uid': device_user.device_uid or 0,
+        }
+        if command == 'push_user':
+            item.update({
+                'user_name': (device_user.employee_id.name or '')[:24],
+                'privilege': int(device_user.privilege or 0),
+                'password': device_user.password or '',
+                'card': int(device_user.card or 0) if str(device_user.card or '0').isdigit() else 0,
+            })
+        queue.append(item)
+        device.relay_user_queue = json.dumps(queue)
+        device_user.write({
+            'sync_state': 'pending',
+            'sync_message': _("En attente de la passerelle : %s à sa prochaine synchronisation.",
+                              _('envoi') if command == 'push_user' else _('retrait')),
+            'last_synced_at': fields.Datetime.now(),
+        })
+
     def _push_device_user(self, device_user):
         self.ensure_one()
-        self._check_direct_mode()
         if not device_user.employee_id:
             raise UserError(_("Associez d'abord un employé à l'identifiant %s.",
                               device_user.device_user_id))
+        if self.connection_mode == 'relay':
+            self._queue_relay_user(device_user, 'push_user')
+            if device_user.employee_id.device_id_num != device_user.device_user_id:
+                device_user.employee_id.device_id_num = device_user.device_user_id
+            return
         with self._device_session() as conn:
             try:
                 # The UID belongs to the terminal: reuse the existing one, otherwise
                 # let the terminal allocate the next available one.
-                terminal_user = self._find_terminal_user(conn, device_user.device_user_id)
-                conn.set_user(uid=terminal_user.uid if terminal_user else None,
-                              name=(device_user.employee_id.name or '')[:24],
-                              privilege=int(device_user.privilege),
-                              password=device_user.sudo().password or '',
-                              group_id='', user_id=device_user.device_user_id,
-                              card=int(device_user.card or 0))
+                # The device refuses writes while another session (gateway, Odoo) holds it
+                # ("Can't set user"): retry for a few seconds instead of failing.
+                for attempt in range(5):
+                    terminal_user = self._find_terminal_user(conn, device_user.device_user_id)
+                    try:
+                        conn.set_user(uid=terminal_user.uid if terminal_user else None,
+                                      name=(device_user.employee_id.name or '')[:24],
+                                      privilege=int(device_user.privilege),
+                                      password=device_user.sudo().password or '',
+                                      group_id='', user_id=device_user.device_user_id,
+                                      card=int(device_user.card or 0))
+                        break
+                    except Exception:
+                        if attempt == 4:
+                            raise
+                        time.sleep(2)  # another session may be holding the device
                 assigned_user = self._find_terminal_user(conn, device_user.device_user_id)
             except Exception as error:
                 device_user.write({'sync_state': 'error', 'sync_message': str(error)[:500],
@@ -475,20 +528,28 @@ class BiometricDeviceDetails(models.Model):
 
     def _remove_device_user(self, device_user):
         self.ensure_one()
-        self._check_direct_mode()
+        if self.connection_mode == 'relay':
+            self._queue_relay_user(device_user, 'remove_user')
+            return
         with self._device_session() as conn:
             conn.delete_user(uid=device_user.device_uid or 0, user_id=device_user.device_user_id)
         device_user.write({'sync_state': 'pending', 'sync_message': _('Retiré de la pointeuse.'),
                            'last_synced_at': fields.Datetime.now(), 'device_uid': False})
 
     def action_synchronize_users(self):
-        self._check_direct_mode()
         for device in self:
             users = device.device_user_ids.filtered(
                 lambda device_user: device_user.active and device_user.employee_id)
             for device_user in users:
                 device._push_device_user(device_user)
-            device._log('users_push', message=_('%s utilisateur(s) envoyé(s).', len(users)))
+            if device.connection_mode == 'relay':
+                device._log('users_push', state='warning', message=_(
+                    '%s utilisateur(s) transmis à la passerelle.', len(users)))
+            else:
+                device._log('users_push', message=_('%s utilisateur(s) envoyé(s).', len(users)))
+        if any(device.connection_mode == 'relay' for device in self):
+            return self._notify(_("Utilisateurs transmis à la passerelle : ils seront envoyés vers la "
+                                  "pointeuse à sa prochaine synchronisation."))
         return self._notify(_('Utilisateurs envoyés vers la pointeuse.'))
 
     # ------------------------------------------------------------------
@@ -824,7 +885,18 @@ class BiometricDeviceDetails(models.Model):
         if info:
             values['info_updated_at'] = now
 
+        # A report-only call (results of the commands just run) never takes new commands.
+        report_only = bool(payload.get('report_only'))
+        commands = [] if report_only else [
+            name for name in (self.relay_pending_commands or '').split(',') if name in self.RELAY_COMMANDS]
+        user_commands = [] if report_only else json.loads(self.relay_user_queue or '[]')
+        if not report_only:
+            self.write({'relay_pending_commands': False, 'relay_user_queue': False})
+
         for result in payload.get('command_results') or []:
+            if result.get('command') in ('push_user', 'remove_user'):
+                self._apply_relay_user_result(result)
+                continue
             operation = {'set_time': 'time', 'clear_attendance': 'clear',
                          'restart': 'restart'}.get(result.get('command'))
             if operation:
@@ -838,9 +910,6 @@ class BiometricDeviceDetails(models.Model):
             message += ' ' + _('Identifiants sans employé : %s.', ', '.join(stats['unknown']))
         values.update(last_sync_state=state, last_sync_message=message[:500])
 
-        commands = [name for name in (self.relay_pending_commands or '').split(',')
-                    if name in self.RELAY_COMMANDS]
-        values['relay_pending_commands'] = False
         self.write(values)
         if stats['created'] or previous_state != state:
             self._log('download', state=state, message=message,
@@ -853,11 +922,58 @@ class BiometricDeviceDetails(models.Model):
             'unknown': stats['unknown'],
             'since': self._relay_since(),
             'interval': max(30, self.sync_interval * 60),
-            'commands': [{
+            # Users first, then clock / memory / restart (restart must stay last).
+            'commands': user_commands + [{
                 'name': name,
                 'value': self._local_now().strftime('%Y-%m-%d %H:%M:%S') if name == 'set_time' else False,
             } for name in commands],
         }
+
+    RELAY_USER_MAX_ATTEMPTS = 10
+
+    def _apply_relay_user_result(self, result):
+        """Record on the device user the outcome of a push/remove run by the gateway."""
+        self.ensure_one()
+        device_user = self.env['biometric.device.user'].sudo().with_context(active_test=False).browse(
+            int(result.get('ref') or 0)).exists()
+        if not device_user or device_user.device_id != self:
+            return
+        now = fields.Datetime.now()
+        command = result.get('retry_command') or {}
+        attempts = int(command.get('attempts') or 0) + 1
+        if not result.get('ok') and result.get('retry') and command and attempts < self.RELAY_USER_MAX_ATTEMPTS:
+            # The device was busy: send the command again at the next synchronisation.
+            queue = [item for item in json.loads(self.relay_user_queue or '[]')
+                     if item.get('ref') != device_user.id]
+            queue.append(dict(command, attempts=attempts))
+            self.relay_user_queue = json.dumps(queue)
+            device_user.write({'sync_state': 'pending', 'last_synced_at': now, 'sync_message': _(
+                'Pointeuse occupée : nouvel essai à la prochaine synchronisation (%(attempt)s/%(maximum)s).',
+                attempt=attempts, maximum=self.RELAY_USER_MAX_ATTEMPTS)})
+            return
+        if not result.get('ok'):
+            message = result.get('message') or _('échec')
+            if 'Commande inconnue' in message:
+                message = _("La passerelle installée est trop ancienne pour envoyer des utilisateurs : "
+                            "mettez-la à jour (Télécharger la passerelle).")
+            device_user.write({'sync_state': 'error', 'sync_message': message[:500], 'last_synced_at': now})
+            self._log('users_push', state='error', message=_('%(user)s : %(message)s',
+                                                             user=device_user.display_name, message=message))
+            return
+        if result.get('command') == 'push_user':
+            values = {'sync_state': 'synced', 'last_synced_at': now,
+                      'sync_message': _('Envoyé vers la pointeuse par la passerelle.'),
+                      'device_user_name': (device_user.employee_id.name or '')[:24]}
+            if result.get('uid'):
+                values['device_uid'] = int(result['uid'])
+            device_user.write(values)
+            self._log('users_push', message=_('%s envoyé vers la pointeuse par la passerelle.',
+                                              device_user.display_name))
+        else:
+            device_user.write({'sync_state': 'pending', 'device_uid': False, 'last_synced_at': now,
+                               'sync_message': _('Retiré de la pointeuse par la passerelle.')})
+            self._log('users_push', message=_('%s retiré de la pointeuse par la passerelle.',
+                                              device_user.display_name))
 
     # ------------------------------------------------------------------
     # Navigation

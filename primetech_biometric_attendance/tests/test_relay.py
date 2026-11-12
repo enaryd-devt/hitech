@@ -117,6 +117,58 @@ class TestRelay(HttpCase):
         status, body = self.call('hello', {})
         self.assertEqual(status, 409)
 
+    def test_push_user_through_relay(self):
+        device_user = self.env['biometric.device.user'].create({
+            'device_id': self.device.id, 'employee_id': self.employee.id, 'device_user_id': '7',
+            'privilege': '0', 'card': '1234'})
+        action = device_user.action_push_to_device()  # no UserError in relay mode
+        self.assertEqual(action['tag'], 'display_notification')
+        self.assertEqual(device_user.sync_state, 'pending')
+        self.assertEqual(self.device.relay_user_queue_count, 1)
+        device_user.action_push_to_device()  # queued twice: sent once
+        self.assertEqual(self.device.relay_user_queue_count, 1)
+
+        status, body = self.call('push', self.push_payload([]))
+        commands = body['commands']
+        self.assertEqual([command['name'] for command in commands], ['push_user'])
+        self.assertEqual(commands[0]['user_id'], '7')
+        self.assertEqual(commands[0]['user_name'], 'Employé distant')
+        self.assertEqual(commands[0]['card'], 1234)
+        self.assertEqual(self.device.relay_user_queue_count, 0)
+
+        status, body = self.call('push', self.push_payload([], command_results=[{
+            'command': 'push_user', 'ref': device_user.id, 'ok': True, 'uid': 5,
+            'message': 'Utilisateur 7 créé.'}]))
+        self.assertEqual(device_user.sync_state, 'synced')
+        self.assertEqual(device_user.device_uid, 5)
+
+        device_user.action_remove_from_device()
+        status, body = self.call('push', self.push_payload([]))
+        self.assertEqual(body['commands'][0]['name'], 'remove_user')
+        status, body = self.call('push', self.push_payload([], command_results=[{
+            'command': 'remove_user', 'ref': device_user.id, 'ok': False,
+            'message': 'Commande inconnue : remove_user'}]))
+        self.assertEqual(device_user.sync_state, 'error')
+        self.assertIn('trop ancienne', device_user.sync_message)
+
+    def test_busy_device_requeues_user(self):
+        device_user = self.env['biometric.device.user'].create({
+            'device_id': self.device.id, 'employee_id': self.employee.id, 'device_user_id': '7'})
+        device_user.action_push_to_device()
+        status, body = self.call('push', self.push_payload([]))
+        command = body['commands'][0]
+        # The gateway reports a busy device (report-only call, as the gateway does).
+        status, body = self.call('push', self.push_payload([], report_only=True, command_results=[{
+            'command': 'push_user', 'ref': device_user.id, 'ok': False, 'retry': True,
+            'retry_command': command, 'message': "Can't set user"}]))
+        self.assertFalse(body['commands'], 'A report-only call never takes commands')
+        self.assertEqual(device_user.sync_state, 'pending')
+        self.assertIn('1/10', device_user.sync_message)
+        # Next synchronisation: the command is sent again.
+        status, body = self.call('push', self.push_payload([]))
+        self.assertEqual(body['commands'][0]['name'], 'push_user')
+        self.assertEqual(body['commands'][0]['attempts'], 1)
+
     def test_pairing_code(self):
         device = self.env['biometric.device.details'].create({
             'name': 'Pointeuse à associer', 'device_ip': '192.168.1.251', 'port_number': 4370})

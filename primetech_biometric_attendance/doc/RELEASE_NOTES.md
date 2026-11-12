@@ -36,6 +36,11 @@
   bases ; recherche automatique des pointeuses sur le réseau local ; plusieurs
   pointeuses par passerelle ; PIN administrateur ; protections contre les
   requêtes d'autres sites. Routes serveur `ping` et `pair`.
+- Passerelle 2.1 : envoi / retrait d'utilisateurs vers la pointeuse en mode
+  passerelle (file `relay_user_queue`, exécutée à la synchronisation suivante,
+  résultat renvoyé dans Odoo). La ZK3969 refuse parfois les écritures pendant
+  quelques secondes (« Can't set user ») : la passerelle se reconnecte puis, si
+  besoin, Odoo remet la demande en file (10 essais au maximum).
 - Paramètres (Présences > Configuration) : interprétation des pointages
   (premier/dernier, paires, sens envoyé par l'appareil), anti-doublon,
   génération des présences Odoo, conservation du journal.
