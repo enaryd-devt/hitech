@@ -46,6 +46,7 @@ from zk import ZK
 
 VERSION = '2.5.1'
 UI_PORT = 47321
+SESSION_TTL_SECONDS = 30 * 60
 BATCH_SIZE = 2000
 POLL_SECONDS = 10  # how often Odoo is asked whether a request is waiting
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -880,7 +881,9 @@ class ConsoleServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 def make_handler(config, engine):
-    sessions = set()
+    # Token -> expiry timestamp. Tokens only live in memory, so restarting the
+    # gateway also invalidates every console session.
+    sessions = {}
 
     class Handler(http.server.BaseHTTPRequestHandler):
         server_version = 'PrimeTechRelay/%s' % VERSION
@@ -910,9 +913,25 @@ def make_handler(config, engine):
             cookie = self.headers.get('Cookie') or ''
             for part in cookie.split(';'):
                 name, _sep, value = part.strip().partition('=')
-                if name == 'pt_relay_session' and value in sessions:
-                    return value
+                if name == 'pt_relay_session':
+                    expires_at = sessions.get(value)
+                    if expires_at and expires_at > time.monotonic():
+                        return value
+                    sessions.pop(value, None)
             return None
+
+        @staticmethod
+        def _expired_session_cookie():
+            return 'pt_relay_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'
+
+        def _new_session(self):
+            session = secrets.token_urlsafe(24)
+            sessions[session] = time.monotonic() + SESSION_TTL_SECONDS
+            return session
+
+        def _session_cookie(self, session):
+            return ('pt_relay_session=%s; HttpOnly; SameSite=Strict; Path=/; Max-Age=%s'
+                    % (session, SESSION_TTL_SECONDS))
 
         def _unlocked(self):
             return not config.data.get('pin_hash') or self._session() is not None
@@ -951,10 +970,15 @@ def make_handler(config, engine):
                 if not config.check_pin(payload.get('pin')):
                     time.sleep(1)
                     return self._send(403, {'error': 'Code PIN incorrect.'})
-                session = secrets.token_urlsafe(24)
-                sessions.add(session)
+                session = self._new_session()
                 return self._send(200, {'ok': True}, headers={
-                    'Set-Cookie': 'pt_relay_session=%s; HttpOnly; SameSite=Strict; Path=/' % session})
+                    'Set-Cookie': self._session_cookie(session)})
+            if route == '/api/lock':
+                session = self._session()
+                if session:
+                    sessions.pop(session, None)
+                return self._send(200, {'ok': True}, headers={
+                    'Set-Cookie': self._expired_session_cookie()})
             if route == '/api/sync':
                 engine.sync_now(payload.get('id'))
                 return self._send(200, {'ok': True})
@@ -993,19 +1017,23 @@ def make_handler(config, engine):
             if route == '/api/scan':
                 return dict(scan_devices(int(payload.get('port') or 4370)), ok=True)
             if route == '/api/pin':
+                current_pin = str(payload.get('current_pin') or '').strip()
                 pin = str(payload.get('pin') or '').strip()
+                confirmation = str(payload.get('confirmation') or '').strip()
+                if config.data.get('pin_hash') and not config.check_pin(current_pin):
+                    time.sleep(1)
+                    return self._send(403, {'error': 'Code PIN actuel incorrect.'})
+                if pin != confirmation:
+                    return self._send(400, {'error': 'Les deux nouveaux codes PIN ne correspondent pas.'})
+                if pin and (not pin.isdigit() or not 4 <= len(pin) <= 12):
+                    return self._send(400, {'error': 'Le PIN doit contenir 4 à 12 chiffres.'})
                 config.set_pin(pin)
                 sessions.clear()
                 _logger.info('Code PIN de la console %s.', 'défini' if pin else 'supprimé')
-                # The PIN can only be changed from an already-unlocked console.
-                # Keep that browser authenticated after saving it; other existing
-                # sessions are still invalidated above and must enter the new PIN.
-                if pin:
-                    session = secrets.token_urlsafe(24)
-                    sessions.add(session)
-                    return self._send(200, {'ok': True}, headers={
-                        'Set-Cookie': 'pt_relay_session=%s; HttpOnly; SameSite=Strict; Path=/' % session})
-                return {'ok': True}
+                # Changing the PIN always logs out every browser, including the
+                # one that made the change. The new PIN must be entered again.
+                return self._send(200, {'ok': True}, headers={
+                    'Set-Cookie': self._expired_session_cookie()})
             raise KeyError('route inconnue %s' % route)
 
         def device_route(self, route, payload):
@@ -1172,6 +1200,7 @@ button,.btn{font:inherit;border:1px solid var(--line);background:#fff;border-rad
 button:hover{border-color:var(--brand);color:var(--brand)}button:disabled{opacity:.5;cursor:default}
 button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}button.primary:hover{background:var(--brand-2);color:#fff}
 button.danger:hover{border-color:var(--err);color:var(--err)}
+.lock-button{width:36px;height:36px;padding:0;display:grid;place-items:center;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:8px}.lock-button:hover{background:#e2e8f0;color:#1e293b}.lock-button:disabled{opacity:.55}.lock-button svg{width:17px;height:17px;fill:currentColor}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .card.enter{animation:enter .35s ease both}
@@ -1250,6 +1279,7 @@ input:focus,select:focus{outline:2px solid #c4b5fd;border-color:var(--brand)}
   <div class="logo">⏱</div>
   <div><h1>Passerelle Pointeuse PrimeTech</h1><small id="host">…</small></div>
   <div class="spacer"></div>
+  <button id="session-button" class="lock-button" onclick="lockSession()" title="Verrouiller la console" aria-label="Verrouiller la console" hidden><svg viewBox="0 0 16 16"><path d="M11 1a3 3 0 0 0-3 3v2h1V4a2 2 0 1 1 4 0v3H4.5A1.5 1.5 0 0 0 3 8.5v6A1.5 1.5 0 0 0 4.5 16h8a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 12.5 7H12V4a1 1 0 0 0-1-1H7v1h4v3H4.5A2.5 2.5 0 0 0 2 9.5v5A1.5 1.5 0 0 0 3.5 16h9a2.5 2.5 0 0 0 2.5-2.5v-5A1.5 1.5 0 0 0 13.5 7H14V4a3 3 0 0 0-3-3Z"/></svg></button>
   <span class="pill" id="global"><span class="dot"></span><span>Chargement…</span></span>
 </header>
 <main id="app"></main>
@@ -1307,6 +1337,11 @@ function deviceCard(item, index) {
 
 function render() {
   if (!state) return;
+  $('#session-button').hidden = !state.unlocked;
+  if (state.unlocked) {
+    $('#session-button').textContent = '🔓';
+    $('#session-button').disabled = false;
+  }
   $('#host').textContent = `PC ${state.host} · version ${state.version} · démarrée le ${state.started_at}`;
   const states = state.devices.map((d) => d.status.state);
   const globalState = !states.length ? '' : states.includes('error') ? 'error' : states.includes('warning') ? 'warning' : 'ok';
@@ -1370,16 +1405,31 @@ function note(id, kind, text) { $(id).innerHTML = text ? `<div class="note ${kin
 function busy(button, on, text) { button.disabled = on; if (on) { button.dataset.label = button.innerHTML; button.innerHTML = `<span class="spin"></span> ${text}`; } else if (button.dataset.label) { button.innerHTML = button.dataset.label; } }
 
 function openPin() {
+  const current = state.has_pin ? `<label>Code PIN actuel</label><input type="password" id="current-pin" inputmode="numeric" maxlength="12" autocomplete="current-password">` : '';
   openModal(`<h2>Code PIN administrateur</h2>
-    <p class="help">Le PIN protège les réglages de la passerelle (ajout, modification, suppression). Laissez vide pour retirer la protection.</p>
+    <p class="help">Le PIN protège les réglages de la passerelle. Sa modification déconnecte toutes les sessions. Laissez les deux nouveaux champs vides pour retirer la protection.</p>
+    ${current}
     <label>Nouveau code PIN</label><input type="password" id="new-pin" maxlength="12" placeholder="4 à 12 chiffres">
+    <label>Confirmer le nouveau code PIN</label><input type="password" id="confirm-pin" maxlength="12" inputmode="numeric">
     <div id="pin-msg"></div>
     <div class="footer"><button onclick="closeModal()">Annuler</button><button class="primary" onclick="savePin()">Enregistrer</button></div>`);
 }
 async function savePin() {
   const pin = $('#new-pin').value.trim();
+  const confirmation = $('#confirm-pin').value.trim();
+  const current = $('#current-pin') ? $('#current-pin').value.trim() : '';
   if (pin && !/^\d{4,12}$/.test(pin)) return note('#pin-msg', 'err', 'Le PIN doit contenir 4 à 12 chiffres.');
-  try { await api('/api/pin', {pin}); closeModal(); } catch (error) { note('#pin-msg', 'err', esc(error.message)); }
+  if (pin !== confirmation) return note('#pin-msg', 'err', 'Les deux nouveaux codes PIN ne correspondent pas.');
+  try { await api('/api/pin', {current_pin: current, pin, confirmation}); pinDraft = ''; closeModal(); }
+  catch (error) { note('#pin-msg', 'err', esc(error.message)); }
+}
+
+async function lockSession() {
+  $('#session-button').textContent = '🔒';
+  $('#session-button').disabled = true;
+  $('#session-button').hidden = true;
+  try { await api('/api/lock', {}); pinDraft = ''; closeModal(); await refresh(); }
+  catch (error) { alert(error.message); }
 }
 
 // ---------------------------------------------------------------- wizard: add a device
@@ -1695,7 +1745,14 @@ function deviceTab() {
       <div class="action"><b>⟳ Synchroniser</b><p>Envoie immédiatement les nouveaux pointages à Odoo.</p><button onclick="syncNow('${manage.id}');toast('Synchronisation lancée.')">Synchroniser</button></div>
       <div class="action"><b>🧹 Vider la mémoire</b><p>Envoie tout à Odoo, puis efface les pointages de l'appareil. Rien n'est perdu.</p><button class="danger" onclick="deviceAction('clear_attendance', this, 'Envoyer tous les pointages à Odoo puis vider la mémoire de la pointeuse ?')">Vider la mémoire</button></div>
       <div class="action"><b>⏻ Redémarrer</b><p>La pointeuse est indisponible environ une minute.</p><button class="danger" onclick="deviceAction('restart', this, 'Redémarrer la pointeuse ?')">Redémarrer</button></div>
+      <div class="action"><b>🔐 Sécuriser par PIN</b><p>Crée ou modifie un administrateur avec PIN : il protège le menu de configuration de la pointeuse.</p><button class="primary" onclick="secureTerminal()">Configurer le PIN</button></div>
     </div><div id="dev-action-note"></div>`;
+}
+async function secureTerminal() {
+  manage.tab = 'users'; renderManage(); await loadTab();
+  const admin = manage.users && manage.users.find((user) => Number(user.privilege) === 14);
+  if (admin) editUser(admin.user_id);
+  else editUser();
 }
 async function deviceAction(action, button, question) {
   if (question && !confirm(question)) return;

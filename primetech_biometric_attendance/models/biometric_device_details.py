@@ -174,6 +174,7 @@ class BiometricDeviceDetails(models.Model):
             device.punch_count = punches.get(device, 0)
             device.unmapped_user_count = unmapped.get(device, 0)
 
+
     @api.depends('info_record_count', 'info_record_capacity')
     def _compute_memory_usage(self):
         for device in self:
