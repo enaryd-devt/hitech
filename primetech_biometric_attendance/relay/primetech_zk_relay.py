@@ -1261,6 +1261,7 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state = null;
 let wizard = null;
+let pinDraft = '';
 const shown = new Set();  // cards already animated (the page refreshes every 3 s)
 
 async function api(path, body) {
@@ -1314,7 +1315,8 @@ function render() {
   if (!state.unlocked) {
     $('#app').innerHTML = `<div class="card lock"><div style="font-size:40px">🔒</div><h3 style="justify-content:center">Console verrouillée</h3>
       <p class="help">Saisissez le code PIN administrateur pour modifier la passerelle. La synchronisation continue en arrière-plan.</p>
-      <input type="password" id="pin" placeholder="Code PIN" onkeydown="if(event.key==='Enter')unlock()">
+      <input type="password" id="pin" value="${esc(pinDraft)}" placeholder="Code PIN" autocomplete="current-password"
+             oninput="pinDraft=this.value" onkeydown="if(event.key==='Enter')unlock()">
       <div class="actions" style="justify-content:center"><button class="primary" onclick="unlock()">Déverrouiller</button></div>
       <div id="pin-note"></div></div>`;
     return;
@@ -1335,13 +1337,24 @@ function render() {
 }
 
 async function refresh() {
-  try { state = await api('/api/state'); if (!$('#modal').classList.contains('open')) render(); }
+  try {
+    state = await api('/api/state');
+    // Do not rebuild the lock screen while the PIN field has focus: rebuilding
+    // it every three seconds discarded characters entered by the user.
+    if (!$('#modal').classList.contains('open') && !( !state.unlocked && document.activeElement?.id === 'pin')) render();
+  }
   catch (error) { $('#global').innerHTML = '<span class="dot error"></span><span>Service arrêté</span>'; }
 }
 
 async function unlock() {
-  try { await api('/api/unlock', {pin: $('#pin').value}); await refresh(); }
-  catch (error) { $('#pin-note').innerHTML = `<div class="note err">${esc(error.message)}</div>`; }
+  const input = $('#pin');
+  if (!input) return;
+  pinDraft = input.value;
+  try { await api('/api/unlock', {pin: pinDraft}); pinDraft = ''; await refresh(); }
+  catch (error) {
+    const note = $('#pin-note');
+    if (note) note.innerHTML = `<div class="note err">${esc(error.message)}</div>`;
+  }
 }
 async function syncNow(id) { await api('/api/sync', {id}); setTimeout(refresh, 1500); }
 async function removeDevice(id) {
