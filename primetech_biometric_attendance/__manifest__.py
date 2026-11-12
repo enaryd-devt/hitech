@@ -44,6 +44,7 @@
     'data': [
         'security/ir.model.access.csv',
         'security/biometric_security.xml',
+        'data/biometric_punch_method_data.xml',
         'data/biometric_cron.xml',
         'data/biometric_analysis_cron.xml',
         'views/biometric_device_details_views.xml',

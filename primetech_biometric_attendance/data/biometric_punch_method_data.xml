@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="biometric_punch_method_password" model="biometric.punch.method">
+        <field name="name">Mot de passe</field><field name="code">password</field><field name="sequence">10</field>
+    </record>
+    <record id="biometric_punch_method_fingerprint" model="biometric.punch.method">
+        <field name="name">Empreinte</field><field name="code">fingerprint</field><field name="sequence">20</field>
+    </record>
+    <record id="biometric_punch_method_card" model="biometric.punch.method">
+        <field name="name">Carte</field><field name="code">card</field><field name="sequence">30</field>
+    </record>
+    <record id="biometric_punch_method_face" model="biometric.punch.method">
+        <field name="name">Visage</field><field name="code">face</field><field name="sequence">40</field>
+    </record>
+    <function model="biometric.device.user" name="_migrate_punch_modes"/>
+</odoo>

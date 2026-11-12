@@ -3,6 +3,20 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
+class BiometricPunchMethod(models.Model):
+    _name = 'biometric.punch.method'
+    _description = 'Méthode de pointage biométrique'
+    _order = 'sequence, id'
+
+    name = fields.Char(required=True, translate=True)
+    code = fields.Char(required=True, index=True)
+    sequence = fields.Integer(default=10)
+
+    _sql_constraints = [
+        ('biometric_punch_method_code_unique', 'unique(code)', 'Cette méthode existe déjà.'),
+    ]
+
+
 class BiometricDeviceUser(models.Model):
     """Mapping between an Odoo employee and a user stored on a device."""
 
@@ -36,14 +50,15 @@ class BiometricDeviceUser(models.Model):
     password = fields.Char(string='Mot de passe de l’appareil', copy=False,
                            groups='hr_attendance.group_hr_attendance_manager')
     card = fields.Char(string='Numéro de carte')
-    allow_password = fields.Boolean(string='Mot de passe', default=True,
-                                    help='Autoriser les pointages validés par mot de passe.')
-    allow_fingerprint = fields.Boolean(string='Empreinte', default=True,
-                                       help='Autoriser les pointages par empreinte enregistrée sur la pointeuse.')
-    allow_card = fields.Boolean(string='Carte', default=True,
-                                help='Autoriser les pointages par carte enregistrée sur la pointeuse.')
-    allow_face = fields.Boolean(string='Visage', default=True,
-                                help='Autoriser les pointages par visage enregistré sur la pointeuse.')
+    punch_mode = fields.Selection([
+        ('password', 'Mot de passe'), ('fingerprint', 'Empreinte'),
+        ('card', 'Carte'), ('face', 'Visage'),
+    ], string='Ancien mode de pointage', copy=False)
+    punch_method_ids = fields.Many2many(
+        'biometric.punch.method', 'biometric_device_user_punch_method_rel',
+        'device_user_id', 'method_id', string='Modes de pointage',
+        default=lambda self: self.env['biometric.punch.method'].search([]),
+        help='Méthodes de vérification autorisées pour les pointages de cet utilisateur.')
     last_synced_at = fields.Datetime(string='Dernière synchronisation avec l’appareil', readonly=True)
     sync_state = fields.Selection([
         ('pending', 'À synchroniser'), ('synced', 'Synchronisé'), ('error', 'Erreur'),
@@ -65,14 +80,20 @@ class BiometricDeviceUser(models.Model):
         setting controls whether their resulting punches are accepted by Odoo.
         """
         self.ensure_one()
-        return {
-            '0': self.allow_password,
-            '1': self.allow_fingerprint,
-            '2': self.allow_card,
-            '3': self.allow_password,
-            '4': self.allow_card,
-            '15': self.allow_face,
-        }.get(str(method), True)
+        method_code = {
+            '0': 'password', '1': 'fingerprint', '2': 'card',
+            '3': 'password', '4': 'card', '15': 'face',
+        }.get(str(method))
+        return not method_code or method_code in self.punch_method_ids.mapped('code')
+
+    @api.model
+    def _migrate_punch_modes(self):
+        """Keep the selection made before modes became multi-select."""
+        methods = {method.code: method.id for method in self.env['biometric.punch.method'].search([])}
+        for user in self.search([]).filtered(lambda record: not record.punch_method_ids):
+            method_id = methods.get(user.punch_mode or 'fingerprint')
+            if method_id:
+                user.punch_method_ids = [(6, 0, [method_id])]
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):

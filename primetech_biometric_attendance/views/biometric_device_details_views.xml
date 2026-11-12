@@ -156,10 +156,7 @@
                                     <field name="password" password="True"
                                            placeholder="Nouveau mot de passe"
                                            groups="hr_attendance.group_hr_attendance_manager"/>
-                                    <field name="allow_password" widget="boolean_toggle"/>
-                                    <field name="allow_fingerprint" widget="boolean_toggle"/>
-                                    <field name="allow_card" widget="boolean_toggle"/>
-                                    <field name="allow_face" widget="boolean_toggle"/>
+                                    <field name="punch_method_ids" widget="many2many_tags"/>
                                     <field name="sync_state" widget="badge" decoration-success="sync_state == 'synced'" decoration-danger="sync_state == 'error'"/>
                                     <field name="active" optional="hide"/>
                                     <button name="action_push_to_device" string="Envoyer" type="object" icon="fa-upload"

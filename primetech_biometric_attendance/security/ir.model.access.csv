@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_biometric_punch_method_manager,biometric.punch.method manager,model_biometric_punch_method,hr_attendance.group_hr_attendance_manager,1,0,0,0
 access_biometric_device_details_manager,biometric.device.details manager,model_biometric_device_details,hr_attendance.group_hr_attendance_manager,1,1,1,1
 access_biometric_device_user_manager,biometric.device.user manager,model_biometric_device_user,hr_attendance.group_hr_attendance_manager,1,1,1,1
 access_biometric_sync_log_manager,biometric.sync.log manager,model_biometric_sync_log,hr_attendance.group_hr_attendance_manager,1,1,1,1
