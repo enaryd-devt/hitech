@@ -12,6 +12,7 @@ if errorlevel 1 (
 schtasks /End /TN "PrimeTech Pointeuse" >nul 2>&1
 schtasks /Delete /TN "PrimeTech Pointeuse" /F >nul 2>&1
 taskkill /IM primetech_zk_relay.exe /F >nul 2>&1
+del "%PUBLIC%\Desktop\Pointeuse PrimeTech.url" >nul 2>&1
 echo  La passerelle est arretee et ne demarrera plus avec le PC.
-echo  Vous pouvez supprimer ce dossier.
+echo  Vous pouvez supprimer ce dossier (config.json contient la configuration).
 pause

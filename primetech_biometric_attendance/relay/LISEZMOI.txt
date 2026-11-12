@@ -5,7 +5,7 @@ A quoi sert-elle ?
 ------------------
 La pointeuse est sur le reseau local de l'entreprise, Odoo est sur Internet.
 La passerelle, installee sur un PC du site, lit la pointeuse et envoie les
-pointages a Odoo.
+pointages a Odoo (module "Gestion des pointages").
 
 Les employes peuvent pointer quand tous les PC sont eteints : la pointeuse
 garde les pointages en memoire (avec leur heure exacte). Ils sont envoyes a
@@ -17,28 +17,32 @@ Installation (5 minutes)
 1. Copiez le dossier PrimeTechPointeuse sur le PC, par exemple dans
    C:\PrimeTechPointeuse (pas sur le Bureau ni dans Telechargements).
 2. Clic droit sur installer.bat > "Executer en tant qu'administrateur".
-   Le programme teste la pointeuse et Odoo, puis cree la tache planifiee
-   "PrimeTech Pointeuse" qui demarre avec le PC (meme sans ouvrir de session).
-3. Dans Odoo (Gestion des pointages > Pointeuses), la pointeuse passe
-   "En ligne" apres la premiere synchronisation.
+   La passerelle est installee comme tache de fond (elle demarre avec le PC,
+   meme sans ouvrir de session) et la console s'ouvre dans le navigateur.
+3. Si le dossier a ete telecharge depuis Odoo (bouton "Telecharger la
+   passerelle"), la pointeuse est deja configuree : rien d'autre a faire.
+   Sinon, dans la console : "Ajouter une pointeuse"
+     a. adresse du serveur Odoo : nom de domaine (ex. hitech.primetechafrik.com)
+        ou adresse IP et port (ex. 38.247.147.212:18077), puis la base ;
+     b. code d'association : dans Odoo, Gestion des pointages > Pointeuses >
+        [la pointeuse] > onglet Passerelle > "Generer un code d'association" ;
+     c. adresse de la pointeuse : verifiez-la ou cliquez sur
+        "Rechercher sur le reseau", puis "Tester" et "Terminer".
 
-Le PC doit pouvoir joindre la pointeuse (meme reseau) et Internet.
+La console
+----------
+Raccourci "Pointeuse PrimeTech" sur le Bureau, ou http://localhost:47321
+(accessible uniquement depuis ce PC). Elle affiche l'etat de chaque pointeuse,
+les pointages envoyes aujourd'hui, la memoire de la pointeuse, le journal, et
+permet de synchroniser immediatement, suspendre, modifier ou retirer une
+pointeuse. Un code PIN peut proteger les reglages.
 
 Fichiers
 --------
-config.ini          adresse d'Odoo, cle de la passerelle, adresse de la pointeuse.
-                    CONFIDENTIEL : ne pas partager.
-passerelle.log      journal (cree au premier lancement).
-installer.bat       installation / mise a jour.
-desinstaller.bat    arret et suppression de la tache planifiee.
+primetech_zk_relay.exe  le programme (double-clic : ouvre la console).
+config.json             configuration (cree automatiquement). CONFIDENTIEL.
+passerelle.log          journal.
+installer.bat           installation / mise a jour.
+desinstaller.bat        arret et suppression de la tache planifiee.
 
-Test manuel
------------
-Dans une invite de commandes ouverte dans ce dossier :
-    primetech_zk_relay.exe --test     verifie la pointeuse et Odoo
-    primetech_zk_relay.exe --once     fait une synchronisation
-
-Changement de cle
------------------
-Si une nouvelle cle est generee dans Odoo, telechargez a nouveau le paquet
-(ou remplacez la ligne "token" de config.ini), puis relancez installer.bat.
+Le PC doit pouvoir joindre la pointeuse (meme reseau) et Internet.

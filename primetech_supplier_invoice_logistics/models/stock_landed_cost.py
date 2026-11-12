@@ -145,6 +145,63 @@ class StockLandedCost(models.Model):
                 "primetech_cost_by_volume", "primetech_final_sale_price",
             ])
 
+    def _primetech_post_direct_cost_accounting_entries(self):
+        """Post accounting entries for costs allocated from a draft vendor bill.
+
+        Standard landed-cost posting relies on stock moves.  In the supplier
+        invoice workflow, the allocation is deliberately prepared before the
+        receipt exists, so those adjustment lines have no stock move and the
+        standard method creates no journal entry.  Each allocated amount is
+        therefore debited to the product valuation account (or its expense
+        account for manual valuation) and credited to the configured cost-line
+        account.
+        """
+        Move = self.env["account.move"]
+        for cost in self:
+            if cost.account_move_id:
+                continue
+            line_values = []
+            for adjustment in cost.valuation_adjustment_lines:
+                amount = adjustment.additional_landed_cost
+                if cost.currency_id.is_zero(amount):
+                    continue
+                accounts = adjustment.product_id.product_tmpl_id.get_product_accounts()
+                debit_account = (
+                    accounts.get("stock_valuation")
+                    if adjustment.product_id.valuation == "real_time"
+                    else accounts.get("expense")
+                )
+                credit_account = adjustment.cost_line_id.account_id
+                if not debit_account or not credit_account:
+                    raise UserError(_(
+                        "Configurez les comptes de valorisation ou de charge de l'article %s."
+                    ) % adjustment.product_id.display_name)
+                base_values = {
+                    "name": adjustment.name or cost.name,
+                    "product_id": adjustment.product_id.id,
+                    "quantity": 0,
+                }
+                debit_values = dict(base_values, account_id=debit_account.id)
+                credit_values = dict(base_values, account_id=credit_account.id)
+                if amount > 0:
+                    debit_values["debit"] = amount
+                    credit_values["credit"] = amount
+                else:
+                    debit_values["credit"] = -amount
+                    credit_values["debit"] = -amount
+                line_values.extend([(0, 0, debit_values), (0, 0, credit_values)])
+            if not line_values:
+                continue
+            move = Move.create({
+                "move_type": "entry",
+                "journal_id": cost.account_journal_id.id,
+                "date": cost.date,
+                "ref": cost.name,
+                "line_ids": line_values,
+            })
+            move._post()
+            cost.account_move_id = move.id
+
     def button_validate(self):
         missing_accounts = self.mapped("cost_lines").filtered(lambda line: not line.account_id)
         if missing_accounts:
@@ -160,6 +217,7 @@ class StockLandedCost(models.Model):
             # Rebuild the allocations from each cost line's split method just
             # before posting, even if the operator did not click Calculate.
             direct_costs.compute_landed_cost()
+            direct_costs._primetech_post_direct_cost_accounting_entries()
             direct_costs.write({"state": "done"})
             direct_costs._primetech_refresh_invoice_logistic_costs()
         remaining_costs = self - direct_costs

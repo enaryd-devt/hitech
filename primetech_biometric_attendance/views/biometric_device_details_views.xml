@@ -170,10 +170,21 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Passerelle" name="relay" groups="hr_attendance.group_hr_attendance_manager" invisible="connection_mode != 'relay'">
+                        <page string="Passerelle" name="relay" groups="hr_attendance.group_hr_attendance_manager">
                             <div class="alert alert-info" role="alert">
                                 <p class="mb-1"><strong>Comment ça marche ?</strong> Un PC du site lit la pointeuse sur le réseau local et envoie les pointages à Odoo par Internet. Les pointages faits quand tous les PC sont éteints restent dans la pointeuse et sont envoyés, avec leur heure réelle, dès qu’un PC démarre.</p>
                                 <p class="mb-0">Cliquez sur <strong>Télécharger la passerelle</strong>, copiez le dossier sur un ou plusieurs PC du site et lancez <code>installer.bat</code> en tant qu’administrateur.</p>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-3 border rounded p-3 mb-3">
+                                <div class="flex-grow-1">
+                                    <strong>Associer une passerelle</strong>
+                                    <div class="text-muted small">Dans la console de la passerelle (raccourci « Pointeuse PrimeTech » sur le PC), choisissez « Ajouter une pointeuse », saisissez l’adresse de ce serveur Odoo puis ce code.</div>
+                                </div>
+                                <div invisible="not relay_pairing_code" class="text-center">
+                                    <field name="relay_pairing_code" class="fs-2 fw-bold font-monospace" widget="CopyClipboardChar"/>
+                                    <div class="small text-muted">valable jusqu’au <field name="relay_pairing_expiry" class="d-inline"/></div>
+                                </div>
+                                <button name="action_generate_pairing_code" type="object" string="Générer un code d’association" class="btn-primary" icon="fa-link"/>
                             </div>
                             <group>
                                 <group string="Sécurité">

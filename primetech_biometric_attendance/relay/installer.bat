@@ -16,38 +16,24 @@ if errorlevel 1 (
 set "DOSSIER=%~dp0"
 if "%DOSSIER:~-1%"=="\" set "DOSSIER=%DOSSIER:~0,-1%"
 set "PROGRAMME=%DOSSIER%\primetech_zk_relay.exe"
-set "ARGUMENTS="
 if not exist "%PROGRAMME%" (
-    where pythonw >nul 2>&1
-    if errorlevel 1 (
-        echo  primetech_zk_relay.exe est introuvable et Python n'est pas installe.
-        pause
-        exit /b 1
-    )
-    for /f "delims=" %%P in ('where pythonw') do set "PROGRAMME=%%P"
-    set "ARGUMENTS=""%DOSSIER%\primetech_zk_relay.py"""
+    echo  primetech_zk_relay.exe est introuvable dans %DOSSIER%.
+    pause
+    exit /b 1
 )
 
 echo.
-echo  1/3 Verification de la pointeuse et de la connexion a Odoo...
-echo.
-if exist "%DOSSIER%\primetech_zk_relay.exe" (
-    "%DOSSIER%\primetech_zk_relay.exe" --test
-) else (
-    python "%DOSSIER%\primetech_zk_relay.py" --test
-)
-if errorlevel 1 (
-    echo.
-    echo  Le test a echoue : verifiez config.ini ^(adresse de la pointeuse, adresse d'Odoo^).
-    echo  Vous pouvez quand meme installer : la passerelle reessaiera automatiquement.
-    choice /M "  Installer quand meme"
-    if errorlevel 2 exit /b 1
-)
+echo  1/4 Arret d'une ancienne version eventuelle...
+schtasks /End /TN "PrimeTech Pointeuse" >nul 2>&1
+taskkill /IM primetech_zk_relay.exe /F >nul 2>&1
+
+echo  2/4 Verification (si une pointeuse est deja configuree)...
+"%PROGRAMME%" --test
 
 echo.
-echo  2/3 Creation de la tache planifiee "PrimeTech Pointeuse" (demarrage du PC)...
+echo  3/4 Creation de la tache planifiee "PrimeTech Pointeuse" (demarrage du PC)...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$action = New-ScheduledTaskAction -Execute '%PROGRAMME%' -Argument '%ARGUMENTS%' -WorkingDirectory '%DOSSIER%';" ^
+  "$action = New-ScheduledTaskAction -Execute '%PROGRAMME%' -Argument '--service' -WorkingDirectory '%DOSSIER%';" ^
   "$triggers = @((New-ScheduledTaskTrigger -AtStartup), (New-ScheduledTaskTrigger -AtLogOn));" ^
   "$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew;" ^
   "$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest;" ^
@@ -58,10 +44,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo  3/3 Demarrage de la passerelle...
+echo  4/4 Raccourci "Pointeuse PrimeTech" sur le Bureau et demarrage...
+(
+    echo [InternetShortcut]
+    echo URL=http://localhost:47321/
+    echo IconFile=%PROGRAMME%
+    echo IconIndex=0
+) > "%PUBLIC%\Desktop\Pointeuse PrimeTech.url"
 schtasks /Run /TN "PrimeTech Pointeuse" >nul
+timeout /t 4 /nobreak >nul
+start "" "http://localhost:47321/"
+
 echo.
-echo  Installation terminee. La passerelle demarre automatiquement avec le PC.
-echo  Journal : %DOSSIER%\passerelle.log
+echo  Installation terminee.
+echo  - La passerelle demarre automatiquement avec le PC, meme sans ouvrir de session.
+echo  - Console : raccourci "Pointeuse PrimeTech" sur le Bureau (http://localhost:47321).
+echo  - Journal : %DOSSIER%\passerelle.log
 echo.
 pause

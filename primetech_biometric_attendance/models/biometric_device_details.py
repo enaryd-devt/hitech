@@ -20,6 +20,7 @@
 #
 ################################################################################
 import logging
+import re
 import secrets
 import time
 from contextlib import contextmanager
@@ -86,6 +87,10 @@ class BiometricDeviceDetails(models.Model):
                                            "de la pointeuse à la prochaine synchronisation.")
     relay_pending_commands = fields.Char(string='Commandes en attente', copy=False, readonly=True)
     relay_agent = fields.Char(string='Dernière passerelle', readonly=True, copy=False)
+    relay_pairing_code = fields.Char(string="Code d'association", readonly=True, copy=False,
+                                     groups='hr_attendance.group_hr_attendance_manager')
+    relay_pairing_expiry = fields.Datetime(string='Code valable jusqu’au', readonly=True, copy=False,
+                                           groups='hr_attendance.group_hr_attendance_manager')
     connection_timeout = fields.Integer(string='Délai de connexion (secondes)',
                                         default=10, required=True)
     force_udp = fields.Boolean(string='Utiliser UDP',
@@ -679,6 +684,59 @@ class BiometricDeviceDetails(models.Model):
                          'restart': 'restart'}[command], state='warning',
                         message=_('Commande « %s » transmise à la passerelle.', command))
         return True
+
+    PAIRING_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+    PAIRING_VALIDITY_MINUTES = 30
+
+    def action_generate_pairing_code(self):
+        """Temporary code typed in the gateway console to associate it with this device."""
+        for device in self.sudo():
+            raw = ''.join(secrets.choice(self.PAIRING_ALPHABET) for _index in range(8))
+            device.write({
+                'relay_pairing_code': '%s-%s' % (raw[:4], raw[4:]),
+                'relay_pairing_expiry': fields.Datetime.now() + timedelta(
+                    minutes=self.PAIRING_VALIDITY_MINUTES),
+            })
+        return True
+
+    @api.model
+    def _relay_pair(self, payload):
+        """Exchange a valid pairing code for the gateway configuration."""
+        code = re.sub(r'[^A-Z0-9]', '', str(payload.get('code') or '').upper())
+        if len(code) != 8:
+            return None
+        device = self.sudo().search([
+            ('relay_pairing_code', '=', '%s-%s' % (code[:4], code[4:])),
+            ('relay_pairing_expiry', '>', fields.Datetime.now()),
+            ('active', '=', True),
+        ], limit=1)
+        if not device:
+            return None
+        agent = payload.get('agent') or {}
+        values = {
+            'relay_pairing_code': False,
+            'relay_pairing_expiry': False,
+            'connection_mode': 'relay',
+        }
+        if not device.relay_token:
+            values['relay_token'] = secrets.token_urlsafe(32)
+        device.write(values)
+        device._log('info', message=_('Passerelle %s associée par code.', agent.get('host') or '?'))
+        return {
+            'ok': True,
+            'token': device.relay_token,
+            'device': {
+                'name': device.name,
+                'ip': device.device_ip,
+                'port': device.port_number,
+                'comm_key': device.comm_key or 0,
+                'timeout': device.connection_timeout,
+                'interval': max(30, device.sync_interval * 60),
+                'timezone': device.timezone,
+            },
+            'company': device.company_id.name,
+            'database': self.env.cr.dbname,
+        }
 
     def action_generate_relay_token(self):
         for device in self.sudo():

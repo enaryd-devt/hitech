@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import os
+import time
 import zipfile
 
 from odoo import SUPERUSER_ID, http
@@ -43,10 +44,28 @@ class BiometricRelayController(http.Controller):
     @http.route('/primetech_biometric/relay/<string:operation>', type='http', auth='none',
                 methods=['POST'], csrf=False, save_session=False, readonly=False)
     def relay(self, operation, **kwargs):
-        if operation not in ('hello', 'push'):
+        if operation not in ('hello', 'push', 'pair', 'ping'):
             return self._json({'ok': False, 'error': 'Opération inconnue.'}, 404)
         if not request.db:
             return self._json({'ok': False, 'error': 'Base de données non sélectionnée.'}, 400)
+        if operation == 'ping':
+            # Lets the gateway check that this database runs the attendance module.
+            module = request.env['ir.module.module'].with_user(SUPERUSER_ID).search(
+                [('name', '=', 'primetech_biometric_attendance')], limit=1)
+            return self._json({'ok': True, 'database': request.db,
+                               'module_version': module.latest_version})
+        if operation == 'pair':
+            try:
+                payload = json.loads(request.httprequest.get_data() or b'{}')
+            except ValueError:
+                return self._json({'ok': False, 'error': 'Contenu JSON invalide.'}, 400)
+            result = request.env['biometric.device.details'].with_user(SUPERUSER_ID)._relay_pair(payload)
+            if not result:
+                time.sleep(1)  # slows down code guessing
+                return self._json({'ok': False, 'error': (
+                    "Code d'association invalide ou expiré. Générez un nouveau code dans Odoo "
+                    "(fiche de la pointeuse > Passerelle).")}, 403)
+            return self._json(result)
         device = self._relay_device()
         if not device:
             return self._json({'ok': False, 'error': 'Clé de passerelle invalide.'}, 401)
