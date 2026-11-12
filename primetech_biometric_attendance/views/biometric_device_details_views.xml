@@ -89,7 +89,7 @@
                     <group>
                         <group string="Connexion">
                             <field name="active" invisible="1"/>
-                            <field name="connection_mode" widget="radio"/>
+                            <field name="connection_mode"/>
                             <field name="device_ip" placeholder="192.168.1.201"/>
                             <field name="port_number"/>
                             <field name="comm_key" password="True"/>
