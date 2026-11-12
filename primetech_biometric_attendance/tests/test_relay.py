@@ -106,8 +106,8 @@ class TestRelay(HttpCase):
     def test_direct_actions_are_refused_in_relay_mode(self):
         with self.assertRaises(UserError):
             self.device.action_test_connection()
-        with self.assertRaises(UserError):
-            self.device.action_import_users()
+        # Users are sent by the gateway: the import simply opens the list (no error).
+        self.assertEqual(self.device.action_import_users()['res_model'], 'biometric.device.user')
         # The scheduled synchronisation ignores relay devices.
         self.env['biometric.device.details'].cron_download()
         self.assertNotEqual(self.device.last_sync_state, 'error')
@@ -168,6 +168,37 @@ class TestRelay(HttpCase):
         status, body = self.call('push', self.push_payload([]))
         self.assertEqual(body['commands'][0]['name'], 'push_user')
         self.assertEqual(body['commands'][0]['attempts'], 1)
+
+    def test_device_users_mapping_tools(self):
+        # The dashboard "Users" quick action must not fail in relay mode.
+        action = self.device.action_import_users()
+        self.assertEqual(action['res_model'], 'biometric.device.user')
+
+        payload = self.push_payload([])
+        payload['users'].append({'user_id': '9', 'name': 'Awa Nouvelle', 'uid': 6, 'privilege': 0, 'card': 0})
+        status, body = self.call('push', payload)
+        users = self.device.device_user_ids
+        self.assertEqual(body['mapping']['7'], 'Employé distant')
+        self.assertFalse(body['mapping']['8'])
+
+        homonym = self.env['hr.employee'].create({'name': 'Nouveau'})
+        unmapped = users.filtered(lambda user: not user.employee_id)
+        unmapped.action_auto_match()
+        self.assertEqual(users.filtered(lambda user: user.device_user_id == '8').employee_id, homonym)
+        awa = users.filtered(lambda user: user.device_user_id == '9')
+        self.assertFalse(awa.employee_id)
+        awa.action_create_employee()
+        self.assertEqual(awa.employee_id.name, 'Awa Nouvelle')
+        self.assertEqual(awa.employee_id.device_id_num, '9')
+
+        # A user deleted on the device is flagged in Odoo.
+        users.filtered(lambda user: user.device_user_id == '7').sync_state = 'synced'
+        payload = self.push_payload([])
+        payload['users'] = [user for user in payload['users'] if user['user_id'] != '7']
+        self.call('push', payload)
+        missing = users.filtered(lambda user: user.device_user_id == '7')
+        self.assertEqual(missing.sync_state, 'pending')
+        self.assertIn('Absent de la pointeuse', missing.sync_message)
 
     def test_pairing_code(self):
         device = self.env['biometric.device.details'].create({

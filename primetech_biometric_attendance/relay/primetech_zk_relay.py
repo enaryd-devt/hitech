@@ -43,7 +43,7 @@ from logging.handlers import RotatingFileHandler
 
 from zk import ZK
 
-VERSION = '2.1.0'
+VERSION = '2.3.0'
 UI_PORT = 47321
 BATCH_SIZE = 2000
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -338,6 +338,36 @@ class Device:
                   'privilege': user.privilege, 'card': user.card} for user in users]
         return users, records, info
 
+    def list_users(self):
+        conn = self.connect()
+        try:
+            users = conn.get_users() or []
+            info = self.info(conn)
+        finally:
+            conn.disconnect()
+        return [{'uid': user.uid, 'user_id': str(user.user_id), 'name': user.name,
+                 'privilege': user.privilege, 'card': user.card, 'has_password': bool(user.password)}
+                for user in users], info
+
+    def list_punches(self):
+        """All the punches stored in the device, most recent first."""
+        conn = self.connect()
+        try:
+            conn.disable_device()
+            try:
+                users = conn.get_users() or []
+                records = conn.get_attendance() or []
+            finally:
+                conn.enable_device()
+        finally:
+            conn.disconnect()
+        names = {str(user.user_id): user.name for user in users}
+        punches = [{'user_id': str(record.user_id), 'name': names.get(str(record.user_id), ''),
+                    'time': record.timestamp.strftime(TIME_FORMAT), 'status': record.status,
+                    'punch': record.punch} for record in records if record.timestamp]
+        punches.sort(key=lambda punch: punch['time'], reverse=True)
+        return punches
+
     def probe(self):
         conn = self.connect()
         try:
@@ -493,6 +523,7 @@ class DeviceWorker:
     """Synchronisation state of one configured device."""
 
     def __init__(self, config_values):
+        self.lock = threading.Lock()  # one session at a time: synchronisation or console
         self.config = config_values
         self.client = None
         self.interval = 60
@@ -549,7 +580,8 @@ class DeviceWorker:
             self.command_results = []
             created += response.get('created') or 0
         self.interval = response.get('interval') or self.interval
-        self.status.update(latency_ms=response.get('_latency_ms'), unknown=response.get('unknown') or [])
+        self.status.update(latency_ms=response.get('_latency_ms'), unknown=response.get('unknown') or [],
+                           mapping=response.get('mapping') or {})
         self.status['sent_today'] += len(records)
         self.status['created_today'] += created
         name = self.config.get('name')
@@ -593,7 +625,8 @@ class DeviceWorker:
         if not force and time.monotonic() < self.next_run:
             return
         try:
-            self.cycle()
+            with self.lock:
+                self.cycle()
             self.next_run = time.monotonic() + self.interval
         except Exception as error:
             self.status.update(state='error', message=str(error))
@@ -746,6 +779,8 @@ def make_handler(config, engine):
                 return self._send(401, {'error': 'Console verrouillée : saisissez le code PIN.'})
             try:
                 return self._send(200, self.dispatch(route, payload))
+            except DeviceBusy as error:
+                return self._send(409, {'error': 'Pointeuse occupée : %s. Réessayez dans quelques secondes.' % error})
             except (OdooError, ValueError, KeyError) as error:
                 return self._send(400, {'error': str(error)})
             except Exception as error:
@@ -769,6 +804,9 @@ def make_handler(config, engine):
                 info = Device(payload['ip'], payload.get('port') or 4370, payload.get('comm_key') or 0,
                               payload.get('timeout') or 10).probe()
                 return {'ok': True, 'info': info}
+            if route.startswith('/api/device/') and route not in (
+                    '/api/device/test', '/api/device/save', '/api/device/remove'):
+                return self.device_route(route, payload)
             if route == '/api/scan':
                 return dict(scan_devices(int(payload.get('port') or 4370)), ok=True)
             if route == '/api/pin':
@@ -777,6 +815,75 @@ def make_handler(config, engine):
                 _logger.info('Code PIN de la console %s.', 'défini' if payload.get('pin') else 'supprimé')
                 return {'ok': True}
             raise KeyError('route inconnue %s' % route)
+
+        def device_route(self, route, payload):
+            worker = engine.workers.get(payload.get('id'))
+            if not worker:
+                raise KeyError('pointeuse inconnue')
+            name = worker.config.get('name')
+            if not worker.lock.acquire(timeout=90):
+                raise DeviceBusy('la pointeuse est en cours de synchronisation, réessayez dans un instant')
+            try:
+                device = worker.device()
+                if route == '/api/device/users':
+                    users, info = device.list_users()
+                    numeric = [int(user['user_id']) for user in users if user['user_id'].isdigit()]
+                    return {'ok': True, 'users': users, 'info': info,
+                            'next_id': str(max(numeric) + 1 if numeric else 1),
+                            'mapping': worker.status.get('mapping') or {},
+                            'mapping_known': 'mapping' in worker.status}
+                if route == '/api/device/punches':
+                    punches = device.list_punches()
+                    return {'ok': True, 'total': len(punches), 'punches': punches[:20000]}
+                if route == '/api/device/user/save':
+                    user_id = str(payload.get('user_id') or '').strip()
+                    user_name = str(payload.get('name') or '').strip()
+                    password = str(payload.get('password') or '').strip()
+                    card = str(payload.get('card') or '0').strip() or '0'
+                    if not user_id.isdigit() or len(user_id) > 9:
+                        raise ValueError("L'identifiant doit être un nombre de 1 à 9 chiffres.")
+                    if not user_name or len(user_name) > 24:
+                        raise ValueError('Le nom est obligatoire (24 caractères au maximum).')
+                    if not card.isdigit():
+                        raise ValueError('Le numéro de carte doit être numérique.')
+                    if password and (not password.isdigit() or len(password) > 8):
+                        raise ValueError('Le mot de passe doit contenir au plus 8 chiffres.')
+                    if payload.get('new'):
+                        users, _info = device.list_users()
+                        if any(user['user_id'] == user_id for user in users):
+                            raise ValueError("L'identifiant %s est déjà utilisé sur la pointeuse." % user_id)
+                    result = device.user_command({
+                        'name': 'push_user', 'user_id': user_id, 'user_name': user_name,
+                        'privilege': 14 if str(payload.get('privilege')) == '14' else 0,
+                        'password': password, 'card': int(card)})
+                    _logger.info('[%s] Console : %s', name, result['message'])
+                    engine.sync_now(payload['id'])
+                    return dict(result, ok=True)
+                if route == '/api/device/user/delete':
+                    result = device.user_command({'name': 'remove_user', 'user_id': str(payload['user_id'])})
+                    _logger.info('[%s] Console : %s', name, result['message'])
+                    engine.sync_now(payload['id'])
+                    return dict(result, ok=True)
+                if route == '/api/device/action':
+                    action = payload.get('action')
+                    if action == 'set_time':
+                        message = device.run_command({'name': 'set_time', 'value': now_str()})
+                    elif action == 'restart':
+                        message = device.run_command({'name': 'restart'})
+                    elif action == 'clear_attendance':
+                        # Never lose a punch: send everything to Odoo first.
+                        worker.cycle()
+                        message = device.run_command({'name': 'clear_attendance'})
+                        message += ' Les pointages avaient été envoyés à Odoo juste avant.'
+                    elif action == 'info':
+                        return {'ok': True, 'info': device.probe(), 'pc_time': now_str()}
+                    else:
+                        raise ValueError('action inconnue')
+                    _logger.info('[%s] Console : %s', name, message)
+                    return {'ok': True, 'message': message}
+                raise KeyError('route inconnue %s' % route)
+            finally:
+                worker.lock.release()
 
         def pair(self, payload):
             url = payload['url'].rstrip('/')
@@ -878,6 +985,37 @@ button.danger:hover{border-color:var(--err);color:var(--err)}
 .meta{font-size:13px;color:var(--muted);line-height:1.7}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .empty{text-align:center;padding:50px 20px;color:var(--muted)}.empty .big{font-size:46px}
+.modal.wide{width:min(1100px,100%);padding:0}
+.mhead{padding:20px 24px 0;position:sticky;top:0;background:#fff;z-index:2;border-bottom:1px solid var(--line)}
+.mhead .title{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.mhead h2{margin:0}.mbody{padding:18px 24px 24px}
+.tabs{display:flex;gap:4px;margin-top:14px}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;padding:10px 14px;background:none;font-weight:600;color:var(--muted)}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.bar input,.bar select{width:auto;flex:1;min-width:170px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:linear-gradient(135deg,#f5f3ff,#fff);border:1px solid #ede9fe;border-radius:12px;padding:10px 14px}
+.stat b{display:block;font-size:22px;color:var(--brand)}.stat span{font-size:12px;color:var(--muted)}
+table.data{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+table.data th{position:sticky;top:0;background:#f9fafb;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line)}
+table.data td{padding:9px 10px;border-bottom:1px solid #f1f2f4}
+table.data tr:hover td{background:#faf8ff}
+.tablewrap{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:12px}
+.avatar{width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;font-weight:700;color:#fff;margin-right:8px;vertical-align:middle}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:#f3f4f6;color:#374151}
+.tag.admin{background:#fef3c7;color:#92400e}.tag.face{background:#e0f2fe;color:#075985}.tag.finger{background:#ede9fe;color:#5b21b6}
+.tag.card{background:#dcfce7;color:#166534}.tag.pwd{background:#fee2e2;color:#991b1b}
+.iconbtn{padding:5px 9px;border-radius:8px}
+.formcard{border:1px solid #ddd6fe;background:#faf8ff;border-radius:12px;padding:14px 16px;margin-bottom:14px;animation:enter .2s ease both}
+.formcard .row{flex-wrap:wrap}.formcard .row>*{min-width:140px}
+.daysep td{background:#f5f3ff!important;font-weight:700;color:var(--brand);font-size:13px}
+.infogrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.infogrid div{background:#f9fafb;border-radius:10px;padding:10px 12px}.infogrid span{display:block;font-size:12px;color:var(--muted)}
+.meter{height:6px;background:#e5e7eb;border-radius:9px;margin-top:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--brand);border-radius:9px}
+.actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:16px}
+.action{border:1px solid var(--line);border-radius:12px;padding:12px 14px}.action p{margin:4px 0 10px;font-size:13px;color:var(--muted)}
+.loading{padding:40px;text-align:center;color:var(--muted)}
 .logs{background:#0f172a;color:#cbd5e1;border-radius:var(--radius);padding:14px;font:12.5px/1.6 Consolas,monospace;max-height:260px;overflow:auto;margin-top:22px}
 .logs .ERROR{color:#fca5a5}.logs .WARNING{color:#fcd34d}
 .modal-back{position:fixed;inset:0;background:rgba(17,24,39,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
@@ -949,6 +1087,7 @@ function deviceCard(item, index) {
     </div>
     <div class="actions">
       <button class="primary" onclick="syncNow('${c.id}')">⟳ Synchroniser</button>
+      <button onclick="openManage('${c.id}')">👥 Gérer</button>
       <button onclick="editDevice('${c.id}')">⚙ Paramètres</button>
       <button onclick="toggleDevice('${c.id}', ${c.enabled === false})">${c.enabled === false ? '▶ Reprendre' : '⏸ Suspendre'}</button>
       <button class="danger" onclick="removeDevice('${c.id}')">✕ Retirer</button>
@@ -1131,6 +1270,219 @@ async function finishDevice() {
   catch (error) { note('#dev-note', 'err', esc(error.message)); }
 }
 
+
+// ---------------------------------------------------------------- device management
+const METHODS = {0: ['Mot de passe', 'pwd'], 1: ['Empreinte', 'finger'], 2: ['Carte', 'card'], 3: ['Mot de passe', 'pwd'], 4: ['Carte', 'card'], 15: ['Visage', 'face']};
+const PUNCHES = {0: 'Entrée', 1: 'Sortie', 2: 'Début pause', 3: 'Fin pause', 4: 'Entrée H. sup.', 5: 'Sortie H. sup.'};
+const COLORS = ['#7c3aed', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626', '#db2777', '#4f46e5'];
+let manage = null;
+
+function avatar(name, id) {
+  const initials = (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+  const color = COLORS[(Number(id) || 0) % COLORS.length];
+  return `<span class="avatar" style="background:${color}">${esc(initials)}</span>`;
+}
+function fmtDate(iso) { const [d, t] = iso.split(' '); const [y, m, j] = d.split('-'); return {day: `${j}/${m}/${y}`, time: t.slice(0, 5), iso: d}; }
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+function openManage(id, tab = 'users') {
+  const item = state.devices.find((d) => d.config.id === id);
+  manage = {id, name: item.config.name, tab, users: null, punches: null, info: null, q: '', day: '', edit: null, limit: 300};
+  $('#modal-body').classList.add('wide');
+  renderManage();
+  loadTab();
+}
+function closeManage() { manage = null; $('#modal-body').classList.remove('wide'); closeModal(); }
+
+function renderManage() {
+  const tabs = [['users', '👥 Utilisateurs'], ['punches', '🕒 Pointages'], ['device', '🛠 Appareil']];
+  openModal(`<div class="mhead"><div class="title"><h2>${esc(manage.name)}</h2><button onclick="closeManage()">✕ Fermer</button></div>
+    <div class="tabs">${tabs.map(([key, label]) => `<button class="${manage.tab === key ? 'on' : ''}" onclick="switchTab('${key}')">${label}</button>`).join('')}</div></div>
+    <div class="mbody" id="mbody"></div>`);
+  renderTab();
+}
+function switchTab(tab) { manage.tab = tab; manage.edit = null; renderManage(); loadTab(); }
+
+async function loadTab(force) {
+  const tab = manage.tab;
+  try {
+    if (tab === 'users' && (force || !manage.users)) {
+      manage.users = null; renderTab();
+      const result = await api('/api/device/users', {id: manage.id});
+      Object.assign(manage, {users: result.users, info: result.info, nextId: result.next_id,
+                             mapping: result.mapping || {}, mappingKnown: result.mapping_known});
+    } else if (tab === 'punches' && (force || !manage.punches)) {
+      manage.punches = null; renderTab();
+      const result = await api('/api/device/punches', {id: manage.id});
+      Object.assign(manage, {punches: result.punches, total: result.total});
+      if (!manage.day && manage.punches.length) manage.day = manage.punches[0].time.slice(0, 10);
+    } else if (tab === 'device' && (force || !manage.info || !manage.pcTime)) {
+      manage.info = null; renderTab();
+      const result = await api('/api/device/action', {id: manage.id, action: 'info'});
+      Object.assign(manage, {info: result.info, pcTime: result.pc_time});
+    }
+  } catch (error) { manage.error = error.message; }
+  if (manage && manage.tab === tab) renderTab();
+}
+
+function renderTab() {
+  const body = $('#mbody'); if (!body) return;
+  if (manage.error) { const message = manage.error; manage.error = null; body.innerHTML = `<div class="note err">${esc(message)}</div><div class="actions"><button onclick="loadTab(true)">Réessayer</button></div>`; return; }
+  if (manage.tab === 'users') body.innerHTML = usersTab();
+  if (manage.tab === 'punches') body.innerHTML = punchesTab();
+  if (manage.tab === 'device') body.innerHTML = deviceTab();
+}
+const spinner = (text) => `<div class="loading"><span class="spin"></span> ${text}</div>`;
+
+// ---- users
+function usersTab() {
+  if (!manage.users) return spinner('Lecture des utilisateurs de la pointeuse…');
+  const info = manage.info || {};
+  const admins = manage.users.filter((u) => Number(u.privilege) === 14).length;
+  const unmapped = manage.mappingKnown ? manage.users.filter((u) => !manage.mapping[u.user_id]).length : null;
+  return `<div class="stats">
+      <div class="stat"><b>${manage.users.length}</b><span>utilisateurs / ${info.users_cap ?? '?'}</span></div>
+      <div class="stat"><b>${admins}</b><span>administrateur(s)</span></div>
+      <div class="stat"><b style="${unmapped ? 'color:var(--err)' : ''}">${unmapped ?? '—'}</b><span>sans employé Odoo</span></div>
+      <div class="stat"><b>${info.fingers ?? '—'}</b><span>empreintes enregistrées</span></div>
+      <div class="stat"><b>${info.faces ?? '—'}</b><span>visages enregistrés</span></div></div>
+    ${manage.edit ? userForm() : ''}
+    <div class="bar"><input placeholder="🔍 Rechercher par nom ou identifiant…" value="${esc(manage.q)}" oninput="manage.q=this.value;$('#users-table').innerHTML=usersRows()">
+      <button onclick="loadTab(true)">⟳ Actualiser</button><button class="primary" onclick="editUser()">＋ Nouvel utilisateur</button></div>
+    ${unmapped ? `<div class="note err" style="margin:0 0 12px">⚠ ${unmapped} utilisateur(s) sans employé : leurs pointages ne sont pas importés. Dans Odoo : <b>Gestion des pointages › Pointeuses › Utilisateurs des pointeuses</b>, puis « Associer automatiquement » ou « Créer les employés manquants ».</div>` : ''}
+    <div class="note info" style="margin:0 0 12px">Les empreintes et visages s'enregistrent sur la pointeuse (Menu › Utilisateurs › Modifier). Les changements faits ici remontent dans Odoo à la synchronisation suivante.</div>
+    <div class="tablewrap"><table class="data"><thead><tr><th>Utilisateur</th><th>Identifiant</th><th>Employé Odoo</th><th>Rôle</th><th>Carte</th><th>Mot de passe</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody id="users-table">${usersRows()}</tbody></table></div>`;
+}
+function usersRows() {
+  const q = manage.q.trim().toLowerCase();
+  const rows = manage.users.filter((u) => !q || (u.name || '').toLowerCase().includes(q) || u.user_id.includes(q))
+    .sort((a, b) => (Number(a.user_id) || 0) - (Number(b.user_id) || 0));
+  if (!rows.length) return `<tr><td colspan="7" class="loading">Aucun utilisateur${q ? ' pour cette recherche' : ''}.</td></tr>`;
+  const odoo = (u) => !manage.mappingKnown ? '<span class="tag">après synchro</span>'
+    : manage.mapping[u.user_id] ? `<span class="tag card">✓ ${esc(manage.mapping[u.user_id])}</span>`
+    : '<span class="tag pwd">Non associé</span>';
+  return rows.map((u) => `<tr><td>${avatar(u.name, u.user_id)}<b>${esc(u.name || '(sans nom)')}</b></td><td>${esc(u.user_id)}</td><td>${odoo(u)}</td>
+    <td>${Number(u.privilege) === 14 ? '<span class="tag admin">Administrateur</span>' : '<span class="tag">Utilisateur</span>'}</td>
+    <td>${u.card ? esc(u.card) : '—'}</td><td>${u.has_password ? '••••' : '—'}</td>
+    <td style="text-align:right;white-space:nowrap"><button class="iconbtn" title="Modifier" onclick="editUser('${esc(u.user_id)}')">✎</button>
+      <button class="iconbtn danger" title="Supprimer" onclick="deleteUser('${esc(u.user_id)}')">🗑</button></td></tr>`).join('');
+}
+function editUser(userId) {
+  const user = userId ? manage.users.find((u) => u.user_id === userId) : null;
+  manage.edit = user ? {...user, isNew: false} : {user_id: manage.nextId || '', name: '', privilege: 0, card: 0, isNew: true};
+  renderTab(); setTimeout(() => $('#u-name') && $('#u-name').focus(), 30);
+}
+function userForm() {
+  const u = manage.edit;
+  return `<div class="formcard"><b>${u.isNew ? 'Nouvel utilisateur' : 'Modifier ' + esc(u.name)}</b>
+    <div class="row"><div><label>Identifiant</label><input id="u-id" value="${esc(u.user_id)}" ${u.isNew ? '' : 'disabled'} maxlength="9"></div>
+      <div style="flex:2"><label>Nom (24 caractères max.)</label><input id="u-name" value="${esc(u.name)}" maxlength="24"></div>
+      <div><label>Rôle</label><select id="u-role"><option value="0">Utilisateur</option><option value="14" ${Number(u.privilege) === 14 ? 'selected' : ''}>Administrateur</option></select></div></div>
+    <div class="row"><div><label>Numéro de carte</label><input id="u-card" value="${u.card ? esc(u.card) : ''}" placeholder="aucune"></div>
+      <div><label>Mot de passe (chiffres)</label><input id="u-pwd" type="password" maxlength="8" placeholder="${u.has_password ? 'inchangé si vide' : 'aucun'}"></div></div>
+    <div id="u-note"></div>
+    <div class="actions"><button onclick="manage.edit=null;renderTab()">Annuler</button><button class="primary" id="u-save" onclick="saveUser()">Enregistrer sur la pointeuse</button></div></div>`;
+}
+async function saveUser() {
+  const button = $('#u-save'); busy(button, true, 'Envoi à la pointeuse…'); note('#u-note');
+  const values = {id: manage.id, new: manage.edit.isNew, user_id: $('#u-id').value.trim(), name: $('#u-name').value.trim(),
+                  privilege: Number($('#u-role').value), card: $('#u-card').value.trim() || '0', password: $('#u-pwd').value.trim()};
+  try {
+    const result = await api('/api/device/user/save', values);
+    manage.edit = null; toast(result.message); await loadTab(true);
+  } catch (error) { note('#u-note', 'err', esc(error.message)); busy(button, false); }
+}
+async function deleteUser(userId) {
+  const user = manage.users.find((u) => u.user_id === userId);
+  if (!confirm(`Supprimer « ${user.name} » (identifiant ${userId}) de la pointeuse ?\n\nSes empreintes, son visage et sa carte seront effacés de l'appareil. Ses pointages déjà enregistrés sont conservés.`)) return;
+  try { const result = await api('/api/device/user/delete', {id: manage.id, user_id: userId}); toast(result.message); await loadTab(true); }
+  catch (error) { alert(error.message); }
+}
+
+// ---- punches
+function punchesTab() {
+  if (!manage.punches) return spinner('Lecture de la mémoire de la pointeuse…');
+  const list = filteredPunches();
+  const todayRows = manage.punches.filter((p) => p.time.startsWith(today()));
+  const people = new Set(todayRows.map((p) => p.user_id)).size;
+  const days = [...new Set(manage.punches.map((p) => p.time.slice(0, 10)))];
+  return `<div class="stats">
+      <div class="stat"><b>${manage.total}</b><span>pointages en mémoire</span></div>
+      <div class="stat"><b>${todayRows.length}</b><span>pointages aujourd'hui</span></div>
+      <div class="stat"><b>${people}</b><span>personne(s) aujourd'hui</span></div>
+      <div class="stat"><b>${list.length}</b><span>affichés (filtre)</span></div></div>
+    <div class="bar"><select onchange="manage.day=this.value;manage.limit=300;$('#mbody').innerHTML=punchesTab()">
+        <option value="">Tous les jours</option>${days.map((d) => `<option value="${d}" ${d === manage.day ? 'selected' : ''}>${fmtDate(d + ' 00:00').day}${d === today() ? ' (aujourd\'hui)' : ''}</option>`).join('')}</select>
+      <input placeholder="🔍 Nom ou identifiant…" value="${esc(manage.q)}" oninput="manage.q=this.value;manage.limit=300;$('#punch-table').innerHTML=punchRows()">
+      <button onclick="loadTab(true)">⟳ Actualiser</button><button onclick="exportCsv()">⬇ Exporter (CSV)</button></div>
+    <div class="tablewrap"><table class="data"><thead><tr><th>Heure</th><th>Utilisateur</th><th>Identifiant</th><th>Méthode</th><th>Type</th></tr></thead>
+    <tbody id="punch-table">${punchRows()}</tbody></table></div>`;
+}
+function filteredPunches() {
+  const q = manage.q.trim().toLowerCase();
+  return manage.punches.filter((p) => (!manage.day || p.time.startsWith(manage.day))
+    && (!q || (p.name || '').toLowerCase().includes(q) || p.user_id.includes(q)));
+}
+function punchRows() {
+  const list = filteredPunches();
+  if (!list.length) return `<tr><td colspan="5" class="loading">Aucun pointage.</td></tr>`;
+  let html = '', lastDay = null;
+  for (const p of list.slice(0, manage.limit)) {
+    const d = fmtDate(p.time);
+    if (d.iso !== lastDay) { lastDay = d.iso; html += `<tr class="daysep"><td colspan="5">📅 ${d.day}${d.iso === today() ? ' — aujourd\'hui' : ''}</td></tr>`; }
+    const method = METHODS[p.status] || ['Autre', ''];
+    html += `<tr><td><b>${d.time}</b></td><td>${avatar(p.name, p.user_id)}${esc(p.name || 'Inconnu')}</td><td>${esc(p.user_id)}</td>
+      <td><span class="tag ${method[1]}">${method[0]}</span></td><td>${PUNCHES[p.punch] || '—'}</td></tr>`;
+  }
+  if (list.length > manage.limit) html += `<tr><td colspan="5" style="text-align:center"><button onclick="manage.limit+=500;$('#punch-table').innerHTML=punchRows()">Afficher plus (${list.length - manage.limit} restants)</button></td></tr>`;
+  return html;
+}
+function exportCsv() {
+  const rows = [['Date', 'Heure', 'Identifiant', 'Nom', 'Méthode', 'Type']].concat(filteredPunches().map((p) => {
+    const d = fmtDate(p.time); return [d.day, p.time.slice(11), p.user_id, p.name, (METHODS[p.status] || ['Autre'])[0], PUNCHES[p.punch] || ''];
+  }));
+  const csv = '\ufeff' + rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+  link.download = `pointages_${manage.name.replace(/\W+/g, '_')}_${manage.day || 'tous'}.csv`;
+  link.click();
+}
+
+// ---- device
+function deviceTab() {
+  if (!manage.info) return spinner('Interrogation de la pointeuse…');
+  const i = manage.info;
+  const pct = (a, b) => (b ? Math.round(100 * (a || 0) / b) : 0);
+  const gauge = (label, a, b) => `<div><span>${label}</span><b>${a ?? '—'} / ${b ?? '—'}</b><div class="meter"><i style="width:${pct(a, b)}%"></i></div></div>`;
+  const drift = i.device_time && manage.pcTime ? Math.round((new Date(i.device_time.replace(' ', 'T')) - new Date(manage.pcTime.replace(' ', 'T'))) / 1000) : null;
+  return `<div class="infogrid">
+      <div><span>Modèle</span><b>${esc(i.device_name || '—')}</b></div><div><span>Numéro de série</span><b>${esc(i.serial || '—')}</b></div>
+      <div><span>Firmware</span><b>${esc(i.firmware || '—')}</b></div><div><span>Plateforme · MAC</span><b>${esc(i.platform || '—')}</b><small> ${esc(i.mac || '')}</small></div>
+      ${gauge('Utilisateurs', i.users, i.users_cap)}${gauge('Empreintes', i.fingers, i.fingers_cap)}
+      ${gauge('Visages', i.faces, i.faces_cap)}${gauge('Pointages en mémoire', i.records, i.records_cap)}
+      <div><span>Heure de la pointeuse</span><b>${esc(i.device_time || '—')}</b><small>${drift === null ? '' : (Math.abs(drift) <= 60 ? ' ✓ à l\'heure' : ' ⚠ écart de ' + drift + ' s')}</small></div></div>
+    <div class="actions-grid">
+      <div class="action"><b>🕒 Régler l'heure</b><p>Met l'horloge de la pointeuse à l'heure de ce PC.</p><button onclick="deviceAction('set_time', this)">Régler maintenant</button></div>
+      <div class="action"><b>⟳ Synchroniser</b><p>Envoie immédiatement les nouveaux pointages à Odoo.</p><button onclick="syncNow('${manage.id}');toast('Synchronisation lancée.')">Synchroniser</button></div>
+      <div class="action"><b>🧹 Vider la mémoire</b><p>Envoie tout à Odoo, puis efface les pointages de l'appareil. Rien n'est perdu.</p><button class="danger" onclick="deviceAction('clear_attendance', this, 'Envoyer tous les pointages à Odoo puis vider la mémoire de la pointeuse ?')">Vider la mémoire</button></div>
+      <div class="action"><b>⏻ Redémarrer</b><p>La pointeuse est indisponible environ une minute.</p><button class="danger" onclick="deviceAction('restart', this, 'Redémarrer la pointeuse ?')">Redémarrer</button></div>
+    </div><div id="dev-action-note"></div>`;
+}
+async function deviceAction(action, button, question) {
+  if (question && !confirm(question)) return;
+  busy(button, true, 'En cours…'); note('#dev-action-note');
+  try { const result = await api('/api/device/action', {id: manage.id, action}); toast(result.message); if (action !== 'restart') await loadTab(true); else busy(button, false); }
+  catch (error) { note('#dev-action-note', 'err', esc(error.message)); busy(button, false); }
+}
+
+function toast(message) {
+  const box = document.createElement('div');
+  box.className = 'note ok'; box.textContent = message;
+  Object.assign(box.style, {position: 'fixed', right: '20px', bottom: '20px', zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,.15)', maxWidth: '420px'});
+  document.body.appendChild(box); setTimeout(() => box.remove(), 4500);
+}
+
 function editDevice(id) {
   const item = state.devices.find((d) => d.config.id === id);
   openModal(`<h2>Paramètres de la pointeuse</h2>
@@ -1140,10 +1492,12 @@ function editDevice(id) {
       <span><button onclick="closeModal()">Annuler</button> <button onclick="testDevice()" id="btn-test">Tester</button> <button class="primary" onclick="finishDevice()">Enregistrer</button></span></div>`);
 }
 
-$('#modal').addEventListener('click', (event) => { if (event.target.id === 'modal' && wizard === null) closeModal(); });
+$('#modal').addEventListener('click', (event) => { if (event.target.id === 'modal' && wizard === null && manage === null) closeModal(); });
 refresh().then(() => {
   // console.html#ajouter opens the "add a device" wizard directly (link from the installer).
   if (location.hash === '#ajouter' && state && state.unlocked) openWizard();
+  const tabs = {'#gerer-utilisateurs': 'users', '#gerer-pointages': 'punches', '#gerer-appareil': 'device'};
+  if (tabs[location.hash] && state && state.unlocked && state.devices.length) openManage(state.devices[0].config.id, tabs[location.hash]);
 });
 setInterval(refresh, 3000);
 </script>

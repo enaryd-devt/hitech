@@ -383,7 +383,8 @@ class BiometricDeviceDetails(models.Model):
         only real changes are written.
         """
         self.ensure_one()
-        DeviceUser = self.env['biometric.device.user'].sudo().with_context(active_test=False)
+        DeviceUser = self.env['biometric.device.user'].sudo().with_context(
+            active_test=False, biometric_from_device=True)
         existing = {mapping.device_user_id: mapping
                     for mapping in DeviceUser.search([('device_id', '=', self.id)])}
         created = updated = 0
@@ -424,13 +425,22 @@ class BiometricDeviceDetails(models.Model):
                 created += 1
             if mapping.employee_id and not mapping.employee_id.device_id_num:
                 mapping.employee_id.device_id_num = device_user_id
+        # Users deleted directly on the device (or from the gateway console).
+        present = {str(terminal_user['user_id']) for terminal_user in users}
+        for device_user_id, mapping in existing.items():
+            if device_user_id not in present and mapping.sync_state == 'synced':
+                mapping.write({'sync_state': 'pending', 'device_uid': False, 'last_synced_at': now,
+                               'sync_message': _('Absent de la pointeuse (supprimé sur l’appareil). '
+                                                 'Cliquez sur « Envoyer » pour le recréer.')})
         return created, updated
 
     def action_import_users(self):
         """Create the Odoo mapping of every user stored on the device."""
         DeviceUser = self.env['biometric.device.user'].with_context(active_test=False)
         for device in self:
-            device._check_direct_mode()
+            if device.connection_mode == 'relay':
+                # The gateway sends the device users at every synchronisation.
+                continue
             started = time.monotonic()
             with device._device_session() as conn:
                 users = conn.get_users() or []
@@ -916,8 +926,13 @@ class BiometricDeviceDetails(models.Model):
                       duration=time.monotonic() - started, records_read=stats['read'],
                       records_created=stats['created'],
                       unknown_user_ids=', '.join(stats['unknown']) or False)
+        mapping = {
+            device_user.device_user_id: device_user.employee_id.name or False
+            for device_user in self.sudo().with_context(active_test=False).device_user_ids
+        }
         return {
             'ok': True,
+            'mapping': mapping,
             'created': stats['created'],
             'unknown': stats['unknown'],
             'since': self._relay_since(),
@@ -989,7 +1004,9 @@ class BiometricDeviceDetails(models.Model):
         action = self.env['ir.actions.act_window']._for_xml_id(
             'primetech_biometric_attendance.biometric_device_user_action')
         action['domain'] = [('device_id', 'in', self.ids)]
-        action['context'] = {'default_device_id': self[:1].id, 'search_default_unmapped': 0}
+        unmapped = self.env['biometric.device.user'].search_count(
+            [('device_id', 'in', self.ids), ('employee_id', '=', False)])
+        action['context'] = {'default_device_id': self[:1].id, 'search_default_unmapped': 1 if unmapped else 0}
         return action
 
     def action_view_logs(self):

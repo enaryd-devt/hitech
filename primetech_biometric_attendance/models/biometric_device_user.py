@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class BiometricDeviceUser(models.Model):
@@ -53,6 +53,13 @@ class BiometricDeviceUser(models.Model):
 
     def write(self, vals):
         result = super().write(vals)
+        if vals.get('employee_id') and not self.env.context.get('biometric_from_device'):
+            # Offer to put the Odoo name on the device when it differs.
+            for record in self.filtered(lambda user: user.sync_state == 'synced'
+                                        and (user.device_user_name or '') != (user.employee_id.name or '')[:24]):
+                record.write({'sync_state': 'pending', 'sync_message': _(
+                    'Associé à %s : cliquez sur « Envoyer » pour mettre à jour le nom sur la pointeuse.',
+                    record.employee_id.name)})
         if vals.get('employee_id'):
             for record in self.filtered(lambda record: not record.employee_id.device_id_num):
                 record.employee_id.device_id_num = record.device_user_id
@@ -60,12 +67,46 @@ class BiometricDeviceUser(models.Model):
             self.device_id.filtered('active').sudo().write({'last_sync_at': False, 'relay_resend_all': True})
         return result
 
+    def action_auto_match(self):
+        """Link the selected users to an employee (same device ID or identical name)."""
+        matched = 0
+        for record in self.filtered(lambda user: not user.employee_id):
+            employee = record.device_id._match_employee(record.device_user_id, record.device_user_name)
+            if employee:
+                record.employee_id = employee
+                matched += 1
+        return self._notify_list(_('%(matched)s utilisateur(s) associé(s) automatiquement, %(left)s restant(s) '
+                                   'sans employé.', matched=matched,
+                                   left=len(self.filtered(lambda user: not user.employee_id))))
+
+    def action_create_employee(self):
+        """Create the missing employees from the name stored on the device."""
+        Employee = self.env['hr.employee']
+        created = Employee
+        for record in self.filtered(lambda user: not user.employee_id):
+            employee = Employee.create({
+                'name': (record.device_user_name or '').strip() or _('Employé pointeuse %s', record.device_user_id),
+                'device_id_num': record.device_user_id,
+                'company_id': record.device_id.company_id.id,
+            })
+            record.employee_id = employee
+            created |= employee
+        return self._notify_list(_('%s employé(s) créé(s). Complétez leur fiche (poste, département, horaire) '
+                                   'dans Employés.', len(created)))
+
+    def _notify_list(self, message):
+        return {'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {'message': message, 'type': 'success', 'sticky': False,
+                           'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'}}}
+
     def _relay_notification(self, message):
         relay_devices = self.device_id.filtered(lambda device: device.connection_mode == 'relay')
         return relay_devices[:1]._notify(message) if relay_devices else True
 
     def action_push_to_device(self):
-        for record in self:
+        if not self.filtered('employee_id'):
+            raise UserError(_("Associez d'abord un employé aux utilisateurs sélectionnés."))
+        for record in self.filtered('employee_id'):
             record.device_id._push_device_user(record)
         return self._relay_notification(_(
             "Envoi transmis à la passerelle : l'utilisateur sera créé sur la pointeuse à sa "

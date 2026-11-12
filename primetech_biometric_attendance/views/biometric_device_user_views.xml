@@ -5,6 +5,12 @@
         <field name="model">biometric.device.user</field>
         <field name="arch" type="xml">
             <list editable="bottom" decoration-danger="not employee_id" decoration-muted="sync_state == 'pending'">
+                <header>
+                    <button name="action_auto_match" type="object" string="Associer automatiquement" icon="fa-magic"/>
+                    <button name="action_create_employee" type="object" string="Créer les employés manquants" icon="fa-user-plus"
+                            confirm="Créer un employé pour chaque utilisateur sélectionné qui n'en a pas (nom repris de la pointeuse) ?"/>
+                    <button name="action_push_to_device" type="object" string="Envoyer vers la pointeuse" icon="fa-upload"/>
+                </header>
                 <field name="device_id"/>
                 <field name="device_user_id"/>
                 <field name="device_user_name"/>
@@ -14,7 +20,9 @@
                 <field name="privilege"/>
                 <field name="card" optional="hide"/>
                 <field name="sync_state" widget="badge" decoration-success="sync_state == 'synced'" decoration-danger="sync_state == 'error'"/>
+                <field name="sync_message" optional="show"/>
                 <field name="last_synced_at" optional="hide"/>
+                <button name="action_create_employee" string="Créer l'employé" type="object" icon="fa-user-plus" invisible="employee_id"/>
                 <button name="action_push_to_device" string="Envoyer" type="object" icon="fa-upload" invisible="not employee_id"/>
             </list>
         </field>
