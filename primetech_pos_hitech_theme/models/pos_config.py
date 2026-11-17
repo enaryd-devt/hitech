@@ -108,7 +108,13 @@ class PosConfig(models.Model):
         if employee not in visible_employees:
             return {"role": "cashier", "can_modify_price": False, "can_sell_negative": False}
 
-        if employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_cashier"):
+        # Some POS employees (for example a generic cashier profile) do not
+        # have an Odoo user account.  ``has_group`` requires exactly one user,
+        # so keep those employees on the safe default cashier role instead of
+        # crashing the POS startup.
+        if not employee.user_id:
+            role = "cashier"
+        elif employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_cashier"):
             role = "cashier"
         elif employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_seller"):
             role = "seller"
