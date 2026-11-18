@@ -138,6 +138,7 @@
                                 <a href="#" class="small" t-on-click.prevent="() => this.openAction('primetech_biometric_attendance.biometric_device_details_action')">Gérer</a>
                             </div>
                             <div t-if="!state.data.devices.length" class="text-muted small">Aucune pointeuse déclarée.</div>
+                            <div t-else="" class="o_pt_bio_scroll_6">
                             <div t-foreach="state.data.devices" t-as="device" t-key="device.id" class="o_pt_bio_device o_pt_bio_enter" t-att-style="delay(device_index, 80, 600)" t-on-click="() => this.openDevice(device)">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <strong class="d-flex align-items-center gap-2">
@@ -156,6 +157,7 @@
                                 </div>
                                 <div class="small" t-att-class="device.state === 'error' ? 'text-danger' : 'text-muted'" t-if="device.message" t-esc="device.message"/>
                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,7 +168,7 @@
                         <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 650)">
                             <div class="o_pt_bio_card_title"><span><i class="fa fa-clock-o text-warning me-1"/>Retards du jour</span><span class="badge text-bg-warning" t-esc="state.data.late.length"/></div>
                             <div t-if="!state.data.late.length" class="o_pt_bio_empty"><i class="fa fa-thumbs-o-up fa-2x d-block mb-2 o_pt_bio_float"/>Aucun retard</div>
-                            <table t-else="" class="table table-sm table-hover o_pt_bio_table">
+                            <div t-else="" class="o_pt_bio_scroll_6"><table class="table table-sm table-hover o_pt_bio_table">
                                 <thead><tr><th>Employé</th><th>Prévu</th><th>Arrivée</th><th class="text-end">Retard</th></tr></thead>
                                 <tbody>
                                     <tr t-foreach="state.data.late" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index, 40, 750)" t-on-click="() => this.openDay(row)">
@@ -179,7 +181,7 @@
                                         </td>
                                     </tr>
                                 </tbody>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                     <!-- Absences -->
@@ -187,7 +189,7 @@
                         <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 720)">
                             <div class="o_pt_bio_card_title"><span><i class="fa fa-user-times text-danger me-1"/>Absents et non arrivés</span><span class="badge text-bg-danger" t-esc="state.data.absent.length + state.data.pending.length"/></div>
                             <div t-if="!state.data.absent.length and !state.data.pending.length" class="o_pt_bio_empty"><i class="fa fa-smile-o fa-2x d-block mb-2 o_pt_bio_float"/>Tout le monde est là</div>
-                            <table t-else="" class="table table-sm table-hover o_pt_bio_table">
+                            <div t-else="" class="o_pt_bio_scroll_6"><table class="table table-sm table-hover o_pt_bio_table">
                                 <thead><tr><th>Employé</th><th>Prévu</th><th class="text-end">Statut</th></tr></thead>
                                 <tbody>
                                     <tr t-foreach="state.data.absent" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index, 40, 820)" t-on-click="() => this.openDay(row)">
@@ -204,7 +206,7 @@
                                         <td class="text-end"><span class="badge text-bg-secondary">Attendu</span></td>
                                     </tr>
                                 </tbody>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                     <!-- Incomplete -->
@@ -212,7 +214,7 @@
                         <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 790)">
                             <div class="o_pt_bio_card_title"><span><i class="fa fa-exclamation-triangle text-danger me-1"/>Pointages à corriger</span><span class="badge text-bg-secondary" t-esc="state.data.incomplete.length"/></div>
                             <div t-if="!state.data.incomplete.length" class="o_pt_bio_empty"><i class="fa fa-check-circle-o fa-2x d-block mb-2 o_pt_bio_float"/>Rien à corriger</div>
-                            <table t-else="" class="table table-sm table-hover o_pt_bio_table">
+                            <div t-else="" class="o_pt_bio_scroll_6"><table class="table table-sm table-hover o_pt_bio_table">
                                 <thead><tr><th>Employé</th><th>Arrivée</th><th>Départ</th></tr></thead>
                                 <tbody>
                                     <tr t-foreach="state.data.incomplete" t-as="row" t-key="row.id" class="o_pt_bio_row" t-att-style="delay(row_index, 40, 890)" t-on-click="() => this.openDay(row)">
@@ -221,7 +223,7 @@
                                         <td t-esc="row.departure or '—'"/>
                                     </tr>
                                 </tbody>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
@@ -251,11 +253,13 @@
                             </div>
                             <div class="small fw-bold mb-1">Principaux retardataires</div>
                             <div t-if="!state.data.top_late.length" class="text-muted small">Aucun retard ce mois-ci.</div>
+                            <div t-else="" class="o_pt_bio_scroll_6">
                             <div t-foreach="state.data.top_late" t-as="row" t-key="row.employee_id" class="o_pt_bio_rank o_pt_bio_row" t-att-style="delay(row_index, 50, 950)" t-on-click="() => this.openEmployeeLate(row)">
                                 <span class="o_pt_bio_rank_index" t-att-class="{'o_pt_bio_rank_first': row_index === 0}" t-esc="row_index + 1"/>
                                 <span class="flex-grow-1" t-esc="row.name"/>
                                 <span class="text-muted small me-2"><t t-esc="row.count"/>×</span>
                                 <span class="fw-bold text-danger" t-esc="formatMinutes(row.minutes)"/>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -264,6 +268,7 @@
                         <div class="o_pt_bio_card o_pt_bio_enter h-100" t-att-style="delay(0, 0, 930)">
                             <div class="o_pt_bio_card_title"><span><i class="fa fa-sitemap me-1"/>Présence par département</span></div>
                             <div t-if="!state.data.departments.length" class="text-muted small">Aucune donnée pour cette date.</div>
+                            <div t-else="" class="o_pt_bio_scroll_6">
                             <div t-foreach="state.data.departments" t-as="department" t-key="department_index" class="o_pt_bio_department o_pt_bio_row" t-att-style="delay(department_index, 50, 1000)" t-on-click="() => this.openDepartment(department)">
                                 <div class="d-flex justify-content-between small">
                                     <span t-esc="department.name"/>
@@ -276,6 +281,7 @@
                                     <div class="progress-bar o_pt_bio_fill" t-att-class="departmentRate(department) &gt;= 90 ? 'bg-success' : (departmentRate(department) &gt;= 70 ? 'bg-warning' : 'bg-danger')" t-att-style="'width: ' + departmentRate(department) + '%'"/>
                                 </div>
                             </div>
+                            </div>
                         </div>
                     </div>
                     <!-- Recent punches -->
@@ -286,11 +292,13 @@
                                 <a href="#" class="small" t-on-click.prevent="() => this.openAction('primetech_biometric_attendance.zk_machine_attendance_action')">Tout voir</a>
                             </div>
                             <div t-if="!state.data.recent_punches.length" class="text-muted small">Aucun pointage depuis 24 h.</div>
+                            <div t-else="" class="o_pt_bio_scroll_6">
                             <div class="o_pt_bio_timeline">
                                 <div t-foreach="state.data.recent_punches" t-as="punch" t-key="punch_index" class="o_pt_bio_timeline_item o_pt_bio_row" t-att-style="delay(punch_index, 50, 1050)">
                                     <span class="fw-semibold" t-esc="punch.name"/>
                                     <span class="text-muted small"><t t-esc="punch.time"/> · <t t-esc="punch.device"/></span>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>

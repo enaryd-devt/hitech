@@ -488,6 +488,14 @@ $o-pt-bio-ease: cubic-bezier(0.22, 1, 0.36, 1);
     // ------------------------------------------------------------------------
     // Lists
     // ------------------------------------------------------------------------
+    .o_pt_bio_scroll_6 {
+        // Six standard dashboard rows, then a vertical scroll for the rest.
+        max-height: 21rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+
     .o_pt_bio_table {
         margin-bottom: 0;
 

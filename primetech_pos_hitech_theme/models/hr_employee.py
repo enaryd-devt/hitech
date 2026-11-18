@@ -27,7 +27,11 @@ class HrEmployee(models.Model):
         employees = self.browse([item["id"] for item in result["data"]]).exists()
         roles_by_employee = {}
         for employee in employees:
-            if employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_cashier"):
+            # POS employee profiles may deliberately exist without a linked
+            # Odoo user.  Do not call ``has_group`` on an empty res.users().
+            if not employee.user_id:
+                roles_by_employee[employee.id] = "cashier"
+            elif employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_cashier"):
                 roles_by_employee[employee.id] = "cashier"
             elif employee.user_id.has_group("primetech_pos_hitech_theme.group_pos_seller"):
                 roles_by_employee[employee.id] = "seller"
